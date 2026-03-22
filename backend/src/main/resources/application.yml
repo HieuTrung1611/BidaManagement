@@ -1,0 +1,50 @@
+spring:
+    config:
+        import: optional:file:.env[.properties]
+
+    application:
+        name: ${APP_NAME}
+
+    devtools:
+        restart:
+            enabled: false
+
+    output:
+        ansi:
+            enabled: ALWAYS
+
+    datasource:
+        url: ${SPRING_DATASOURCE_URL}
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
+
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: false
+
+    servlet:
+        multipart:
+            enabled: true
+            resolve-lazily: true
+            max-file-size: 100MB
+            max-request-size: 100MB
+
+            # qc:
+            #   host: smtp.gmail.com
+            #   port: 587
+            #   username: qc@gmail.com
+            #   password: app_password_2
+            # kt:
+            #   host: smtp.gmail.com
+            #   port: 587
+            #   username: kt@gmail.com
+            #   password: app_password_3
+
+server:
+    port: ${SERVER_PORT}
+    servlet:
+        context-path: /api
+jwt:
+    secret: ${JWT_SECRET}
+    expiration: 86400000

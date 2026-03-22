@@ -1,0 +1,100 @@
+package com.mhbilliards.billiards_management.service.tableBilliards;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardRequest;
+import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardResponse;
+import com.mhbilliards.billiards_management.entity.TableBilliard;
+import com.mhbilliards.billiards_management.repository.BranchRepository;
+import com.mhbilliards.billiards_management.repository.TableBilliardRepository;
+import com.mhbilliards.billiards_management.repository.TableBilliardTypeRepository;
+import com.mhbilliards.billiards_management.repository.TableBilliardZoneRepository;
+import com.mhbilliards.billiards_management.service.branch.BranchServiceImpl;
+import com.mhbilliards.billiards_management.service.tableBilliardType.TableBilliardTypeServiceImpl;
+import com.mhbilliards.billiards_management.service.tableBilliardZone.TableBilliardZoneServiceImpl;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class TableBilliardServiceImpl implements TableBilliardService {
+    private final TableBilliardRepository tableBilliardRepository;
+    private final TableBilliardTypeRepository tableBilliardTypeRepository;
+    private final TableBilliardZoneRepository tableBilliardZoneRepository;
+    private final TableBilliardTypeServiceImpl tableBilliardTypeService;
+    private final BranchRepository branchRepository;
+    private final TableBilliardZoneServiceImpl tableBilliardZoneService;
+    private final BranchServiceImpl branchService;
+
+    private TableBilliardResponse mapToResponse(TableBilliard tableBilliard) {
+        return TableBilliardResponse.builder()
+                .id(tableBilliard.getId())
+                .name(tableBilliard.getName())
+                .type(tableBilliardTypeService.mapToResponse(tableBilliard.getType()))
+                .zone(tableBilliardZoneService.mapToResponse(tableBilliard.getZone()))
+                .branch(branchService.mapToResponse(tableBilliard.getBranch()))
+                .build();
+    }
+
+    private TableBilliard mapToEntity(TableBilliardRequest request) {
+        return TableBilliard.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .type(tableBilliardTypeRepository.getReferenceById(request.getTypeId()))
+                .branch(branchRepository.getReferenceById(request.getBranchId()))
+                .zone(tableBilliardZoneRepository.getReferenceById(request.getZoneId()))
+                .build();
+    }
+
+    @Override
+    public TableBilliardResponse createTableBilliard(TableBilliardRequest request) {
+        if (tableBilliardRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException(
+                    "Table billiard with name " + request.getName() + " already exists");
+        }
+
+        TableBilliard tableBilliard = mapToEntity(request);
+        tableBilliard = tableBilliardRepository.save(tableBilliard);
+        return mapToResponse(tableBilliard);
+    }
+
+    @Override
+    public TableBilliardResponse updateTableBilliard(Long id, TableBilliardRequest request) {
+        TableBilliard tableBilliard = tableBilliardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
+        if (!tableBilliard.getName().equals(request.getName())
+                && tableBilliardRepository.existsByName(request.getName())) {
+            throw new IllegalArgumentException(
+                    "Table billiard with name " + request.getName() + " already exists");
+        }
+        tableBilliard.setName(request.getName());
+        tableBilliard.setDescription(request.getDescription());
+        tableBilliard.setType(tableBilliardTypeRepository.getReferenceById(request.getTypeId()));
+        tableBilliard.setBranch(branchRepository.getReferenceById(request.getBranchId()));
+        tableBilliard.setZone(tableBilliardZoneRepository.getReferenceById(request.getZoneId()));
+        tableBilliard = tableBilliardRepository.save(tableBilliard);
+        return mapToResponse(tableBilliard);
+    }
+
+    @Override
+    public TableBilliardResponse getTableBilliardById(Long id) {
+        TableBilliard tableBilliard = tableBilliardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
+        return mapToResponse(tableBilliard);
+    }
+
+    @Override
+    public Page<TableBilliardResponse> getAllTableBilliards(Pageable pageable) {
+        return tableBilliardRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Override
+    public void deleteTableBilliard(Long id) {
+        TableBilliard tableBilliard = tableBilliardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
+        tableBilliardRepository.delete(tableBilliard);
+    }
+
+}
