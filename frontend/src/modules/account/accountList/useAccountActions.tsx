@@ -1,3 +1,4 @@
+import { getUserRoleColor, getUserRoleName } from "@/constants/userRoles";
 import { IAccountResponse } from "@/types/account";
 import { ColumnDef } from "@tanstack/react-table";
 import Badge from "../../../components/ui/badge/Badge";
@@ -11,7 +12,6 @@ import {
     ToggleRight,
 } from "lucide-react";
 import { useAccount } from "@/hooks/useAccount";
-import { USERROLE } from "@/types/account";
 import AccountDetail from "./AccountDetail";
 
 export const useAccountActions = () => {
@@ -32,36 +32,6 @@ export const useAccountActions = () => {
         setIsDetailOpen(false);
         setSelectedAccountId(null);
     }, []);
-
-    const getRoleColor = (role: USERROLE) => {
-        switch (role) {
-            case USERROLE.ADMIN:
-                return "error";
-            case USERROLE.MANAGER:
-                return "warning";
-            case USERROLE.ACCOUNTANT:
-                return "info";
-            case USERROLE.EMPLOYEE:
-                return "success";
-            default:
-                return "light";
-        }
-    };
-
-    const getRoleName = (role: USERROLE) => {
-        switch (role) {
-            case USERROLE.ADMIN:
-                return "Quản trị viên";
-            case USERROLE.MANAGER:
-                return "Quản lý";
-            case USERROLE.ACCOUNTANT:
-                return "Kế toán";
-            case USERROLE.EMPLOYEE:
-                return "Nhân viên";
-            default:
-                return role;
-        }
-    };
 
     const columns = useMemo<ColumnDef<IAccountResponse>[]>(
         () => [
@@ -99,10 +69,10 @@ export const useAccountActions = () => {
                 header: "Vai trò",
                 size: 150,
                 cell: ({ row }) => {
-                    const role = row.getValue("role") as USERROLE;
+                    const role = row.getValue("role") as string;
                     return (
-                        <Badge color={getRoleColor(role)} variant="light">
-                            {getRoleName(role)}
+                        <Badge color={getUserRoleColor(role)} variant="light">
+                            {getUserRoleName(role)}
                         </Badge>
                     );
                 },

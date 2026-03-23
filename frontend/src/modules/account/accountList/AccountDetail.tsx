@@ -9,9 +9,12 @@ import {
     DrawerFooter,
 } from "@/components/ui/drawer";
 import Button from "@/components/ui/button/Button";
-import { IAccountDetailsResponse, USERROLE } from "@/types/account";
+import { getUserRoleColor, getUserRoleName } from "@/constants/userRoles";
+import { IAccountDetailsResponse } from "@/types/account";
 import { X } from "lucide-react";
 import Badge from "@/components/ui/badge/Badge";
+import { TimelineRow } from "@/components/common/TimeLineRow";
+import { formatDate } from "@/utils/date";
 
 interface AccountDetailProps {
     isOpen: boolean;
@@ -27,46 +30,6 @@ const AccountDetail: React.FC<AccountDetailProps> = ({
     isLoading = false,
 }) => {
     if (!account) return null;
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("vi-VN", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
-
-    const getRoleColor = (role: USERROLE) => {
-        switch (role) {
-            case USERROLE.ADMIN:
-                return "primary";
-            case USERROLE.MANAGER:
-                return "warning";
-            case USERROLE.ACCOUNTANT:
-                return "info";
-            case USERROLE.EMPLOYEE:
-                return "success";
-            default:
-                return "light";
-        }
-    };
-
-    const getRoleName = (role: USERROLE) => {
-        switch (role) {
-            case USERROLE.ADMIN:
-                return "Quản trị viên";
-            case USERROLE.MANAGER:
-                return "Quản lý";
-            case USERROLE.ACCOUNTANT:
-                return "Kế toán";
-            case USERROLE.EMPLOYEE:
-                return "Nhân viên";
-            default:
-                return role;
-        }
-    };
 
     return (
         <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
@@ -122,9 +85,9 @@ const AccountDetail: React.FC<AccountDetailProps> = ({
                                 </label>
                                 <div className="px-3 py-2">
                                     <Badge
-                                        color={getRoleColor(account.role)}
+                                        color={getUserRoleColor(account.role)}
                                         variant="light">
-                                        {getRoleName(account.role)}
+                                        {getUserRoleName(account.role)}
                                     </Badge>
                                 </div>
                             </div>
@@ -148,25 +111,18 @@ const AccountDetail: React.FC<AccountDetailProps> = ({
                                 </div>
                             </div>
 
-                            {account.createdAt && (
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Ngày tạo
-                                    </label>
-                                    <div className="text-sm px-3 py-2 bg-background border rounded select-text cursor-text">
-                                        {formatDate(account.createdAt)}
-                                    </div>
-                                </div>
-                            )}
-
-                            {account.updatedAt && (
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Cập nhật lần cuối
-                                    </label>
-                                    <div className="text-sm px-3 py-2 bg-background border rounded select-text cursor-text">
-                                        {formatDate(account.updatedAt)}
-                                    </div>
+                            {(account.createdAt || account.updatedAt) && (
+                                <div className="mt-4 space-y-4 border-l pl-6">
+                                    <TimelineRow
+                                        key={"Ngày tạo"}
+                                        label="Ngày tạo"
+                                        value={formatDate(account.createdAt)}
+                                    />
+                                    <TimelineRow
+                                        key={"Cập nhật lần cuối"}
+                                        label="Cập nhật lần cuối"
+                                        value={formatDate(account.updatedAt)}
+                                    />
                                 </div>
                             )}
                         </div>

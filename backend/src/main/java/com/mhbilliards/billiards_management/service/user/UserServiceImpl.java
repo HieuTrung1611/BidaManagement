@@ -106,6 +106,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDetaiResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        return convertToDetailResponse(user);
+    }
+
+    @Override
     public List<UserResponse> getAllUsers(String keyword) {
         List<User> users = userRepository.findAll(UserSpecification.hasKeyword(keyword));
         return users.stream()

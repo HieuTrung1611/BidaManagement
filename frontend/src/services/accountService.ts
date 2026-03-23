@@ -24,6 +24,13 @@ const accountService = {
         return res.data;
     },
 
+    getUserByUsername: async (
+        username: string,
+    ): Promise<ApiResponse<IAccountDetailsResponse>> => {
+        const res = await axiosClient.get(`${API_URL}/by-username/${username}`);
+        return res.data;
+    },
+
     createUser: async (req: IAccountRequest): Promise<ApiResponse<null>> => {
         const res = await axiosClient.post(API_URL, req);
         return res.data;

@@ -9,7 +9,17 @@ const getAccountByIdFetcher = async (
 ): Promise<IAccountDetailsResponse> => {
     const res = await accountService.getUserById(id);
     if (!res.data) {
-        throw new Error(`Account not found or data is missing.`);
+        throw new Error(`Người dùng không tồn tại.`);
+    }
+    return res.data;
+};
+
+const getAccountByUsernameFetcher = async (
+    username: string,
+): Promise<IAccountDetailsResponse> => {
+    const res = await accountService.getUserByUsername(username);
+    if (!res.data) {
+        throw new Error(`Người dùng không tồn tại.`);
     }
     return res.data;
 };
@@ -31,6 +41,26 @@ export const useAccount = (id?: number) => {
     const { data, error, isLoading, mutate } = useSWR<IAccountDetailsResponse>(
         shouldFetch ? `/users/${id}` : null,
         () => getAccountByIdFetcher(id!),
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false,
+        },
+    );
+
+    return {
+        account: data,
+        isLoading,
+        isError: error,
+        mutate,
+    };
+};
+
+export const useAccountByUsername = (username?: string) => {
+    const shouldFetch = username !== undefined;
+
+    const { data, error, isLoading, mutate } = useSWR<IAccountDetailsResponse>(
+        shouldFetch ? `/users/by-username/${username}` : null,
+        () => getAccountByUsernameFetcher(username!),
         {
             revalidateOnFocus: false,
             shouldRetryOnError: false,

@@ -11,6 +11,8 @@ import {
 import Button from "@/components/ui/button/Button";
 import { IEmployeePositionResponse } from "@/types/employeePosition";
 import { X } from "lucide-react";
+import { TimelineRow } from "@/components/common/TimeLineRow";
+import { formatDate } from "@/utils/date";
 
 interface EmployeePositionDetailProps {
     isOpen: boolean;
@@ -26,16 +28,6 @@ const EmployeePositionDetail: React.FC<EmployeePositionDetailProps> = ({
     isLoading = false,
 }) => {
     if (!employeePosition) return null;
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("vi-VN", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("vi-VN", {
@@ -105,24 +97,6 @@ const EmployeePositionDetail: React.FC<EmployeePositionDetailProps> = ({
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium text-muted-foreground">
-                                    Ngày tạo
-                                </label>
-                                <div className="text-sm px-3 py-2 bg-background border rounded select-text cursor-text">
-                                    {formatDate(employeePosition.createdAt)}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    Ngày cập nhật
-                                </label>
-                                <div className="text-sm px-3 py-2 bg-background border rounded select-text cursor-text">
-                                    {formatDate(employeePosition.updatedAt)}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium text-muted-foreground">
                                     Người tạo
                                 </label>
                                 <div className="text-sm px-3 py-2 bg-background border rounded select-text cursor-text">
@@ -138,6 +112,26 @@ const EmployeePositionDetail: React.FC<EmployeePositionDetailProps> = ({
                                     {employeePosition.updatedBy}
                                 </div>
                             </div>
+
+                            {(employeePosition.createdAt ||
+                                employeePosition.updatedAt) && (
+                                <div className="mt-4 space-y-4 border-l pl-6">
+                                    <TimelineRow
+                                        key={"Ngày tạo"}
+                                        label="Ngày tạo"
+                                        value={formatDate(
+                                            employeePosition.createdAt,
+                                        )}
+                                    />
+                                    <TimelineRow
+                                        key={"Cập nhật lần cuối"}
+                                        label="Cập nhật lần cuối"
+                                        value={formatDate(
+                                            employeePosition.updatedAt,
+                                        )}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

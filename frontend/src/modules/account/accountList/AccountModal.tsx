@@ -101,22 +101,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <Label htmlFor="username">
-                        Tên đăng nhập <span className="text-red-500">*</span>
+                        Tên đăng nhập
+                        {!initialData && (
+                            <span className="text-red-500">*</span>
+                        )}
                     </Label>
                     <Input
                         id="username"
                         name="username"
                         type="text"
+                        disabled={!!initialData} // Disable username field when editing
                         value={formData.username}
                         onChange={handleChange}
                         placeholder="Nhập tên đăng nhập..."
                         error={!!errors.username}
                     />
-                    {errors.username && (
-                        <p className="mt-1 text-xs text-red-500">
-                            {errors.username}
-                        </p>
-                    )}
                 </div>
 
                 <div>

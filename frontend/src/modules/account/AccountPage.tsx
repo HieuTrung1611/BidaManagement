@@ -11,12 +11,13 @@ import {
     TabsTrigger,
 } from "../../components/ui/tabs";
 import AccountListTabs from "./accountList/AccountListTabs";
+import AccountCurrentDetailTab from "./accountCurrentDetail/AccountCurrentDetailTab";
 
 const ACCOUNT_TABS = [
     {
         value: "profile",
         label: "Thông tin cá nhân",
-        content: <div>Thông tin cá nhân</div>,
+        content: <AccountCurrentDetailTab />,
     },
     {
         value: "list-accounts",

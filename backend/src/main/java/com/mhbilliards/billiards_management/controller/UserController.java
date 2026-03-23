@@ -59,6 +59,12 @@ public class UserController {
         return ResponseUtil.success(response, "Get user information successfully");
     }
 
+    @GetMapping("/by-username/{username}")
+    public ResponseEntity<ApiResponse<UserDetaiResponse>> getUserByUsername(@PathVariable String username) {
+        UserDetaiResponse response = userService.getUserByUsername(username);
+        return ResponseUtil.success(response, "Get user information successfully");
+    }
+
     @PatchMapping("/{id}/toggle-activation")
     public ResponseEntity<ApiResponse<Void>> toggleUserActivation(@PathVariable Long id) {
         userService.toggleUserActivation(id);

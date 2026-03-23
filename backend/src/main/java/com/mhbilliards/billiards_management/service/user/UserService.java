@@ -16,6 +16,8 @@ public interface UserService {
 
     UserDetaiResponse getUserById(Long id);
 
+    UserDetaiResponse getUserByUsername(String username);
+
     List<UserResponse> getAllUsers(String keyword);
 
     void toggleUserActivation(Long id);
