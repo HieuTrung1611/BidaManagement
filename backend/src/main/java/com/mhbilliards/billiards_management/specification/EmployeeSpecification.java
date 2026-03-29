@@ -21,4 +21,14 @@ public class EmployeeSpecification {
                     cb.like(root.get("id").as(String.class), likePattern));
         };
     }
+
+    public static Specification<Employee> hasBranchId(Long branchId) {
+        return (root, query, cb) -> {
+            if (branchId == null) {
+                return cb.conjunction();
+            }
+
+            return cb.equal(root.get("branch").get("id"), branchId);
+        };
+    }
 }

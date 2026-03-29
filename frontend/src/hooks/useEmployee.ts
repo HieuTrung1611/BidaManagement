@@ -15,9 +15,14 @@ const getEmployeeByIdFetcher = async (
 
 const getEmployeesFetcher = async (
     keyword: string,
+    branchId: number | null | undefined,
     params: PaginationParams,
 ) => {
-    const res = await employeeService.getAllEmployees(keyword, params);
+    const res = await employeeService.getAllEmployees(
+        keyword,
+        branchId,
+        params,
+    );
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách nhân viên");
     }
@@ -44,17 +49,22 @@ export const useEmployee = (id?: number) => {
     };
 };
 
-export const useEmployees = (keyword: string, params: PaginationParams) => {
+export const useEmployees = (
+    keyword: string,
+    params: PaginationParams,
+    branchId?: number,
+) => {
     const { data, error, isLoading, mutate } = useSWR(
         [
             "/employees",
             keyword,
+            branchId,
             params.page,
             params.size,
             params.sortBy,
             params.sortDirection,
         ],
-        () => getEmployeesFetcher(keyword, params),
+        () => getEmployeesFetcher(keyword, branchId, params),
         {
             revalidateOnFocus: false,
             shouldRetryOnError: false,

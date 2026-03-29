@@ -34,7 +34,7 @@ public class TableBilliardServiceImpl implements TableBilliardService {
                 .name(tableBilliard.getName())
                 .type(tableBilliardTypeService.mapToResponse(tableBilliard.getType()))
                 .zone(tableBilliardZoneService.mapToResponse(tableBilliard.getZone()))
-                .branch(branchService.mapToResponse(tableBilliard.getBranch()))
+
                 .build();
     }
 

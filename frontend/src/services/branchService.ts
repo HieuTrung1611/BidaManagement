@@ -1,4 +1,9 @@
-import { IBranchRequest, IBranchResponse } from "@/types/branch";
+import {
+    IBranchCreationRequest,
+    IBranchDetailResponse,
+    IBranchResponse,
+    IBranchUpdationRequest,
+} from "@/types/branch";
 import axiosClient from "./axiosClient";
 import { ApiResponse, PageResponse, PaginationParams } from "@/types/base";
 
@@ -6,15 +11,15 @@ const API_URL = "/branches";
 
 const branchService = {
     createBranch: async (
-        req: IBranchRequest,
+        data: IBranchCreationRequest,
         images?: File[],
     ): Promise<ApiResponse<null>> => {
         const formData = new FormData();
 
         // Append branch data as JSON blob
         formData.append(
-            "req",
-            new Blob([JSON.stringify(req)], { type: "application/json" }),
+            "data",
+            new Blob([JSON.stringify(data)], { type: "application/json" }),
         );
 
         // Append images if provided
@@ -33,15 +38,15 @@ const branchService = {
     },
     updateBranchById: async (
         id: number,
-        req: IBranchRequest,
+        data: IBranchUpdationRequest,
         images?: File[],
     ): Promise<ApiResponse<null>> => {
         const formData = new FormData();
 
         // Append branch data as JSON blob
         formData.append(
-            "req",
-            new Blob([JSON.stringify(req)], { type: "application/json" }),
+            "data",
+            new Blob([JSON.stringify(data)], { type: "application/json" }),
         );
 
         // Append images if provided
@@ -58,9 +63,9 @@ const branchService = {
         });
         return res.data;
     },
-    getBracnhById: async (
+    getBranchById: async (
         id: number,
-    ): Promise<ApiResponse<IBranchResponse>> => {
+    ): Promise<ApiResponse<IBranchDetailResponse>> => {
         const res = await axiosClient.get(`${API_URL}/${id}`);
         return res.data;
     },

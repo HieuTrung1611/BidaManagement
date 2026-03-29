@@ -2,14 +2,13 @@ package com.mhbilliards.billiards_management.service.employee;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.mhbilliards.billiards_management.dto.employee.EmployeeDetailResponse;
 import com.mhbilliards.billiards_management.dto.employee.EmployeeRequest;
 import com.mhbilliards.billiards_management.dto.employee.EmployeeResponse;
-import com.mhbilliards.billiards_management.dto.employeePosition.EmployeePositionResponse;
 import com.mhbilliards.billiards_management.entity.Employee;
-import com.mhbilliards.billiards_management.entity.EmployeePosition;
+import com.mhbilliards.billiards_management.mapper.EmployeeMapper;
 import com.mhbilliards.billiards_management.repository.EmployeePositionRepository;
 import com.mhbilliards.billiards_management.repository.EmployeeRepository;
 import com.mhbilliards.billiards_management.specification.EmployeeSpecification;
@@ -22,55 +21,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeePositionRepository employeePositionRepository;
-
-    private EmployeePositionResponse convertEmployeePosition(EmployeePosition position) {
-        return EmployeePositionResponse.builder()
-                .id(position.getId())
-                .name(position.getName())
-                .code(position.getCode())
-                .hourlyRate(position.getHourlyRate())
-
-                .build();
-    }
-
-    private EmployeeResponse convertToResponse(Employee employee) {
-        return EmployeeResponse.builder()
-                .id(employee.getId())
-                .name(employee.getName())
-                .email(employee.getEmail())
-                .phoneNumber(employee.getPhoneNumber())
-                .dob(employee.getDob())
-                .address(employee.getAddress())
-                .position(convertEmployeePosition(employee.getPosition()))
-                .build();
-    }
-
-    private EmployeeDetailResponse convertToDetailResponse(Employee employee) {
-        return EmployeeDetailResponse.builder()
-                .id(employee.getId())
-                .name(employee.getName())
-                .email(employee.getEmail())
-                .phoneNumber(employee.getPhoneNumber())
-                .dob(employee.getDob())
-                .address(employee.getAddress())
-                .createdAt(employee.getCreatedAt())
-                .updatedAt(employee.getUpdatedAt())
-                .createdBy(employee.getCreatedBy())
-                .updatedBy(employee.getUpdatedBy())
-                .position(convertEmployeePosition(employee.getPosition()))
-                .build();
-    }
-
-    private Employee convertToEntity(EmployeeRequest request) {
-        return Employee.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .dob(request.getDob())
-                .address(request.getAddress())
-                .position(employeePositionRepository.getReferenceById(request.getPositionId()))
-                .build();
-    }
+    private final EmployeeMapper employeeMapper;
 
     @Override
     public EmployeeResponse createEmployee(EmployeeRequest request) {
@@ -81,9 +32,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new RuntimeException("Phone number already exists");
         }
 
-        Employee employee = convertToEntity(request);
+        Employee employee = employeeMapper.toEntity(request);
         Employee savedEmployee = employeeRepository.save(employee);
-        return convertToResponse(savedEmployee);
+        return employeeMapper.toResponse(savedEmployee);
     }
 
     @Override
@@ -99,14 +50,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new RuntimeException("Phone number already exists");
         }
 
-        employee.setName(request.getName());
-        employee.setEmail(request.getEmail());
-        employee.setPhoneNumber(request.getPhoneNumber());
-        employee.setDob(request.getDob());
-        employee.setAddress(request.getAddress());
-        employee.setPosition(employeePositionRepository.getReferenceById(request.getPositionId()));
+        employeeMapper.updateEntity(request, employee);
         Employee updatedEmployee = employeeRepository.save(employee);
-        return convertToResponse(updatedEmployee);
+        return employeeMapper.toResponse(updatedEmployee);
     }
 
     @Override
@@ -118,16 +64,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeDetailResponse getEmployeeById(Long id) {
+    public EmployeeResponse getEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
-        return convertToDetailResponse(employee);
+        return employeeMapper.toResponse(employee);
     }
 
     @Override
-    public Page<EmployeeResponse> getAllEmployees(String keyword, Pageable pageable) {
-        Page<Employee> employees = employeeRepository.findAll(EmployeeSpecification.hasKeyword(keyword), pageable);
-        return employees.map(this::convertToResponse);
+    public Page<EmployeeResponse> getAllEmployees(String keyword, Long branchId, Pageable pageable) {
+        Specification<Employee> specification = Specification
+                .where(EmployeeSpecification.hasKeyword(keyword))
+                .and(EmployeeSpecification.hasBranchId(branchId));
+
+        Page<Employee> employees = employeeRepository.findAll(specification, pageable);
+        return employees.map(employeeMapper::toResponse);
     }
 
 }

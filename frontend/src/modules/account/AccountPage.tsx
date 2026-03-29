@@ -12,6 +12,7 @@ import {
 } from "../../components/ui/tabs";
 import AccountListTabs from "./accountList/AccountListTabs";
 import AccountCurrentDetailTab from "./accountCurrentDetail/AccountCurrentDetailTab";
+import QueryTabs from "@/components/common/QueryTabs";
 
 const ACCOUNT_TABS = [
     {
@@ -32,45 +33,7 @@ const ACCOUNT_TABS = [
 ];
 
 const AccountPage = () => {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const [activeTab, setActiveTab] = React.useState("profile");
-
-    useEffect(() => {
-        const tabParam = searchParams.get("tab");
-        if (tabParam && ACCOUNT_TABS.some((tab) => tab.value === tabParam)) {
-            setActiveTab(tabParam);
-        }
-    }, [searchParams]);
-
-    const handleTabChange = (tabValue: string) => {
-        setActiveTab(tabValue);
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("tab", tabValue);
-        router.replace(`?${params.toString()}`, {
-            scroll: false,
-        });
-    };
-
-    return (
-        <Tabs
-            value={activeTab}
-            onValueChange={handleTabChange}
-            className="w-full">
-            <TabsList>
-                {ACCOUNT_TABS.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value}>
-                        {tab.label}
-                    </TabsTrigger>
-                ))}
-            </TabsList>
-            {ACCOUNT_TABS.map((tab) => (
-                <TabsContent key={tab.value} value={tab.value}>
-                    {tab.content}
-                </TabsContent>
-            ))}
-        </Tabs>
-    );
+    return <QueryTabs tabs={ACCOUNT_TABS} defaultTab="profile" />;
 };
 
 export default AccountPage;

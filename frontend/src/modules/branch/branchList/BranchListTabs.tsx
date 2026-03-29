@@ -1,25 +1,20 @@
-import React from "react";
-import { AxiosError } from "axios";
-import { PaginationState } from "@tanstack/react-table";
+"use client";
 
-import { useEmployeeColumns, renderEmployeeActions } from "./useEmployeeAction";
-import { EmployeeModal } from "./EmployeeModal";
-import { useEmployees } from "@/hooks/useEmployee";
-import { useEmployeePositionsByKeyword } from "@/hooks/useEmployeePosition";
-import { useCrudActions } from "@/hooks/useCrudActions";
-import employeeService from "@/services/employeeService";
-import { IEmployeeRequest, IEmployeeResponse } from "@/types/employee";
+import React from "react";
+import { PaginationState } from "@tanstack/react-table";
+import { AxiosError } from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InputSearch from "@/components/common/InputSearch";
 import Button from "@/components/ui/button/Button";
 import { DataTable } from "@/components/ui/table/DataTable";
-import { useBranches, useBranchesByKeyword } from "@/hooks/useBranch";
+import { useBranchesByKeyword } from "@/hooks/useBranch";
+import { useCrudActions } from "@/hooks/useCrudActions";
+import branchService from "@/services/branchService";
+import { IBranchResponse } from "@/types/branch";
+import { BranchModal, BranchFormData } from "./BranchModal";
+import { renderBranchActions, useBranchActions } from "./useBranchAction";
 
-interface EmployeeListTabProps {
-    branchId?: number;
-}
-
-const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
+const BranchListTabs = () => {
     const [keyword, setKeyword] = React.useState("");
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
@@ -30,11 +25,8 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     }, [keyword]);
 
-    const { employeePositions } = useEmployeePositionsByKeyword("");
-    const { branches } = useBranches();
-
     const {
-        employees,
+        branches,
         pageNumber,
         pageSize,
         totalElements,
@@ -42,18 +34,14 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
         isLoading,
         isError,
         mutate,
-    } = useEmployees(
-        keyword,
-        {
-            page: pagination.pageIndex,
-            size: pagination.pageSize,
-            sortBy: "createdAt",
-            sortDirection: "asc",
-        },
-        branchId,
-    );
+    } = useBranchesByKeyword(keyword, {
+        page: pagination.pageIndex,
+        size: pagination.pageSize,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+    });
 
-    const { columns, DetailDrawer } = useEmployeeColumns();
+    const { columns } = useBranchActions();
 
     const {
         modalState,
@@ -66,13 +54,27 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
         handleConfirmDelete,
         closeDeleteConfirm,
         fieldErrors,
-    } = useCrudActions<IEmployeeRequest, IEmployeeResponse, number>({
+    } = useCrudActions<BranchFormData, IBranchResponse, number>({
         onSuccess: mutate,
         service: {
-            create: employeeService.createEmployee,
-            update: employeeService.updateEmployee,
-            remove: employeeService.deleteEmployee,
-            getId: (employee) => employee.id,
+            create: (data) => {
+                const { images, ...payload } = data;
+                const normalizedImages =
+                    images && images.length > 0 ? images : undefined;
+                return branchService.createBranch(payload, normalizedImages);
+            },
+            update: (id, data) => {
+                const { images, ...payload } = data;
+                const normalizedImages =
+                    images && images.length > 0 ? images : undefined;
+                return branchService.updateBranchById(
+                    id,
+                    payload,
+                    normalizedImages,
+                );
+            },
+            remove: (id) => branchService.deleteBranchById(id),
+            getId: (branch) => branch.id,
         },
         extractErrorMessage: (error) => {
             const axiosError = error as AxiosError<{ message?: string }>;
@@ -83,7 +85,7 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
     return (
         <Card className="min-w-0">
             <CardHeader>
-                <CardTitle>Bảng danh sách nhân viên</CardTitle>
+                <CardTitle>Bảng danh sách chi nhánh</CardTitle>
             </CardHeader>
             <CardContent className="min-w-0">
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between min-w-0">
@@ -97,7 +99,7 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                         size="sm"
                         className="sm:ml-auto shrink-0"
                         onClick={openAddModal}>
-                        Thêm nhân viên
+                        Thêm chi nhánh
                     </Button>
                 </div>
 
@@ -109,10 +111,10 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                     <div className="min-w-0">
                         <DataTable
                             columns={columns}
-                            data={employees}
-                            renderActions={(employee) =>
-                                renderEmployeeActions(
-                                    employee,
+                            data={branches}
+                            renderActions={(branch) =>
+                                renderBranchActions(
+                                    branch,
                                     openEditModal,
                                     openDeleteConfirm,
                                 )
@@ -128,15 +130,13 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                     </div>
                 )}
 
-                <EmployeeModal
+                <BranchModal
                     isOpen={modalState.isModalOpen}
                     onClose={closeModal}
                     onSubmit={handleSubmit}
                     isSubmitting={modalState.isSubmitting}
                     initialData={modalState.editingEntity}
                     errors={fieldErrors}
-                    employeePositions={employeePositions}
-                    branches={branches}
                 />
 
                 {deleteState.isOpen && (
@@ -146,9 +146,10 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                                 Xác nhận xóa
                             </h3>
                             <p className="mb-6 text-gray-600">
-                                Bạn có chắc chắn muốn xóa nhân viên{" "}
+                                Bạn có chắc chắn muốn xóa chi nhánh
                                 <span className="font-medium">
-                                    &quot;{deleteState.entity?.name}&quot;
+                                    {" "}
+                                    "{deleteState.entity?.name}"
                                 </span>
                                 ? Hành động này không thể hoàn tác.
                             </p>
@@ -173,11 +174,9 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                         </div>
                     </div>
                 )}
-
-                <DetailDrawer />
             </CardContent>
         </Card>
     );
 };
 
-export default EmployeeListTab;
+export default BranchListTabs;

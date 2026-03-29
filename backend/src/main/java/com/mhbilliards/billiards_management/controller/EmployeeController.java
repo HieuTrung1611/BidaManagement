@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mhbilliards.billiards_management.dto.employee.EmployeeDetailResponse;
 import com.mhbilliards.billiards_management.dto.employee.EmployeeRequest;
 import com.mhbilliards.billiards_management.dto.employee.EmployeeResponse;
 import com.mhbilliards.billiards_management.service.employee.EmployeeService;
@@ -43,15 +42,17 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> getEmployeeById(@PathVariable Long id) {
-        EmployeeDetailResponse res = employeeService.getEmployeeById(id);
+    public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(@PathVariable Long id) {
+        EmployeeResponse res = employeeService.getEmployeeById(id);
         return ResponseUtil.success(res, "Get employee successfully");
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<EmployeeResponse>>> getAllEmployees(
-            @RequestParam(required = false) String keyword, Pageable pageable) {
-        Page<EmployeeResponse> res = employeeService.getAllEmployees(keyword, pageable);
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long branchId,
+            Pageable pageable) {
+        Page<EmployeeResponse> res = employeeService.getAllEmployees(keyword, branchId, pageable);
         return ResponseUtil.success(res, "Get all employees successfully");
     }
 

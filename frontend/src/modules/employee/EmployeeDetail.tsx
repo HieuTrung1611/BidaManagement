@@ -14,6 +14,7 @@ import { IEmployeePositionResponse } from "@/types/employeePosition";
 import { X } from "lucide-react";
 import { TimelineRow } from "@/components/common/TimeLineRow";
 import { formatDate } from "@/utils/date";
+import Badge from "@/components/ui/badge/Badge";
 
 interface EmployeeDetailProps {
     isOpen: boolean;
@@ -134,14 +135,15 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({
                                 <label className="text-sm font-medium text-muted-foreground">
                                     Vị trí
                                 </label>
-                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
-                                    {employee.position ? (
-                                        employee.position.name
-                                    ) : (
-                                        <span className="text-muted-foreground">
-                                            Chưa có
-                                        </span>
-                                    )}
+
+                                <div className="px-3 py-2">
+                                    <Badge color="info" variant="light">
+                                        {employee.position?.name || (
+                                            <span className="text-muted-foreground">
+                                                Chưa có
+                                            </span>
+                                        )}
+                                    </Badge>
                                 </div>
                             </div>
 

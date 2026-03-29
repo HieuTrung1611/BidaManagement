@@ -12,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown/dropdown-menu";
 import Badge from "@/components/ui/badge/Badge";
+import { IBranchResponse } from "@/types/branch";
 
 export const useEmployeeColumns = () => {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -75,6 +76,19 @@ export const useEmployeeColumns = () => {
                     return (
                         <Badge color="info" variant="light">
                             {position.name}
+                        </Badge>
+                    );
+                },
+            },
+            {
+                accessorKey: "branch",
+                header: "Chi nhánh",
+                size: 220,
+                cell: ({ row }) => {
+                    const branch = row.getValue("branch") as IBranchResponse;
+                    return (
+                        <Badge color="info" variant="light">
+                            {branch?.name ? branch.name : "Chưa có chi nhánh"}
                         </Badge>
                     );
                 },

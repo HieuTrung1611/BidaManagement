@@ -33,4 +33,7 @@ public class EmployeeRequest {
 
     @NotNull(message = "Chức vụ không được để trống")
     Long positionId;
+
+    @NotNull(message = "Chi nhánh không được để trống")
+    Long branchId;
 }

@@ -1,4 +1,5 @@
 import { IBaseResponse } from "./base";
+import { IBranchResponse } from "./branch";
 import { IEmployeePositionResponse } from "./employeePosition";
 
 export interface IEmployeeRequest {
@@ -8,6 +9,7 @@ export interface IEmployeeRequest {
     dob: string;
     address: string;
     positionId: number | null;
+    branchId: number | null;
 }
 
 export interface IEmployeeResponse extends IBaseResponse {
@@ -16,5 +18,6 @@ export interface IEmployeeResponse extends IBaseResponse {
     phoneNumber: string;
     dob: string;
     address: string;
-    position: IEmployeePositionResponse;
+    position: IEmployeePositionResponse | null;
+    branch: IBranchResponse | null;
 }

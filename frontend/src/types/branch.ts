@@ -1,13 +1,29 @@
 import { IBaseResponse } from "./base";
 
-export interface IBranchRequest {
+export interface IBranchCreationRequest {
     name: string;
     address: string;
+    description: string;
 }
 
-export interface IBranchResponse extends IBranchRequest, IBaseResponse {
-    branchImages?: Array<{
-        id: number;
-        imageUrl: string;
-    }>;
+export interface IBranchUpdationRequest {
+    name: string;
+    address: string;
+    description: string;
+    deleteImageIds?: number[]; // Thêm trường này để gửi danh sách ID ảnh cần xóa
 }
+
+export interface IbranchImage {
+    id: number;
+    url: string;
+    publicId: string;
+}
+export interface IBranchResponse extends IBranchCreationRequest {
+    id: number;
+    managerName: string;
+    managerPhoneNumber: string;
+    employeesCount: number;
+    branchImages: IbranchImage[];
+}
+
+export interface IBranchDetailResponse extends IBranchResponse, IBaseResponse {}

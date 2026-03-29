@@ -14,18 +14,13 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BranchRequest {
+public class BranchCreationRequest {
     @NotBlank(message = "Tên chi nhánh không được để trống")
     @Pattern(regexp = "^[\\p{L} ]+$", message = "Tên chi nhánh không hợp lệ")
     String name;
 
-    @NotBlank(message = "Tên chi nhánh không được để trống")
-    @Pattern(regexp = "^[\\p{L} ]+$", message = "Tên chi nhánh không hợp lệ")
+    @NotBlank(message = "Địa chỉ chi nhánh không được để trống")
     String address;
-
-    @NotBlank(message = "Số điện thoại không được để trống")
-    @Pattern(regexp = "^(0|\\+84)(3|5|7|8|9)[0-9]{8}$", message = "Số điện thoại không hợp lệ")
-    String phoneNumber;
 
     String description;
 }

@@ -2,6 +2,7 @@ package com.mhbilliards.billiards_management.dto.employee;
 
 import java.time.LocalDate;
 
+import com.mhbilliards.billiards_management.dto.branch.BranchResponse;
 import com.mhbilliards.billiards_management.dto.employeePosition.EmployeePositionResponse;
 
 import lombok.AccessLevel;
@@ -26,4 +27,5 @@ public class EmployeeResponse {
     LocalDate dob;
     String address;
     EmployeePositionResponse position;
+    BranchResponse branch;
 }

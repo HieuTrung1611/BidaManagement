@@ -8,6 +8,7 @@ import Select from "@/components/ui/form/Select";
 import Button from "@/components/ui/button/Button";
 import { IEmployeeRequest, IEmployeeResponse } from "@/types/employee";
 import { IEmployeePositionResponse } from "@/types/employeePosition";
+import { IBranchResponse } from "@/types/branch";
 
 interface EmployeeModalProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ interface EmployeeModalProps {
     initialData?: IEmployeeResponse | null;
     errors?: Record<string, string>;
     employeePositions: IEmployeePositionResponse[];
+    branches: IBranchResponse[];
 }
 
 export const EmployeeModal: React.FC<EmployeeModalProps> = ({
@@ -27,6 +29,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
     initialData,
     errors = {},
     employeePositions,
+    branches,
 }) => {
     const initialFormData = useMemo<IEmployeeRequest>(
         () => ({
@@ -36,6 +39,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             dob: "",
             address: "",
             positionId: null,
+            branchId: null,
         }),
         [],
     );
@@ -55,6 +59,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 dob: initialData.dob ?? "",
                 address: initialData.address ?? "",
                 positionId: initialData.position?.id ?? null,
+                branchId: initialData.branch?.id ?? null,
             });
             return;
         }
@@ -71,6 +76,15 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         [employeePositions],
     );
 
+    const branchOptions = useMemo(
+        () =>
+            branches.map((branch) => ({
+                value: branch.id.toString(),
+                label: `${branch.name}`,
+            })),
+        [branches],
+    );
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -83,6 +97,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         setFormData((prev) => ({
             ...prev,
             positionId: Number(value) || null,
+        }));
+    };
+
+    const handleBranchChange = (value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            branchId: Number(value) || null,
         }));
     };
 
@@ -209,6 +230,28 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                         {errors.positionId && (
                             <p className="mt-1 text-xs text-red-500">
                                 {errors.positionId}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="branchId">
+                            Chi nhánh <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                            options={branchOptions}
+                            value={
+                                formData.branchId
+                                    ? formData.branchId.toString()
+                                    : ""
+                            }
+                            onChange={handleBranchChange}
+                            placeholder="Chọn chi nhánh"
+                            className="h-10 w-full"
+                        />
+                        {errors.branchId && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.branchId}
                             </p>
                         )}
                     </div>

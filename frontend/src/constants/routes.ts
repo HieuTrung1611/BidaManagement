@@ -28,7 +28,11 @@ const ROUTES = {
     BRANCH: {
         path: "/admin/branches",
         title: "Quản lý chi nhánh",
-        parent: "HOMEADMIN",
+    },
+    BRANCHDETAIL: {
+        path: "/admin/branches/[id]",
+        title: "Chi tiết chi nhánh",
+        parent: "BRANCH",
     },
 };
 

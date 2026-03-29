@@ -8,7 +8,7 @@ const AdminFooter = () => {
             <Link
                 href="https://www.linkedin.com/in/nhat-minh-pham-977776279/"
                 className="ml-1 underline font-semibold hover:text-neutral-900 dark:hover:text-neutral-200">
-                klnvz
+                hieunt
             </Link>
         </div>
     );

@@ -1,5 +1,3 @@
-"use client";
-
 import accountService from "@/services/accountService";
 import { IAccountDetailsResponse, IAccountResponse } from "@/types/account";
 import useSWR from "swr";

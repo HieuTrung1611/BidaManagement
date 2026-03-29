@@ -42,4 +42,8 @@ public class Employee extends BaseEntity {
     @JoinColumn(name = "position_id", nullable = false)
     EmployeePosition position;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    Branch branch;
+
 }

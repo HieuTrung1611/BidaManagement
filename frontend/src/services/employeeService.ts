@@ -26,11 +26,13 @@ const employeeService = {
     },
     getAllEmployees: async (
         keyword: string = "",
+        branchId: number | null | undefined,
         params: PaginationParams,
     ): Promise<ApiResponse<PageResponse<IEmployeeResponse>>> => {
         const res = await axiosClient.get(API_URL, {
             params: {
                 keyword: keyword,
+                branchId: branchId,
                 page: params.page ?? 0,
                 size: params.size ?? 10,
                 sortBy: params.sortBy ?? "createdAt",
