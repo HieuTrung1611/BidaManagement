@@ -72,7 +72,8 @@ public class CurrentUserAccessService {
         }
 
         Employee employee = employeeRepository.findDetailedByEmail(user.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ nhân viên tương ứng với tài khoản quản lý"));
+                .orElseThrow(
+                        () -> new RuntimeException("Không tìm thấy hồ sơ nhân viên tương ứng với tài khoản quản lý"));
 
         if (employee.getPosition() == null || employee.getPosition().getCode() == null
                 || !MANAGER_POSITION_CODE.equalsIgnoreCase(employee.getPosition().getCode())) {

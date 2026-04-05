@@ -20,33 +20,33 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     Optional<Employee> findByEmail(String email);
 
     @Query("""
-        select e
-        from Employee e
-        join fetch e.branch
-        join fetch e.position
-        where e.email = :email
-        """)
+            select e
+            from Employee e
+            join fetch e.branch
+            join fetch e.position
+            where e.email = :email
+            """)
     Optional<Employee> findDetailedByEmail(@Param("email") String email);
 
     @Query("""
-        select e
-        from Employee e
-        join fetch e.branch
-        join fetch e.position
-        where e.id in :ids
-        and e.isActive = true
-        order by e.name asc
-        """)
+            select e
+            from Employee e
+            join fetch e.branch
+            join fetch e.position
+            where e.id in :ids
+            and e.isActive = true
+            order by e.name asc
+            """)
     List<Employee> findAllDetailedByIdIn(@Param("ids") List<Long> ids);
 
     @Query("""
-        select e
-        from Employee e
-        join fetch e.branch
-        join fetch e.position
-        where (:branchId is null or e.branch.id = :branchId)
-        and e.isActive = true
-        order by e.branch.name asc, e.name asc
-        """)
+            select e
+            from Employee e
+            join fetch e.branch
+            join fetch e.position
+            where (:branchId is null or e.branch.id = :branchId)
+            and e.isActive = true
+            order by e.branch.name asc, e.name asc
+            """)
     List<Employee> findActiveEmployeesByBranchId(@Param("branchId") Long branchId);
 }

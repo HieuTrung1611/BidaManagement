@@ -50,14 +50,16 @@ public class SalaryServiceImpl implements SalaryService {
         LocalDate toDate = resolveEndDate(targetMonth);
 
         List<Employee> employees = employeeRepository.findActiveEmployeesByBranchId(accessibleBranchId);
-        List<Attendance> attendances = attendanceRepository.findDetailedByDateRange(fromDate, toDate, accessibleBranchId);
+        List<Attendance> attendances = attendanceRepository.findDetailedByDateRange(fromDate, toDate,
+                accessibleBranchId);
 
         Map<Long, List<Attendance>> attendanceByEmployeeId = attendances.stream()
                 .collect(Collectors.groupingBy(attendance -> attendance.getEmployee().getId(), LinkedHashMap::new,
                         Collectors.toList()));
 
         List<Salary> savedSalaries = employees.stream()
-                .map(employee -> buildAndPersistSalary(employee, targetMonth, attendanceByEmployeeId.get(employee.getId())))
+                .map(employee -> buildAndPersistSalary(employee, targetMonth,
+                        attendanceByEmployeeId.get(employee.getId())))
                 .sorted(Comparator.comparing((Salary salary) -> salary.getEmployee().getBranch().getName())
                         .thenComparing(salary -> salary.getEmployee().getName()))
                 .toList();
@@ -71,7 +73,8 @@ public class SalaryServiceImpl implements SalaryService {
         YearMonth targetMonth = resolveSalaryMonth(salaryMonth);
         Long accessibleBranchId = currentUserAccessService.resolveAccessibleBranchId(branchId);
         List<Salary> salaries = salaryRepository.findDetailedBySalaryMonth(targetMonth.toString(), accessibleBranchId);
-        return buildSummary(salaries, targetMonth, targetMonth.atDay(1), resolveEndDate(targetMonth), accessibleBranchId);
+        return buildSummary(salaries, targetMonth, targetMonth.atDay(1), resolveEndDate(targetMonth),
+                accessibleBranchId);
     }
 
     private Salary buildAndPersistSalary(Employee employee, YearMonth targetMonth, List<Attendance> attendances) {

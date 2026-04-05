@@ -64,14 +64,16 @@ public class AttendanceServiceImpl implements AttendanceService {
         for (Employee employee : employees) {
             currentUserAccessService.assertCanManageEmployee(employee);
             if (!Objects.equals(employee.getBranch().getId(), branchId)) {
-                throw new RuntimeException("Mỗi lần chấm công chỉ được thao tác với nhân viên trong cùng một chi nhánh");
+                throw new RuntimeException(
+                        "Mỗi lần chấm công chỉ được thao tác với nhân viên trong cùng một chi nhánh");
             }
             employeeMap.put(employee.getId(), employee);
         }
 
         for (AttendanceUpsertItemRequest item : items) {
             Employee employee = employeeMap.get(item.getEmployeeId());
-            Attendance attendance = attendanceRepository.findByEmployeeIdAndAttendanceDate(employee.getId(), attendanceDate)
+            Attendance attendance = attendanceRepository
+                    .findByEmployeeIdAndAttendanceDate(employee.getId(), attendanceDate)
                     .orElseGet(() -> Attendance.builder()
                             .employee(employee)
                             .attendanceDate(attendanceDate)
@@ -94,7 +96,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         Long accessibleBranchId = currentUserAccessService.resolveAccessibleBranchId(branchId);
 
         List<Employee> employees = employeeRepository.findActiveEmployeesByBranchId(accessibleBranchId);
-        List<Attendance> attendances = attendanceRepository.findDetailedByAttendanceDate(attendanceDate, accessibleBranchId);
+        List<Attendance> attendances = attendanceRepository.findDetailedByAttendanceDate(attendanceDate,
+                accessibleBranchId);
 
         Map<Long, Attendance> attendanceMap = new HashMap<>();
         for (Attendance attendance : attendances) {
