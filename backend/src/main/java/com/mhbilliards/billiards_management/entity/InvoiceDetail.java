@@ -1,11 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -19,33 +15,29 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "invoice_details")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
-
+public class InvoiceDetail extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "invoice_id", nullable = false)
+    Invoice invoice;
 
-    Double pricePerHour;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    String itemDescription; // Mô tả mục (giờ chơi, dịch vụ, combo...)
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    Branch branch;
+    @Column(nullable = false)
+    Integer quantity;
 
+    @Column(nullable = false)
+    Double unitPrice;
+
+    @Column(nullable = false)
+    Double totalPrice; // = quantity * unitPrice
+
+    String notes;
 }

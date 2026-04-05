@@ -1,6 +1,4 @@
-package com.mhbilliards.billiards_management.dto.tableBilliardType;
-
-import com.mhbilliards.billiards_management.dto.base.BaseResponse;
+package com.mhbilliards.billiards_management.dto.salary;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,10 +14,11 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliardTypeResponse extends BaseResponse {
-    String name;
-    String description;
-    Double costPrice;
-    String supplier;
-    String supplierPhone;
+public class SalaryBranchSummaryResponse {
+    Long branchId;
+    String branchName;
+    Integer employeeCount;
+    Integer totalWorkingDays;
+    Integer totalWorkingHours;
+    Double totalSalary;
 }

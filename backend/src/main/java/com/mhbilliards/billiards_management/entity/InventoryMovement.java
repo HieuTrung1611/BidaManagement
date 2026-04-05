@@ -1,11 +1,9 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -18,34 +16,37 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Entity để quản lý lịch sử thay đổi tồn kho
+ * Theo dõi chi tiết qui những lần thêm/bớt hàng
+ */
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "inventory_movements")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
-
+public class InventoryMovement extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "inventory_id", nullable = false)
+    Inventory inventory;
 
-    Double pricePerHour;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    Integer quantityChange; // Lượng thay đổi (+/-)
+
+    @Column(nullable = false)
+    String movementType; // "IN", "OUT", "ADJUST"
+
+    @Column(nullable = false)
+    LocalDateTime movementDate;
+
+    String reason; // Lý do thay đổi
+
+    String reference; // Tham chiếu (SDT, Hóa đơn, ...)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
-
 }

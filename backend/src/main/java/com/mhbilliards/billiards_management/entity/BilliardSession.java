@@ -1,5 +1,8 @@
 package com.mhbilliards.billiards_management.entity;
 
+import java.time.LocalDateTime;
+
+import com.mhbilliards.billiards_management.enums.SessionStatus;
 import com.mhbilliards.billiards_management.enums.TableStatus;
 
 import jakarta.persistence.Column;
@@ -19,33 +22,43 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "billiard_sessions")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
+public class BilliardSession extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "table_id", nullable = false)
+    TableBilliard table;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "customer_id", nullable = false)
+    Customer customer;
 
-    Double pricePerHour;
+    @Column(nullable = false)
+    LocalDateTime startTime;
+
+    LocalDateTime endTime;
+
+    @Column(nullable = false)
+    @Builder.Default
+    Double durationHours = 0.0; // Thời lượng chơi tính bằng giờ
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    SessionStatus status = SessionStatus.ONGOING;
+
+    @Column(nullable = false)
+    @Builder.Default
+    Double totalAmount = 0.0; // Tổng tiền phát sinh
+
+    String notes;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
-
 }

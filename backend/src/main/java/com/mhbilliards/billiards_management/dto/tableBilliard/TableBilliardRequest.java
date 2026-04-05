@@ -27,6 +27,9 @@ public class TableBilliardRequest {
     @NotNull(message = "Khu vực không được để trống")
     Long zoneId;
 
+    @NotNull(message = "Giá tiền không được để trống")
+    Double pricePerHour;
+
     @NotNull(message = "Chi nhánh không được để trống")
     Long branchId;
 }

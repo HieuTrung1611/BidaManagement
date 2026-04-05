@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
+  <diagram id="activity-billiard" name="Activity Diagram">
+    <mxGraphModel dx="2194" dy="2275" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" value="Start" vertex="1">
+          <mxGeometry height="80" width="80" x="60" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="login" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Nhân viên đăng nhập" vertex="1">
+          <mxGeometry height="50" width="180" x="180" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="choose" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Chọn chức năng" vertex="1">
+          <mxGeometry height="64" width="140" x="420" y="68" as="geometry" />
+        </mxCell>
+        <mxCell id="openSession" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Mở phiên chơi" vertex="1">
+          <mxGeometry height="46" width="160" x="410" y="-200" as="geometry" />
+        </mxCell>
+        <mxCell id="attend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Chấm công" vertex="1">
+          <mxGeometry height="46" width="160" x="670" y="-100" as="geometry" />
+        </mxCell>
+        <mxCell id="salary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Tính lương" vertex="1">
+          <mxGeometry height="46" width="160" x="560" y="224" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Quản lý tồn kho" vertex="1">
+          <mxGeometry height="46" width="160" x="410" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="selectTable" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Chọn bàn và kiểm tra trạng thái" vertex="1">
+          <mxGeometry height="50" width="220" x="640" y="-330" as="geometry" />
+        </mxCell>
+        <mxCell id="createSession" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Tạo BilliardSession\n(startTime, table, customer, branch)" vertex="1">
+          <mxGeometry height="60" width="260" x="940" y="-335" as="geometry" />
+        </mxCell>
+        <mxCell id="addService" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Thêm SessionService\n(quantity, price, totalAmount)" vertex="1">
+          <mxGeometry height="60" width="240" x="1280" y="-320" as="geometry" />
+        </mxCell>
+        <mxCell id="addCombo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Thêm SessionCombo\n(quantity, price, totalAmount)" vertex="1">
+          <mxGeometry height="60" width="240" x="1660" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="updateStock" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Cập nhật Inventory + InventoryMovement" vertex="1">
+          <mxGeometry height="54" width="240" x="1700" y="-80" as="geometry" />
+        </mxCell>
+        <mxCell id="closeSession" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Kết thúc phiên: endTime, durationHours\nTable status = AVAILABLE" vertex="1">
+          <mxGeometry height="60" width="280" x="1250" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="calcInvoice" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Tính tiền: giờ chơi + combo + service + phụ thu\ntrừ giảm giá theo CustomerRank/DiscountPolicy" vertex="1">
+          <mxGeometry height="70" width="340" x="890" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="createInvoice" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Tạo Invoice + InvoiceDetail\nstatus = PAID" vertex="1">
+          <mxGeometry height="54" width="220" x="1340" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="attendanceFlow" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Tạo Attendance\n(employee, date, status, workingHours)" vertex="1">
+          <mxGeometry height="54" width="250" x="920" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="salaryFlow" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Tổng hợp Attendance theo tháng\nTạo Salary" vertex="1">
+          <mxGeometry height="54" width="250" x="780" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="inventoryFlow" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Nhập/Xuất kho\nCập nhật InventoryMovement" vertex="1">
+          <mxGeometry height="54" width="250" x="365" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" value="End" vertex="1">
+          <mxGeometry height="80" width="80" x="1590" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" target="login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="login" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="choose">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="choose" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="openSession" value="Mở phiên">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="choose" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="attend" value="Chấm công">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="choose" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="salary" value="Tính lương">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="choose" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="inventory" value="Kho">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="openSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="selectTable">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="selectTable" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="createSession">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="createSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="addService" value="Thêm service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="createSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="addCombo" value="Thêm combo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="addService" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="updateStock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="addCombo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="closeSession">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="updateStock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="closeSession">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="closeSession" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="calcInvoice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="calcInvoice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="createInvoice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="createInvoice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="attend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="attendanceFlow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="salary" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="salaryFlow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="inventory" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="inventoryFlow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="attendanceFlow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="salaryFlow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="inventoryFlow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,6 +1,8 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
+import java.time.LocalDate;
+
+import com.mhbilliards.billiards_management.enums.AttendanceStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,33 +21,28 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "attendances")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
-
+public class Attendance extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "employee_id", nullable = false)
+    Employee employee;
 
-    Double pricePerHour;
+    @Column(nullable = false)
+    LocalDate attendanceDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    AttendanceStatus status;
+
+    String notes; // Ghi chú thêm
+
+    @Column(nullable = false)
     @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    Branch branch;
-
+    Integer workingHours = 0; // Số giờ làm việc
 }

@@ -2,7 +2,6 @@ package com.mhbilliards.billiards_management.dto.tableBilliard;
 
 import com.mhbilliards.billiards_management.dto.branch.BranchResponse;
 import com.mhbilliards.billiards_management.dto.tableBilliardType.TableBilliardTypeResponse;
-import com.mhbilliards.billiards_management.dto.tableBilliardZone.TableBilliardZoneResponse;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -19,6 +18,6 @@ public class TableBilliardResponse {
     String name;
     String description;
     TableBilliardTypeResponse type;
-    TableBilliardZoneResponse zone;
+    Double pricePerHour;
     BranchResponse branch;
 }

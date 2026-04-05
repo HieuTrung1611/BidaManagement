@@ -37,7 +37,10 @@ public class Branch extends BaseEntity {
     Boolean isActive = true;
 
     @OneToMany(mappedBy = "branch")
-    private List<Employee> employees;
+    List<Employee> employees;
+
+    @OneToMany(mappedBy = "branch")
+    List<TableBilliard> tableBilliards;
 
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL, orphanRemoval = true)
     List<BranchImage> branchImages;

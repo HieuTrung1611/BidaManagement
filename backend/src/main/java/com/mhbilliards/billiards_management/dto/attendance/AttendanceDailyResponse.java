@@ -1,6 +1,7 @@
-package com.mhbilliards.billiards_management.dto.tableBilliardType;
+package com.mhbilliards.billiards_management.dto.attendance;
 
-import com.mhbilliards.billiards_management.dto.base.BaseResponse;
+import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,10 +17,10 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliardTypeResponse extends BaseResponse {
-    String name;
-    String description;
-    Double costPrice;
-    String supplier;
-    String supplierPhone;
+public class AttendanceDailyResponse {
+    LocalDate attendanceDate;
+    Long branchId;
+    String branchName;
+    Integer totalEmployees;
+    List<AttendanceResponse> attendances;
 }

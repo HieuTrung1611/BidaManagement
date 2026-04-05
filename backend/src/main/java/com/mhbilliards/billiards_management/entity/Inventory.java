@@ -1,11 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -19,33 +15,34 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "inventories")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
-
+public class Inventory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "service_id", nullable = false)
+    Service service; // Liên kết với Service (cho đồ ăn, đồ uống)
 
-    Double pricePerHour;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    Integer quantity; // Số lượng tồn kho
+
+    @Column(nullable = false)
+    Integer minQuantity; // Số lượng tối thiểu
+
+    @Column(nullable = false)
+    Double costPrice; // Giá nhập
+
+    String supplier; // Nhà cung cấp
+
+    String supplierPhone;
+
+    String notes;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
-
 }

@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
+  <diagram id="invoice-checkout" name="Invoice Checkout">
+    <mxGraphModel dx="2687" dy="971" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1366" pageHeight="768" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" value="Start" vertex="1">
+          <mxGeometry height="60" width="60" x="40" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="i1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Kết thúc BilliardSession" vertex="1">
+          <mxGeometry height="48" width="190" x="-25" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Tính tiền giờ chơi\n(TableBilliard.pricePerHour * durationHours)" vertex="1">
+          <mxGeometry height="64" width="280" x="-70" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Cộng SessionService + SessionCombo + phụ thu" vertex="1">
+          <mxGeometry height="48" width="280" x="-70" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Xác định giảm giá theo CustomerRank/DiscountPolicy" vertex="1">
+          <mxGeometry height="48" width="310" x="-85" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="i5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Tạo Invoice\n(subtotal, discountAmount, totalAmount)" vertex="1">
+          <mxGeometry height="64" width="260" x="300" y="542" as="geometry" />
+        </mxCell>
+        <mxCell id="i6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Tạo InvoiceDetail\n(giờ chơi, combo, service)" vertex="1">
+          <mxGeometry height="64" width="250" x="305" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="i7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Thanh toán\nInvoiceStatus = PAID" vertex="1">
+          <mxGeometry height="48" width="220" x="320" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="e" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" value="End" vertex="1">
+          <mxGeometry height="60" width="60" x="400" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="s" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="i1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="i2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="i3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="i4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="i5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="i6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="i7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="i7" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="e">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

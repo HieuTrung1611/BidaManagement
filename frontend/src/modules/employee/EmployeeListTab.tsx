@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InputSearch from "@/components/common/InputSearch";
 import Button from "@/components/ui/button/Button";
 import { DataTable } from "@/components/ui/table/DataTable";
-import { useBranches, useBranchesByKeyword } from "@/hooks/useBranch";
+import { useBranches } from "@/hooks/useBranch";
+import Select from "@/components/ui/form/Select";
 
 interface EmployeeListTabProps {
     branchId?: number;
@@ -21,17 +22,34 @@ interface EmployeeListTabProps {
 
 const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
     const [keyword, setKeyword] = React.useState("");
+    const [selectedBranchId, setSelectedBranchId] = React.useState<
+        number | undefined
+    >(undefined);
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
     });
 
+    const isBranchFixed = branchId !== undefined;
+    const effectiveBranchId = isBranchFixed ? branchId : selectedBranchId;
+
     React.useEffect(() => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    }, [keyword]);
+    }, [keyword, effectiveBranchId]);
 
     const { employeePositions } = useEmployeePositionsByKeyword("");
     const { branches } = useBranches();
+
+    const branchFilterOptions = React.useMemo(
+        () => [
+            { value: "", label: "Tất cả chi nhánh" },
+            ...branches.map((branch) => ({
+                value: branch.id.toString(),
+                label: branch.name,
+            })),
+        ],
+        [branches],
+    );
 
     const {
         employees,
@@ -50,7 +68,7 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
             sortBy: "createdAt",
             sortDirection: "asc",
         },
-        branchId,
+        effectiveBranchId,
     );
 
     const { columns, DetailDrawer } = useEmployeeColumns();
@@ -93,6 +111,23 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                         placeholder="Nhập từ khóa tìm kiếm..."
                         className="flex-1 sm:flex-initial sm:w-80 min-w-0"
                     />
+                    {!isBranchFixed && (
+                        <Select
+                            options={branchFilterOptions}
+                            value={
+                                selectedBranchId
+                                    ? selectedBranchId.toString()
+                                    : ""
+                            }
+                            onChange={(value) =>
+                                setSelectedBranchId(
+                                    value ? Number(value) : undefined,
+                                )
+                            }
+                            placeholder="Lọc theo chi nhánh"
+                            className="h-10 w-full sm:w-56"
+                        />
+                    )}
                     <Button
                         size="sm"
                         className="sm:ml-auto shrink-0"

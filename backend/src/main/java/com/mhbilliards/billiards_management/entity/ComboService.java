@@ -1,11 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -18,34 +14,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Entity để quản lý chi tiết liên kết giữa Combo và các Service bao gồm
+ * Ví dụ: Combo "Happy Hour" có thể bao gồm 2 giờ chơi + 1 cốc nước uống
+ */
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "combo_services")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
+public class ComboService extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "combo_id", nullable = false)
+    Combo combo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
+    @JoinColumn(name = "service_id", nullable = false)
+    Service service;
 
-    Double pricePerHour;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "branch_id", nullable = false)
-    Branch branch;
-
+    Integer quantity; // Số lượng dịch vụ trong combo
 }

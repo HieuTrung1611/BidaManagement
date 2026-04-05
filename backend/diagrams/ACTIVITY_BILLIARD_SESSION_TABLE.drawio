@@ -1,0 +1,69 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
+  <diagram id="session-table" name="Billiard Session Table">
+    <mxGraphModel dx="1501" dy="1586" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1366" pageHeight="768" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" value="Start" vertex="1">
+          <mxGeometry height="60" width="60" x="320" y="-30" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Chọn bàn TableBilliard" vertex="1">
+          <mxGeometry height="48" width="190" x="255" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="riCgO0W1s4ZjytrOkrmC-2" edge="1" parent="1" source="b2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="riCgO0W1s4ZjytrOkrmC-1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="riCgO0W1s4ZjytrOkrmC-3" connectable="0" parent="riCgO0W1s4ZjytrOkrmC-2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Occupied" vertex="1">
+          <mxGeometry relative="1" x="-0.1674" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b2" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Kiểm tra status" vertex="1">
+          <mxGeometry height="64" width="160" x="270" y="212" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Cập nhật bàn = IN_USE\nGhi TableStatusHistory" vertex="1">
+          <mxGeometry height="64" width="240" x="230" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Tạo BilliardSession\n(startTime, customer, table, branch)" vertex="1">
+          <mxGeometry height="64" width="280" x="210" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="b5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Kết thúc phiên\n(endTime, durationHours, totalAmount)" vertex="1">
+          <mxGeometry height="64" width="260" x="220" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="b6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Cập nhật bàn = AVAILABLE\nGhi TableStatusHistory" vertex="1">
+          <mxGeometry height="64" width="260" x="530" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="e" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" value="End" vertex="1">
+          <mxGeometry height="60" width="60" x="630" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="s" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="b1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="b2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b3" value="Available">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="b3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="b4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="b5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="b6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="b6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="e">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="riCgO0W1s4ZjytrOkrmC-4" edge="1" parent="1" source="riCgO0W1s4ZjytrOkrmC-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="e">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="riCgO0W1s4ZjytrOkrmC-1" parent="1" style="whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Thông báo" vertex="1">
+          <mxGeometry height="60" width="120" x="600" y="214" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

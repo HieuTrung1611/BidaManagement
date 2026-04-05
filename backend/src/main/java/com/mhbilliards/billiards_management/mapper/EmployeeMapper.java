@@ -18,7 +18,7 @@ public interface EmployeeMapper {
 
     @Mapping(target = "branch.managerName", ignore = true)
     @Mapping(target = "branch.managerPhoneNumber", ignore = true)
-    @Mapping(target = "branch.employeeCount", ignore = true)
+    @Mapping(target = "branch.employeesCount", ignore = true)
     EmployeeResponse toResponse(Employee employee);
 
     List<EmployeeResponse> toResponseList(List<Employee> employeeList);

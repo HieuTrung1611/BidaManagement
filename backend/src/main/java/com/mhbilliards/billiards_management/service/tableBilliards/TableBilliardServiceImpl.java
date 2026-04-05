@@ -7,13 +7,12 @@ import org.springframework.stereotype.Service;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardRequest;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardResponse;
 import com.mhbilliards.billiards_management.entity.TableBilliard;
+import com.mhbilliards.billiards_management.mapper.TableMapper;
 import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.TableBilliardRepository;
 import com.mhbilliards.billiards_management.repository.TableBilliardTypeRepository;
-import com.mhbilliards.billiards_management.repository.TableBilliardZoneRepository;
 import com.mhbilliards.billiards_management.service.branch.BranchServiceImpl;
 import com.mhbilliards.billiards_management.service.tableBilliardType.TableBilliardTypeServiceImpl;
-import com.mhbilliards.billiards_management.service.tableBilliardZone.TableBilliardZoneServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,31 +21,8 @@ import lombok.RequiredArgsConstructor;
 public class TableBilliardServiceImpl implements TableBilliardService {
     private final TableBilliardRepository tableBilliardRepository;
     private final TableBilliardTypeRepository tableBilliardTypeRepository;
-    private final TableBilliardZoneRepository tableBilliardZoneRepository;
-    private final TableBilliardTypeServiceImpl tableBilliardTypeService;
     private final BranchRepository branchRepository;
-    private final TableBilliardZoneServiceImpl tableBilliardZoneService;
-    private final BranchServiceImpl branchService;
-
-    private TableBilliardResponse mapToResponse(TableBilliard tableBilliard) {
-        return TableBilliardResponse.builder()
-                .id(tableBilliard.getId())
-                .name(tableBilliard.getName())
-                .type(tableBilliardTypeService.mapToResponse(tableBilliard.getType()))
-                .zone(tableBilliardZoneService.mapToResponse(tableBilliard.getZone()))
-
-                .build();
-    }
-
-    private TableBilliard mapToEntity(TableBilliardRequest request) {
-        return TableBilliard.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .type(tableBilliardTypeRepository.getReferenceById(request.getTypeId()))
-                .branch(branchRepository.getReferenceById(request.getBranchId()))
-                .zone(tableBilliardZoneRepository.getReferenceById(request.getZoneId()))
-                .build();
-    }
+    private final TableMapper tableMapper;
 
     @Override
     public TableBilliardResponse createTableBilliard(TableBilliardRequest request) {
@@ -55,9 +31,9 @@ public class TableBilliardServiceImpl implements TableBilliardService {
                     "Table billiard with name " + request.getName() + " already exists");
         }
 
-        TableBilliard tableBilliard = mapToEntity(request);
+        TableBilliard tableBilliard = tableMapper.toEntity(request);
         tableBilliard = tableBilliardRepository.save(tableBilliard);
-        return mapToResponse(tableBilliard);
+        return tableMapper.toResponse(tableBilliard);
     }
 
     @Override
@@ -73,21 +49,20 @@ public class TableBilliardServiceImpl implements TableBilliardService {
         tableBilliard.setDescription(request.getDescription());
         tableBilliard.setType(tableBilliardTypeRepository.getReferenceById(request.getTypeId()));
         tableBilliard.setBranch(branchRepository.getReferenceById(request.getBranchId()));
-        tableBilliard.setZone(tableBilliardZoneRepository.getReferenceById(request.getZoneId()));
         tableBilliard = tableBilliardRepository.save(tableBilliard);
-        return mapToResponse(tableBilliard);
+        return tableMapper.toResponse(tableBilliard);
     }
 
     @Override
     public TableBilliardResponse getTableBilliardById(Long id) {
         TableBilliard tableBilliard = tableBilliardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
-        return mapToResponse(tableBilliard);
+        return tableMapper.toResponse(tableBilliard);
     }
 
     @Override
     public Page<TableBilliardResponse> getAllTableBilliards(Pageable pageable) {
-        return tableBilliardRepository.findAll(pageable).map(this::mapToResponse);
+        return tableBilliardRepository.findAll(pageable).map(tableMapper::toResponse);
     }
 
     @Override

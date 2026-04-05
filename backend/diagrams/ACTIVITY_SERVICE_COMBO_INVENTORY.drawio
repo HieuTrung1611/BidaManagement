@@ -1,0 +1,84 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
+  <diagram id="service-combo-inventory" name="Service Combo Inventory">
+    <mxGraphModel dx="1510" dy="1878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1366" pageHeight="768" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="s" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" value="Start" vertex="1">
+          <mxGeometry height="60" width="60" x="375" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="x1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Trong phiên chơi" vertex="1">
+          <mxGeometry height="48" width="150" x="330" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="x2" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Chọn phát sinh" vertex="1">
+          <mxGeometry height="64" width="150" x="330" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="x3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Thêm SessionService" vertex="1">
+          <mxGeometry height="46" width="180" x="460" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="x4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Thêm SessionCombo" vertex="1">
+          <mxGeometry height="46" width="180" x="190" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="x5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Kiểm tra tồn kho Inventory" vertex="1">
+          <mxGeometry height="46" width="220" x="690" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="x6" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Đủ hàng?" vertex="1">
+          <mxGeometry height="64" width="120" x="740" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="x7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Cập nhật Inventory\nGhi InventoryMovement" vertex="1">
+          <mxGeometry height="68" width="220" x="880" y="429" as="geometry" />
+        </mxCell>
+        <mxCell id="x8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Thông báo thiếu hàng" vertex="1">
+          <mxGeometry height="46" width="220" x="490" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="x9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Quay lại thêm phát sinh" vertex="1">
+          <mxGeometry height="46" width="220" x="170" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="e" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" value="End" vertex="1">
+          <mxGeometry height="60" width="60" x="360" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="s" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="x1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="x2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x3" value="Service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="x2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x4" value="Combo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="x3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="x5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="x6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x7" value="Có">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="x6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x8" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="x4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="x9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="x7" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="e">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="990" y="540" />
+              <mxPoint x="390" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="x8" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="e">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="x9" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;" target="e">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

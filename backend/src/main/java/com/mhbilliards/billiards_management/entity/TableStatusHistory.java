@@ -1,5 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
+import java.time.LocalDateTime;
+
 import com.mhbilliards.billiards_management.enums.TableStatus;
 
 import jakarta.persistence.Column;
@@ -18,34 +20,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Entity để theo dõi lịch sử thay đổi trạng thái của bàn billiard
+ */
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "table_status_histories")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
-
-    String description;
-
+public class TableStatusHistory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
-
-    Double pricePerHour;
+    @JoinColumn(name = "table_id", nullable = false)
+    TableBilliard table;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    TableStatus oldStatus; // Trạng thái cũ
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    TableStatus newStatus; // Trạng thái mới
+
+    @Column(nullable = false)
+    LocalDateTime changedAt; // Thời gian thay đổi
+
+    String reason; // Lý do thay đổi
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
-
 }

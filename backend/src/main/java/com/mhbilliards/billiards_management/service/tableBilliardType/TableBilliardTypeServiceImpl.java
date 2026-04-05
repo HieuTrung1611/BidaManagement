@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.mhbilliards.billiards_management.dto.tableBilliardType.TableBilliardTypeRequest;
 import com.mhbilliards.billiards_management.dto.tableBilliardType.TableBilliardTypeResponse;
 import com.mhbilliards.billiards_management.entity.TableBilliardType;
+import com.mhbilliards.billiards_management.mapper.TableTypeMapper;
 import com.mhbilliards.billiards_management.repository.TableBilliardTypeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -16,35 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class TableBilliardTypeServiceImpl implements TableBilliardTypeService {
 
     private final TableBilliardTypeRepository tableBilliardTypeRepository;
-
-    public TableBilliardTypeResponse mapToResponse(TableBilliardType tableBilliardType) {
-        return TableBilliardTypeResponse.builder()
-                .id(tableBilliardType.getId())
-                .name(tableBilliardType.getName())
-                .description(tableBilliardType.getDescription())
-                .costPrice(tableBilliardType.getCostPrice())
-                .supplier(tableBilliardType.getSupplier())
-                .supplierPhone(tableBilliardType.getSupplierPhone())
-                .build();
-    }
-
-    private TableBilliardType mapToEntity(TableBilliardTypeRequest request) {
-        return TableBilliardType.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .costPrice(request.getCostPrice())
-                .supplier(request.getSupplier())
-                .supplierPhone(request.getSupplierPhone())
-                .build();
-    }
-
-    private void updateEntity(TableBilliardType tableBilliardType, TableBilliardTypeRequest request) {
-        tableBilliardType.setName(request.getName());
-        tableBilliardType.setDescription(request.getDescription());
-        tableBilliardType.setCostPrice(request.getCostPrice());
-        tableBilliardType.setSupplier(request.getSupplier());
-        tableBilliardType.setSupplierPhone(request.getSupplierPhone());
-    }
+    private final TableTypeMapper tableBilliardTypeMapper;
 
     @Override
     public TableBilliardTypeResponse createTableBilliardType(TableBilliardTypeRequest request) {
@@ -52,9 +25,11 @@ public class TableBilliardTypeServiceImpl implements TableBilliardTypeService {
             throw new IllegalArgumentException(
                     "Table billiard type with name " + request.getName() + " already exists");
         }
-        TableBilliardType tableBilliardType = mapToEntity(request);
+
+        TableBilliardType tableBilliardType = tableBilliardTypeMapper.toEntity(request);
+
         tableBilliardType = tableBilliardTypeRepository.save(tableBilliardType);
-        return mapToResponse(tableBilliardType);
+        return tableBilliardTypeMapper.toResponse(tableBilliardType);
     }
 
     @Override
@@ -66,21 +41,21 @@ public class TableBilliardTypeServiceImpl implements TableBilliardTypeService {
             throw new IllegalArgumentException(
                     "Table billiard type with name " + request.getName() + " already exists");
         }
-        updateEntity(tableBilliardType, request);
+        tableBilliardTypeMapper.updateEntity(request, tableBilliardType);
         tableBilliardType = tableBilliardTypeRepository.save(tableBilliardType);
-        return mapToResponse(tableBilliardType);
+        return tableBilliardTypeMapper.toResponse(tableBilliardType);
     }
 
     @Override
     public TableBilliardTypeResponse getTableBilliardTypeById(Long id) {
         TableBilliardType tableBilliardType = tableBilliardTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table billiard type with id " + id + " not found"));
-        return mapToResponse(tableBilliardType);
+        return tableBilliardTypeMapper.toResponse(tableBilliardType);
     }
 
     @Override
     public Page<TableBilliardTypeResponse> getAllTableBilliardTypes(Pageable pageable) {
-        return tableBilliardTypeRepository.findAll(pageable).map(this::mapToResponse);
+        return tableBilliardTypeRepository.findAll(pageable).map(tableBilliardTypeMapper::toResponse);
     }
 
     @Override

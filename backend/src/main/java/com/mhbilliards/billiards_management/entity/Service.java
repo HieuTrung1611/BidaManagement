@@ -1,6 +1,6 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
+import com.mhbilliards.billiards_management.enums.ServiceType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,33 +19,30 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "services")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
+public class Service extends BaseEntity {
+    @Column(nullable = false)
+    String name; // Tên dịch vụ
 
     String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
-
-    Double pricePerHour;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    ServiceType type;
+
+    @Column(nullable = false)
+    Double price; // Giá dịch vụ
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
 
+    @Builder.Default
+    Boolean isActive = true;
 }

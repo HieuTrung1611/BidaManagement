@@ -1,11 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
-import com.mhbilliards.billiards_management.enums.TableStatus;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -18,34 +14,34 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Entity để quản lý các chi phí hoặc phí tính theo phút/giờ chơi
+ * Ví dụ: nếu chơi quá giờ, có thể áp dụng chi phí phụ
+ */
 @Entity
-@Table(name = "table_billiards")
+@Table(name = "extra_charges")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableBilliard extends BaseEntity {
-
-    @Column(unique = true, nullable = false)
-    String name;
+public class ExtraCharge extends BaseEntity {
+    @Column(nullable = false)
+    String name; // Tên khoảng
 
     String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false)
-    TableBilliardType type;
-
-    Double pricePerHour;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    TableStatus status = TableStatus.AVAILABLE;
+    Double chargeAmount; // Số tiền phụ phí
+
+    @Column(nullable = false)
+    String chargeType; // "PER_HOUR", "PER_MINUTE", "FIXED"
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
 
+    @Builder.Default
+    Boolean isActive = true;
 }

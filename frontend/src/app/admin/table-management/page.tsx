@@ -1,7 +1,8 @@
+import TableManagementPage from "@/modules/table/TableManagementPage";
 import React from "react";
 
 const TableManagement = () => {
-    return <div>Quản lý bàn bida</div>;
+    return <TableManagementPage />;
 };
 
 export default TableManagement;
