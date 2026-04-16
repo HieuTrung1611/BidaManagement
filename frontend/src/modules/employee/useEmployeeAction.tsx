@@ -72,10 +72,10 @@ export const useEmployeeColumns = () => {
                 cell: ({ row }) => {
                     const position = row.getValue(
                         "position",
-                    ) as IEmployeePositionResponse;
+                    ) as IEmployeePositionResponse | null;
                     return (
                         <Badge color="info" variant="light">
-                            {position.name}
+                            {position?.name ?? "Chưa có vị trí"}
                         </Badge>
                     );
                 },
@@ -89,6 +89,34 @@ export const useEmployeeColumns = () => {
                     return (
                         <Badge color="info" variant="light">
                             {branch?.name ? branch.name : "Chưa có chi nhánh"}
+                        </Badge>
+                    );
+                },
+            },
+            {
+                accessorKey: "shift",
+                header: "Ca làm việc",
+                size: 220,
+                cell: ({ row }) => {
+                    const shift = row.original.shift;
+                    return (
+                        <Badge color="light" variant="light">
+                            {shift?.name ?? "Chưa có ca"}
+                        </Badge>
+                    );
+                },
+            },
+            {
+                accessorKey: "isActive",
+                header: "Trạng thái",
+                size: 170,
+                cell: ({ row }) => {
+                    const isActive = row.original.isActive;
+                    return (
+                        <Badge
+                            color={isActive ? "success" : "error"}
+                            variant="light">
+                            {isActive ? "Đang hoạt động" : "Ngưng hoạt động"}
                         </Badge>
                     );
                 },

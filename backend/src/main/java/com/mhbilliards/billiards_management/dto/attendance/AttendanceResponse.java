@@ -23,6 +23,10 @@ public class AttendanceResponse {
     Long employeeId;
     String employeeName;
     String positionName;
+    Long shiftId;
+    String shiftName;
+    String shiftStartTime;
+    String shiftEndTime;
     Long branchId;
     String branchName;
     LocalDate attendanceDate;

@@ -72,6 +72,10 @@ public class Employee extends BaseEntity {
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shift_id", nullable = false)
+    Shift shift;
+
     @Builder.Default
     Boolean isActive = true;
 }

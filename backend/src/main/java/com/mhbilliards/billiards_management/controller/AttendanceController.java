@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyResponse;
+import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyConfirmRequest;
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyUpsertRequest;
 import com.mhbilliards.billiards_management.service.attendance.AttendanceService;
 import com.mhbilliards.billiards_management.utils.ApiResponse;
@@ -32,6 +33,13 @@ public class AttendanceController {
             @Valid @RequestBody AttendanceDailyUpsertRequest request) {
         AttendanceDailyResponse response = attendanceService.upsertDailyAttendance(request);
         return ResponseUtil.success(response, "Cập nhật chấm công thành công");
+    }
+
+    @PostMapping("/daily/confirm")
+    public ResponseEntity<ApiResponse<AttendanceDailyResponse>> confirmDailyAttendance(
+            @Valid @RequestBody AttendanceDailyConfirmRequest request) {
+        AttendanceDailyResponse response = attendanceService.confirmDailyAttendance(request);
+        return ResponseUtil.success(response, "Chốt công thành công");
     }
 
     @GetMapping("/daily")

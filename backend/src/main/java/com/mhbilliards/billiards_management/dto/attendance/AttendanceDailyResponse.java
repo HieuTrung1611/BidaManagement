@@ -1,6 +1,7 @@
 package com.mhbilliards.billiards_management.dto.attendance;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AccessLevel;
@@ -22,5 +23,10 @@ public class AttendanceDailyResponse {
     Long branchId;
     String branchName;
     Integer totalEmployees;
+    Boolean confirmed;
+    LocalDateTime confirmedAt;
+    String confirmedBy;
+    Boolean canConfirm;
+    String confirmBlockedReason;
     List<AttendanceResponse> attendances;
 }

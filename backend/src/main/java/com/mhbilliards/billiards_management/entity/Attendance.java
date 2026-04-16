@@ -1,6 +1,7 @@
 package com.mhbilliards.billiards_management.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.mhbilliards.billiards_management.enums.AttendanceStatus;
 
@@ -45,4 +46,12 @@ public class Attendance extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     Integer workingHours = 0; // Số giờ làm việc
+
+    @Column(nullable = false)
+    @Builder.Default
+    Boolean confirmed = false;
+
+    LocalDateTime confirmedAt;
+
+    String confirmedBy;
 }

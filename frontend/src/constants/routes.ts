@@ -15,6 +15,11 @@ const ROUTES = {
         title: "Quản lý nhân viên",
     },
 
+    EMPLOYEEATTENDANCE: {
+        path: "/admin/employees-attendance",
+        title: "Điểm danh nhân viên",
+    },
+
     ACCOUNT: {
         path: "/admin/accounts",
         title: "Quản lý tài khoản",

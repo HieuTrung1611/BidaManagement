@@ -15,6 +15,7 @@ import Button from "@/components/ui/button/Button";
 import { DataTable } from "@/components/ui/table/DataTable";
 import { useBranches } from "@/hooks/useBranch";
 import Select from "@/components/ui/form/Select";
+import { useShifts } from "@/hooks/useShift";
 
 interface EmployeeListTabProps {
     branchId?: number;
@@ -39,6 +40,12 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
 
     const { employeePositions } = useEmployeePositionsByKeyword("");
     const { branches } = useBranches();
+    const { shifts } = useShifts({
+        page: 0,
+        size: 200,
+        sortBy: "id",
+        sortDirection: "asc",
+    });
 
     const branchFilterOptions = React.useMemo(
         () => [
@@ -172,6 +179,7 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                     errors={fieldErrors}
                     employeePositions={employeePositions}
                     branches={branches}
+                    shifts={shifts}
                 />
 
                 {deleteState.isOpen && (

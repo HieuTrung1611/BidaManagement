@@ -28,9 +28,10 @@ public class AuthServiceImpl implements AuthService {
     public void register(RegisterRequest req) {
 
         if (userRepository.existsByUsername(req.getUsername())) {
-            throw new RuntimeException("username already exists");
+            throw new RuntimeException("username đã tồn tại");
         }
 
+        // gán dữ liệu từ request vào entity, mã hoá password trước khi lưu
         User user = User.builder()
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(UserRole.USER) // Mặc định là USER role
                 .build();
 
+        // lưu vào database
         userRepository.save(user);
     }
 

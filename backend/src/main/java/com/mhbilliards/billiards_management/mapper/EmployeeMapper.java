@@ -14,6 +14,7 @@ import com.mhbilliards.billiards_management.entity.Employee;
 public interface EmployeeMapper {
     @Mapping(source = "positionId", target = "position.id")
     @Mapping(source = "branchId", target = "branch.id")
+    @Mapping(source = "shiftId", target = "shift.id")
     Employee toEntity(EmployeeRequest req);
 
     @Mapping(target = "branch.managerName", ignore = true)
@@ -24,8 +25,9 @@ public interface EmployeeMapper {
     List<EmployeeResponse> toResponseList(List<Employee> employeeList);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(source = "positionId", target = "position.id")
-    @Mapping(source = "branchId", target = "branch.id")
+    @Mapping(target = "position", ignore = true)
+    @Mapping(target = "branch", ignore = true)
+    @Mapping(target = "shift", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

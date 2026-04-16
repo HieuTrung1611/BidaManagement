@@ -31,20 +31,20 @@ public class EmployeeController {
     @PostMapping
     public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(@Valid @RequestBody EmployeeRequest request) {
         EmployeeResponse res = employeeService.createEmployee(request);
-        return ResponseUtil.created(res, "Create employee successfully");
+        return ResponseUtil.created(res, "Tạo nhân viên thành công");
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(@Valid @RequestBody EmployeeRequest request,
             @PathVariable Long id) {
         EmployeeResponse res = employeeService.updateEmployee(id, request);
-        return ResponseUtil.success(res, "Update employee successfully");
+        return ResponseUtil.success(res, "Cập nhật nhân viên thành công");
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(@PathVariable Long id) {
         EmployeeResponse res = employeeService.getEmployeeById(id);
-        return ResponseUtil.success(res, "Get employee successfully");
+        return ResponseUtil.success(res, "Lấy thông tin nhân viên thành công");
     }
 
     @GetMapping
@@ -53,13 +53,13 @@ public class EmployeeController {
             @RequestParam(required = false) Long branchId,
             Pageable pageable) {
         Page<EmployeeResponse> res = employeeService.getAllEmployees(keyword, branchId, pageable);
-        return ResponseUtil.success(res, "Get all employees successfully");
+        return ResponseUtil.success(res, "Lấy danh sách nhân viên thành công");
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
-        return ResponseUtil.success(null, "Delete employee successfully");
+        return ResponseUtil.success(null, "Xóa nhân viên thành công");
     }
 
 }

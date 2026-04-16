@@ -1,6 +1,9 @@
 package com.mhbilliards.billiards_management.service.attendance;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,12 +15,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyResponse;
+import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyConfirmRequest;
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceDailyUpsertRequest;
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceResponse;
 import com.mhbilliards.billiards_management.dto.attendance.AttendanceUpsertItemRequest;
 import com.mhbilliards.billiards_management.entity.Attendance;
 import com.mhbilliards.billiards_management.entity.Employee;
 import com.mhbilliards.billiards_management.enums.AttendanceStatus;
+import com.mhbilliards.billiards_management.mapper.AttendanceMapper;
 import com.mhbilliards.billiards_management.repository.AttendanceRepository;
 import com.mhbilliards.billiards_management.repository.EmployeeRepository;
 import com.mhbilliards.billiards_management.service.base.CurrentUserAccessService;
@@ -29,10 +34,12 @@ import lombok.RequiredArgsConstructor;
 public class AttendanceServiceImpl implements AttendanceService {
 
     private static final int DEFAULT_WORKING_HOURS = 8;
+    private static final LocalTime DAILY_CONFIRM_MIN_TIME = LocalTime.of(20, 0);
 
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final CurrentUserAccessService currentUserAccessService;
+    private final AttendanceMapper attendanceMapper;
 
     @Override
     @Transactional
@@ -43,6 +50,14 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         Long branchId = currentUserAccessService.resolveAccessibleBranchId(request.getBranchId());
+        if (branchId == null) {
+            throw new RuntimeException("Vui lòng chọn chi nhánh để cập nhật chấm công");
+        }
+
+        if (attendanceRepository.existsConfirmedByAttendanceDate(attendanceDate, branchId)) {
+            throw new RuntimeException("Bảng chấm công của ngày này đã được chốt, không thể chỉnh sửa");
+        }
+
         List<AttendanceUpsertItemRequest> items = request.getAttendances();
 
         Set<Long> employeeIds = new HashSet<>();
@@ -84,6 +99,67 @@ public class AttendanceServiceImpl implements AttendanceService {
             attendance.setStatus(item.getStatus());
             attendance.setWorkingHours(normalizeWorkingHours(item.getStatus(), item.getWorkingHours()));
             attendance.setNotes(trimToNull(item.getNotes()));
+            attendance.setConfirmed(false);
+            attendance.setConfirmedAt(null);
+            attendance.setConfirmedBy(null);
+            attendanceRepository.save(attendance);
+        }
+
+        return getDailyAttendance(attendanceDate, branchId);
+    }
+
+    @Override
+    @Transactional
+    public AttendanceDailyResponse confirmDailyAttendance(AttendanceDailyConfirmRequest request) {
+        LocalDate attendanceDate = request.getAttendanceDate();
+
+        if (attendanceDate.isAfter(LocalDate.now())) {
+            throw new RuntimeException("Không thể chốt công cho ngày ở tương lai");
+        }
+
+        Long branchId = currentUserAccessService.resolveAccessibleBranchId(request.getBranchId());
+        if (branchId == null) {
+            throw new RuntimeException("Vui lòng chọn chi nhánh để chốt công");
+        }
+
+        List<Employee> employees = employeeRepository.findActiveEmployeesByBranchId(branchId);
+        if (employees.isEmpty()) {
+            throw new RuntimeException("Chi nhánh chưa có nhân viên đang hoạt động");
+        }
+
+        ConfirmRuleResult confirmRuleResult = evaluateConfirmRule(attendanceDate, employees);
+        if (!confirmRuleResult.canConfirm()) {
+            throw new RuntimeException(confirmRuleResult.reason());
+        }
+
+        String currentUsername = currentUserAccessService.getCurrentUser().getUsername();
+        LocalDateTime confirmedAt = LocalDateTime.now();
+
+        Map<Long, Attendance> attendanceMap = attendanceRepository
+                .findDetailedByAttendanceDate(attendanceDate, branchId)
+                .stream()
+                .collect(HashMap::new, (map, attendance) -> map.put(attendance.getEmployee().getId(), attendance),
+                        HashMap::putAll);
+
+        for (Employee employee : employees) {
+            Attendance attendance = attendanceMap.get(employee.getId());
+            if (attendance == null) {
+                attendance = Attendance.builder()
+                        .employee(employee)
+                        .attendanceDate(attendanceDate)
+                        .status(AttendanceStatus.PRESENT)
+                        .workingHours(resolveDefaultShiftWorkingHours(employee))
+                        .build();
+            }
+
+            if (attendance.getStatus() == null) {
+                attendance.setStatus(AttendanceStatus.PRESENT);
+            }
+
+            attendance.setWorkingHours(normalizeWorkingHours(attendance.getStatus(), attendance.getWorkingHours()));
+            attendance.setConfirmed(true);
+            attendance.setConfirmedAt(confirmedAt);
+            attendance.setConfirmedBy(currentUsername);
             attendanceRepository.save(attendance);
         }
 
@@ -105,30 +181,36 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         List<AttendanceResponse> responses = employees.stream()
-                .map(employee -> toResponse(attendanceMap.get(employee.getId()), employee, attendanceDate))
+                .map(employee -> attendanceMapper.toResponse(attendanceMap.get(employee.getId()), employee,
+                        attendanceDate))
                 .toList();
+
+        boolean confirmed = attendances.stream().anyMatch(attendance -> Boolean.TRUE.equals(attendance.getConfirmed()));
+        LocalDateTime confirmedAt = attendances.stream()
+                .map(Attendance::getConfirmedAt)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+        String confirmedBy = attendances.stream()
+                .map(Attendance::getConfirmedBy)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        ConfirmRuleResult confirmRuleResult = evaluateConfirmRule(attendanceDate, employees);
+        boolean canConfirm = !confirmed && confirmRuleResult.canConfirm();
 
         return AttendanceDailyResponse.builder()
                 .attendanceDate(attendanceDate)
                 .branchId(accessibleBranchId)
                 .branchName(resolveBranchName(accessibleBranchId, responses))
                 .totalEmployees(responses.size())
+                .confirmed(confirmed)
+                .confirmedAt(confirmedAt)
+                .confirmedBy(confirmedBy)
+                .canConfirm(canConfirm)
+                .confirmBlockedReason(confirmed ? "Bảng chấm công đã được chốt" : confirmRuleResult.reason())
                 .attendances(responses)
-                .build();
-    }
-
-    private AttendanceResponse toResponse(Attendance attendance, Employee employee, LocalDate attendanceDate) {
-        return AttendanceResponse.builder()
-                .id(attendance != null ? attendance.getId() : null)
-                .employeeId(employee.getId())
-                .employeeName(employee.getName())
-                .positionName(employee.getPosition() != null ? employee.getPosition().getName() : null)
-                .branchId(employee.getBranch() != null ? employee.getBranch().getId() : null)
-                .branchName(employee.getBranch() != null ? employee.getBranch().getName() : null)
-                .attendanceDate(attendanceDate)
-                .status(attendance != null ? attendance.getStatus() : null)
-                .workingHours(attendance != null ? attendance.getWorkingHours() : 0)
-                .notes(attendance != null ? attendance.getNotes() : null)
                 .build();
     }
 
@@ -159,5 +241,70 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private int resolveDefaultShiftWorkingHours(Employee employee) {
+        if (employee == null || employee.getShift() == null || employee.getShift().getStartTime() == null
+                || employee.getShift().getEndTime() == null) {
+            return DEFAULT_WORKING_HOURS;
+        }
+
+        LocalTime start = employee.getShift().getStartTime();
+        LocalTime end = employee.getShift().getEndTime();
+
+        if (start.equals(end)) {
+            return DEFAULT_WORKING_HOURS;
+        }
+
+        long minutes = start.isBefore(end)
+                ? ChronoUnit.MINUTES.between(start, end)
+                : ChronoUnit.MINUTES.between(start, LocalTime.MAX) + 1
+                        + ChronoUnit.MINUTES.between(LocalTime.MIN, end);
+
+        return (int) Math.max(1, Math.round(minutes / 60.0));
+    }
+
+    private ConfirmRuleResult evaluateConfirmRule(LocalDate attendanceDate, List<Employee> employees) {
+        LocalDate today = LocalDate.now();
+
+        if (attendanceDate.isAfter(today)) {
+            return new ConfirmRuleResult(false, "Không thể chốt công cho ngày ở tương lai");
+        }
+
+        if (attendanceDate.isBefore(today)) {
+            return new ConfirmRuleResult(true, null);
+        }
+
+        LocalTime now = LocalTime.now();
+        if (now.isBefore(DAILY_CONFIRM_MIN_TIME)) {
+            return new ConfirmRuleResult(false, "Chỉ được chốt công sau 20:00 trong ngày hiện tại");
+        }
+
+        boolean hasActiveShift = employees.stream()
+                .map(Employee::getShift)
+                .filter(Objects::nonNull)
+                .filter(shift -> shift.getStartTime() != null && shift.getEndTime() != null)
+                .anyMatch(shift -> isTimeInShift(now, shift.getStartTime(), shift.getEndTime()));
+
+        if (hasActiveShift) {
+            return new ConfirmRuleResult(false, "Không thể chốt công trong thời gian ca làm việc đang diễn ra");
+        }
+
+        return new ConfirmRuleResult(true, null);
+    }
+
+    private boolean isTimeInShift(LocalTime now, LocalTime start, LocalTime end) {
+        if (start.equals(end)) {
+            return true;
+        }
+
+        if (start.isBefore(end)) {
+            return !now.isBefore(start) && now.isBefore(end);
+        }
+
+        return !now.isBefore(start) || now.isBefore(end);
+    }
+
+    private record ConfirmRuleResult(boolean canConfirm, String reason) {
     }
 }

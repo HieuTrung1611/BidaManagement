@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import EmployeePositionTab from "./employeePosition/EmployeePositionTab";
 import EmployeeListTab from "./EmployeeListTab";
+import EmployeeShiftTab from "./employeeShift/EmployeeShiftTab";
 
 const EMPLOYEE_TABS = [
     {
@@ -37,6 +38,11 @@ const EMPLOYEE_TABS = [
         value: "employeePositions",
         label: "Vị trí nhân viên",
         content: <EmployeePositionTab />,
+    },
+    {
+        value: "employeeShifts",
+        label: "Ca làm việc",
+        content: <EmployeeShiftTab />,
     },
 ];
 

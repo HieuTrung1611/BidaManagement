@@ -2,6 +2,8 @@ package com.mhbilliards.billiards_management.dto.employee;
 
 import java.time.LocalDate;
 
+import com.mhbilliards.billiards_management.enums.SalaryType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -30,10 +32,22 @@ public class EmployeeRequest {
     LocalDate dob;
 
     String address;
+    String identityNumber;
+    String bankAccount;
+    String bankName;
+    LocalDate hireDate;
+    SalaryType salaryType;
+    Double baseSalary;
+    String emergencyContactName;
+    String emergencyContactPhone;
+    Boolean isActive;
 
     @NotNull(message = "Chức vụ không được để trống")
     Long positionId;
 
     @NotNull(message = "Chi nhánh không được để trống")
     Long branchId;
+
+    @NotNull(message = "Ca làm việc không được để trống")
+    Long shiftId;
 }

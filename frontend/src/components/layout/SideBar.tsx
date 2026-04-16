@@ -44,7 +44,10 @@ const navItems: NavItem[] = [
     {
         icon: <IdCardLanyard />,
         name: "Nhân sự",
-        subItems: [{ name: "Nhân viên", path: ROUTES.EMPLOYEE.path }],
+        subItems: [
+            { name: "Nhân viên", path: ROUTES.EMPLOYEE.path },
+            { name: "Chấm công", path: ROUTES.EMPLOYEEATTENDANCE.path },
+        ],
     },
     {
         icon: <Users />,

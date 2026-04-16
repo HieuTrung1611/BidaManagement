@@ -32,6 +32,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final CustomUserDetailService customUserDetailService;
 
+    // Mã hoá password
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -48,13 +49,15 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ bật cors
-
+                .csrf(csrf -> csrf.disable()) // Bạn dùng JWT (stateless)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // cho phép frontend gửi request đến
+                                                                                   // backend
+                // Không lưu session trên server
+                // Mỗi request phải tự mang token (JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers("/auth/**").permitAll() // /auth/** → ai cũng gọi được (login, register)
+                        .anyRequest().authenticated()) // Các API khác → phải đăng nhập (có token)
                 // Cấu hình authentication provider NGAY TRONG http
                 .userDetailsService(customUserDetailService);
 
@@ -63,6 +66,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // Chỉ cho phép frontend này gọi API
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

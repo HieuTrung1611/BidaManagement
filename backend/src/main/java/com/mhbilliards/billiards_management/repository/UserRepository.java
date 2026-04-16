@@ -10,9 +10,9 @@ import com.mhbilliards.billiards_management.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    Optional<User> findByUsername(String username);
+    Optional<User> findByUsername(String username); // tìm user theo username (dùng cho login)
 
-    boolean existsByUsername(String username);
+    boolean existsByUsername(String username); // kiểm tra xem username đã tồn tại chưa (dùng cho register)
 
-    boolean existsByEmail(String email);
+    boolean existsByEmail(String email); // kiểm tra xem email đã tồn tại chưa (dùng cho register)
 }

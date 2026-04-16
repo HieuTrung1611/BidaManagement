@@ -29,12 +29,21 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({
     employee,
     isLoading = false,
 }) => {
-    const formatDob = (dateString: string) => {
+    const formatDob = (dateString?: string) => {
+        if (!dateString) return "Chưa có";
         return new Date(dateString).toLocaleDateString("vi-VN", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
         });
+    };
+
+    const salaryTypeLabel = (salaryType?: string | null) => {
+        if (!salaryType) return "Chưa có";
+        if (salaryType === "FIXED") return "Lương cố định";
+        if (salaryType === "HOURLY") return "Lương theo giờ";
+        if (salaryType === "COMMISSION") return "Lương hoa hồng";
+        return salaryType;
     };
 
     const LoadingSkeleton = () => (
@@ -143,6 +152,118 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({
                                                 Chưa có
                                             </span>
                                         )}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Chi nhánh
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.branch?.name ?? "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Ca làm việc
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.shift?.name ?? "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    CCCD/CMND
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.identityNumber || "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Ngày vào làm
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {formatDob(employee.hireDate)}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Loại lương
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {salaryTypeLabel(employee.salaryType)}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Lương cơ bản
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.baseSalary?.toLocaleString(
+                                        "vi-VN",
+                                    ) ?? "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Ngân hàng
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.bankName || "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Số tài khoản
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.bankAccount || "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Liên hệ khẩn cấp
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.emergencyContactName || "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    SĐT khẩn cấp
+                                </label>
+                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
+                                    {employee.emergencyContactPhone ||
+                                        "Chưa có"}
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Trạng thái
+                                </label>
+                                <div className="px-3 py-2">
+                                    <Badge
+                                        color={
+                                            employee.isActive
+                                                ? "success"
+                                                : "error"
+                                        }
+                                        variant="light">
+                                        {employee.isActive
+                                            ? "Đang hoạt động"
+                                            : "Ngưng hoạt động"}
                                     </Badge>
                                 </div>
                             </div>
