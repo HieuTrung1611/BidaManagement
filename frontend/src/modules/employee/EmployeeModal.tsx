@@ -123,7 +123,6 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         () => [
             { value: "FIXED", label: "Lương cố định" },
             { value: "HOURLY", label: "Lương theo giờ" },
-            { value: "COMMISSION", label: "Lương hoa hồng" },
         ],
         [],
     );
@@ -163,6 +162,8 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             salaryType: value
                 ? (value as IEmployeeRequest["salaryType"])
                 : null,
+            // Set baseSalary to 0 when HOURLY is selected
+            baseSalary: value === "HOURLY" ? 0 : prev.baseSalary,
         }));
     };
 
@@ -392,8 +393,9 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                             name="baseSalary"
                             value={formData.baseSalary ?? null}
                             onValueChange={handleBaseSalaryChange}
-                            placeholder="Nhập lương cơ bản"
+                            placeholder={formData.salaryType === "HOURLY" ? "Lương theo giờ không cần nhập" : "Nhập lương cơ bản"}
                             error={!!errors.baseSalary}
+                            disabled={formData.salaryType === "HOURLY"}
                         />
                         {errors.baseSalary && (
                             <p className="mt-1 text-xs text-red-500">

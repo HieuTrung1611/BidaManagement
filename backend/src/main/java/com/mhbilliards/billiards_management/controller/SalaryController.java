@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mhbilliards.billiards_management.dto.salary.SalarySummaryResponse;
+import com.mhbilliards.billiards_management.dto.salary.SalaryStatisticsResponse;
 import com.mhbilliards.billiards_management.service.salary.SalaryService;
 import com.mhbilliards.billiards_management.utils.ApiResponse;
 import com.mhbilliards.billiards_management.utils.ResponseUtil;
@@ -35,5 +36,14 @@ public class SalaryController {
             @RequestParam(required = false) Long branchId) {
         SalarySummaryResponse response = salaryService.getMonthlySalaries(salaryMonth, branchId);
         return ResponseUtil.success(response, "Lấy bảng lương thành công");
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<ApiResponse<SalaryStatisticsResponse>> getSalaryStatistics(
+            @RequestParam(required = false) String salaryMonth,
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) String keyword) {
+        SalaryStatisticsResponse response = salaryService.getSalaryStatistics(salaryMonth, branchId, keyword);
+        return ResponseUtil.success(response, "Lấy thống kê bảng lương thành công");
     }
 }

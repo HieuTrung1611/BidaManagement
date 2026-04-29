@@ -12,12 +12,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mhbilliards.billiards_management.dto.salary.SalaryBranchSummaryResponse;
+import com.mhbilliards.billiards_management.dto.salary.SalaryBranchStatisticsResponse;
 import com.mhbilliards.billiards_management.dto.salary.SalaryResponse;
 import com.mhbilliards.billiards_management.dto.salary.SalarySummaryResponse;
+import com.mhbilliards.billiards_management.dto.salary.SalaryStatisticsResponse;
 import com.mhbilliards.billiards_management.entity.Attendance;
 import com.mhbilliards.billiards_management.entity.Employee;
 import com.mhbilliards.billiards_management.entity.Salary;
@@ -28,6 +32,7 @@ import com.mhbilliards.billiards_management.repository.AttendanceRepository;
 import com.mhbilliards.billiards_management.repository.EmployeeRepository;
 import com.mhbilliards.billiards_management.repository.SalaryRepository;
 import com.mhbilliards.billiards_management.service.base.CurrentUserAccessService;
+import com.mhbilliards.billiards_management.specification.SalarySpecification;
 
 import lombok.RequiredArgsConstructor;
 
@@ -80,6 +85,56 @@ public class SalaryServiceImpl implements SalaryService {
                                 accessibleBranchId);
                 return buildSummary(salaries, targetMonth, targetMonth.atDay(1), resolveEndDate(targetMonth),
                                 accessibleBranchId);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public SalaryStatisticsResponse getSalaryStatistics(String salaryMonth, Long branchId, String keyword) {
+                YearMonth targetMonth = resolveSalaryMonth(salaryMonth);
+                Long accessibleBranchId = currentUserAccessService.resolveAccessibleBranchId(branchId);
+
+                Specification<Salary> specification = Specification
+                                .where(SalarySpecification.hasSalaryMonth(targetMonth.toString()))
+                                .and(SalarySpecification.hasBranchId(accessibleBranchId))
+                                .and(SalarySpecification.hasKeyword(keyword));
+
+                List<Salary> salaries = salaryRepository.findAll(specification,
+                                Sort.by(Sort.Order.asc("employee.branch.name"), Sort.Order.asc("employee.name")));
+
+                Map<Long, List<Salary>> salaryByBranch = salaries.stream()
+                                .collect(Collectors.groupingBy(
+                                                salary -> salary.getEmployee().getBranch().getId(),
+                                                LinkedHashMap::new,
+                                                Collectors.toList()));
+
+                List<SalaryBranchStatisticsResponse> branchStatistics = salaryByBranch.values().stream()
+                                .map(this::toBranchStatistics)
+                                .toList();
+
+                int totalEmployees = salaries.size();
+                int totalPaidEmployees = (int) salaries.stream()
+                                .filter(salary -> Boolean.TRUE.equals(salary.getIsPaid()))
+                                .count();
+
+                double totalSalary = roundCurrency(BigDecimal.valueOf(salaries.stream()
+                                .map(Salary::getTotalSalary)
+                                .filter(Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .sum()));
+
+                boolean allPaid = totalEmployees > 0 && totalEmployees == totalPaidEmployees;
+
+                return SalaryStatisticsResponse.builder()
+                                .salaryMonth(targetMonth.toString())
+                                .branchId(accessibleBranchId)
+                                .keyword(trimToNull(keyword))
+                                .totalBranches(branchStatistics.size())
+                                .totalEmployees(totalEmployees)
+                                .totalPaidEmployees(totalPaidEmployees)
+                                .totalSalary(totalSalary)
+                                .allPaid(allPaid)
+                                .branchStatistics(branchStatistics)
+                                .build();
         }
 
         private Salary buildAndPersistSalary(Employee employee, YearMonth targetMonth, List<Attendance> attendances) {
@@ -234,6 +289,29 @@ public class SalaryServiceImpl implements SalaryService {
                                 .build();
         }
 
+        private SalaryBranchStatisticsResponse toBranchStatistics(List<Salary> branchSalaries) {
+                Salary first = branchSalaries.getFirst();
+                int paidEmployeeCount = (int) branchSalaries.stream()
+                                .filter(salary -> Boolean.TRUE.equals(salary.getIsPaid()))
+                                .count();
+                int employeeCount = branchSalaries.size();
+
+                double totalSalary = roundCurrency(BigDecimal.valueOf(branchSalaries.stream()
+                                .map(Salary::getTotalSalary)
+                                .filter(Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
+                                .sum()));
+
+                return SalaryBranchStatisticsResponse.builder()
+                                .branchId(first.getEmployee().getBranch().getId())
+                                .branchName(first.getEmployee().getBranch().getName())
+                                .employeeCount(employeeCount)
+                                .paidEmployeeCount(paidEmployeeCount)
+                                .totalSalary(totalSalary)
+                                .allPaid(employeeCount > 0 && employeeCount == paidEmployeeCount)
+                                .build();
+        }
+
         private YearMonth resolveSalaryMonth(String salaryMonth) {
                 if (salaryMonth == null || salaryMonth.isBlank()) {
                         return YearMonth.now();
@@ -271,5 +349,13 @@ public class SalaryServiceImpl implements SalaryService {
 
         private double roundCurrency(BigDecimal value) {
                 return value.setScale(2, RoundingMode.HALF_UP).doubleValue();
+        }
+
+        private String trimToNull(String value) {
+                if (value == null) {
+                        return null;
+                }
+                String trimmed = value.trim();
+                return trimmed.isEmpty() ? null : trimmed;
         }
 }

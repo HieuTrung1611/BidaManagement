@@ -20,6 +20,11 @@ const ROUTES = {
         title: "Điểm danh nhân viên",
     },
 
+    SALARY: {
+        path: "/admin/salaries",
+        title: "Bảng lương",
+    },
+
     ACCOUNT: {
         path: "/admin/accounts",
         title: "Quản lý tài khoản",
