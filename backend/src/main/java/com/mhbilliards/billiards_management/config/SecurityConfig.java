@@ -37,6 +37,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    // check git
 
     // ===================== AUTH MANAGER =====================
     @Bean
