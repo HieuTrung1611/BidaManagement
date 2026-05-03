@@ -1,5 +1,6 @@
 import QueryTabs from "@/components/common/QueryTabs";
 import React from "react";
+import TableTypeTab from "./typeTable/TableTypeTab";
 
 const TABLE_TABS = [
     {
@@ -10,7 +11,7 @@ const TABLE_TABS = [
     {
         value: "type-tables",
         label: "Loại bàn",
-        content: <div>Loại bàn</div>,
+        content: <TableTypeTab />,
     },
 ];
 

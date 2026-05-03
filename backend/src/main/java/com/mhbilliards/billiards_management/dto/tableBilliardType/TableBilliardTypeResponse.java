@@ -19,6 +19,9 @@ import lombok.experimental.FieldDefaults;
 public class TableBilliardTypeResponse extends BaseResponse {
     String name;
     String description;
+
+    Double pricePerHour;
+
     Double costPrice;
     String supplier;
     String supplierPhone;

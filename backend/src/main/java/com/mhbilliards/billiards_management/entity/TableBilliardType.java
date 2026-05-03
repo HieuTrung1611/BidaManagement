@@ -21,6 +21,7 @@ import lombok.experimental.SuperBuilder;
 public class TableBilliardType extends BaseEntity {
     String name;
     String description;
+    Double pricePerHour;
     Double costPrice;
     String supplier;
     String supplierPhone;

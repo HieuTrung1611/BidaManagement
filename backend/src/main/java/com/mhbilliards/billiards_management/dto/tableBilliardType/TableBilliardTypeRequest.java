@@ -3,6 +3,8 @@ package com.mhbilliards.billiards_management.dto.tableBilliardType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +27,14 @@ public class TableBilliardTypeRequest {
     String description;
 
     @NotNull(message = "Giá bàn không được để trống")
+    @Positive(message = "Giá theo giờ phải lớn hơn 0")
+
     Double costPrice;
+
+    @NotNull(message = "Giá bàn không được để trống")
+    @PositiveOrZero(message = "Giá theo giờ phải lớn hơn hoặc bằng 0")
+
+    Double pricePerHour;
 
     @NotBlank(message = "Nhà cung cấp không được để trống")
     String supplier;

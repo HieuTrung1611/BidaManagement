@@ -37,8 +37,6 @@ public class TableBilliard extends BaseEntity {
     @JoinColumn(name = "type_id", nullable = false)
     TableBilliardType type;
 
-    Double pricePerHour;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
