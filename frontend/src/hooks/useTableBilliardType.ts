@@ -14,9 +14,20 @@ const getTableBilliardTypeByIdFetcher = async (
 };
 
 const getAllTableBilliardTypesFetcher = async (params: PaginationParams) => {
-    const res = await tableBilliardTypeService.getAllTableBilliardTypes(params);
+    const res =
+        await tableBilliardTypeService.getPageTableBilliardTypes(params);
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách loại bàn");
+    }
+    return res.data;
+};
+
+const getAllTableBilliardTypesNoPagingFetcher = async (): Promise<
+    ITableBilliardTypeResponse[]
+> => {
+    const res = await tableBilliardTypeService.getAllTableBilliardTypes();
+    if (!res.data) {
+        throw new Error("Lỗi khi tải toàn bộ loại bàn");
     }
     return res.data;
 };
@@ -65,6 +76,25 @@ export const useTableBilliardTypes = (params: PaginationParams) => {
         pageSize: data?.pageSize ?? params.size ?? 10,
         totalElements: data?.totalElements ?? 0,
         totalPages: data?.totalPages ?? 1,
+        isLoading,
+        isError: error,
+        mutate,
+    };
+};
+
+export const useAllTableBilliardTypes = () => {
+    const { data, error, isLoading, mutate } = useSWR(
+        "/table-billiard-types/all",
+        getAllTableBilliardTypesNoPagingFetcher,
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false,
+            keepPreviousData: true,
+        },
+    );
+
+    return {
+        tableBilliardTypes: data ?? [],
         isLoading,
         isError: error,
         mutate,

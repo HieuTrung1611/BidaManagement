@@ -11,8 +11,6 @@ import com.mhbilliards.billiards_management.mapper.TableMapper;
 import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.TableBilliardRepository;
 import com.mhbilliards.billiards_management.repository.TableBilliardTypeRepository;
-import com.mhbilliards.billiards_management.service.branch.BranchServiceImpl;
-import com.mhbilliards.billiards_management.service.tableBilliardType.TableBilliardTypeServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 

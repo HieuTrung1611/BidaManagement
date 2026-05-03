@@ -23,11 +23,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const loadUser = async () => {
         try {
             const res = await authService.getCurrentUser();
+            console.log("[AuthContext] /auth/current-user response:", res);
 
-            if (res.success) {
-                setUser(res.data);
+            if (res.success && res.data?.username && res.data?.role) {
+                setUser({
+                    username: res.data.username,
+                    role: res.data.role,
+                });
+            } else {
+                console.warn(
+                    "[AuthContext] Missing user data or role from current-user response",
+                    res.data,
+                );
+                setUser(null);
             }
         } catch (err) {
+            console.error("[AuthContext] Failed to load current user", err);
             setUser(null);
         } finally {
             setLoading(false);

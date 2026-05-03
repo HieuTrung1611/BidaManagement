@@ -30,7 +30,7 @@ const tableBilliardTypeService = {
         return res.data;
     },
 
-    getAllTableBilliardTypes: async (
+    getPageTableBilliardTypes: async (
         params: PaginationParams,
     ): Promise<ApiResponse<PageResponse<ITableBilliardTypeResponse>>> => {
         const res = await axiosClient.get(API_URL, {
@@ -42,6 +42,30 @@ const tableBilliardTypeService = {
             },
         });
         return res.data;
+    },
+
+    getAllTableBilliardTypes: async (): Promise<
+        ApiResponse<ITableBilliardTypeResponse[]>
+    > => {
+        try {
+            const res = await axiosClient.get(`${API_URL}/all`);
+            return res.data;
+        } catch {
+            const fallbackRes = await axiosClient.get(API_URL, {
+                params: {
+                    page: 0,
+                    size: 10000,
+                    sortBy: "createdAt",
+                    sortDirection: "desc",
+                },
+            });
+
+            const fallbackData = fallbackRes.data;
+            return {
+                ...fallbackData,
+                data: fallbackData?.data?.content ?? [],
+            };
+        }
     },
 
     deleteTableBilliardType: async (id: number): Promise<ApiResponse<null>> => {

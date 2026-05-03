@@ -1,5 +1,7 @@
 package com.mhbilliards.billiards_management.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -47,10 +49,16 @@ public class TableBilliardTypeController {
         return ResponseUtil.success(res, "Get table billiard type successfully");
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<Page<TableBilliardTypeResponse>>> getAllTableBilliardTypes(Pageable pageable) {
-        Page<TableBilliardTypeResponse> res = tableBilliardTypeService.getAllTableBilliardTypes(pageable);
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<TableBilliardTypeResponse>>> getAllTableBilliardTypes() {
+        List<TableBilliardTypeResponse> res = tableBilliardTypeService.getAllTableBilliardTypes();
         return ResponseUtil.success(res, "Get all table billiard types successfully");
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<TableBilliardTypeResponse>>> getPageTableBilliardTypes(Pageable pageable) {
+        Page<TableBilliardTypeResponse> res = tableBilliardTypeService.getPageTableBilliardTypes(pageable);
+        return ResponseUtil.success(res, "Get page table billiard types successfully");
     }
 
     @DeleteMapping("/{id}")

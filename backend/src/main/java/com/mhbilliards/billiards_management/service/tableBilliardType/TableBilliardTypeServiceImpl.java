@@ -1,5 +1,7 @@
 package com.mhbilliards.billiards_management.service.tableBilliardType;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -54,7 +56,7 @@ public class TableBilliardTypeServiceImpl implements TableBilliardTypeService {
     }
 
     @Override
-    public Page<TableBilliardTypeResponse> getAllTableBilliardTypes(Pageable pageable) {
+    public Page<TableBilliardTypeResponse> getPageTableBilliardTypes(Pageable pageable) {
         return tableBilliardTypeRepository.findAll(pageable).map(tableBilliardTypeMapper::toResponse);
     }
 
@@ -63,6 +65,12 @@ public class TableBilliardTypeServiceImpl implements TableBilliardTypeService {
         TableBilliardType tableBilliardType = tableBilliardTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table billiard type with id " + id + " not found"));
         tableBilliardTypeRepository.delete(tableBilliardType);
+    }
+
+    @Override
+    public List<TableBilliardTypeResponse> getAllTableBilliardTypes() {
+        List<TableBilliardType> tableBilliardTypes = tableBilliardTypeRepository.findAll();
+        return tableBilliardTypeMapper.toResponseList(tableBilliardTypes);
     }
 
 }
