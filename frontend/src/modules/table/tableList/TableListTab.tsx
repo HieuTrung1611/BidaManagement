@@ -49,7 +49,11 @@ const TableListTab = () => {
     const effectiveBranchId = isAdmin ? selectedBranchId : managedBranchId;
 
     // ADMIN: luôn fetch (mặc định tất cả), MANAGER: chờ xác định được chi nhánh
-    const shouldFetchTables = isAdmin ? true : isManager ? !!managedBranchId : true;
+    const shouldFetchTables = isAdmin
+        ? true
+        : isManager
+          ? !!managedBranchId
+          : true;
 
     const {
         tableBilliards,
@@ -104,7 +108,11 @@ const TableListTab = () => {
     }, [tableBilliards, keyword]);
 
     // ADMIN: luôn có thể tạo (chọn chi nhánh trong modal), MANAGER: cần xác định được chi nhánh
-    const canCreateTable = isAdmin ? true : isManager ? !!managedBranchId : false;
+    const canCreateTable = isAdmin
+        ? true
+        : isManager
+          ? !!managedBranchId
+          : false;
 
     const {
         modalState,

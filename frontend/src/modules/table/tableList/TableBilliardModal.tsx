@@ -6,7 +6,10 @@ import Input from "@/components/ui/form/input/InputField";
 import MoneyVndInput from "@/components/ui/form/input/MoneyVndInput";
 import Label from "@/components/ui/form/Label";
 import { Modal } from "@/components/ui/modal";
-import { ITableBilliardRequest, ITableBilliardResponse } from "@/types/tableBilliard";
+import {
+    ITableBilliardRequest,
+    ITableBilliardResponse,
+} from "@/types/tableBilliard";
 import { ITableBilliardTypeResponse } from "@/types/tableBilliardType";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -44,7 +47,8 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
         branchId: fixedBranchId ?? null,
     };
 
-    const [formData, setFormData] = useState<ITableBilliardRequest>(initialFormData);
+    const [formData, setFormData] =
+        useState<ITableBilliardRequest>(initialFormData);
 
     const tableTypeOptions = useMemo(
         () =>
@@ -76,7 +80,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                 typeId: initialData.type?.id ?? null,
                 zoneId: 1,
                 pricePerHour:
-                    initialData.pricePerHour ?? initialData.type?.pricePerHour ?? 0,
+                    initialData.pricePerHour ??
+                    initialData.type?.pricePerHour ??
+                    0,
                 branchId: initialData.branch?.id ?? fixedBranchId ?? null,
             });
         } else {
@@ -134,7 +140,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
         const { pricePerHour: _ignored, ...rest } = formData;
         const payload: ITableBilliardRequest = {
             ...rest,
-            branchId: canSelectBranch ? formData.branchId : fixedBranchId ?? formData.branchId,
+            branchId: canSelectBranch
+                ? formData.branchId
+                : (fixedBranchId ?? formData.branchId),
             zoneId: formData.zoneId ?? 1,
         };
 
@@ -176,7 +184,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                             error={!!errors.name}
                         />
                         {errors.name && (
-                            <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.name}
+                            </p>
                         )}
                     </div>
 
@@ -186,13 +196,19 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                         </Label>
                         <Select
                             options={tableTypeOptions}
-                            value={formData.typeId ? formData.typeId.toString() : ""}
+                            value={
+                                formData.typeId
+                                    ? formData.typeId.toString()
+                                    : ""
+                            }
                             onChange={handleTypeChange}
                             placeholder="Chọn loại bàn"
                             className={`h-10 w-full ${errors.typeId ? "border-red-500" : ""}`}
                         />
                         {errors.typeId && (
-                            <p className="mt-1 text-xs text-red-500">{errors.typeId}</p>
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.typeId}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -208,7 +224,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-900"
                     />
                     {errors.description && (
-                        <p className="mt-1 text-xs text-red-500">{errors.description}</p>
+                        <p className="mt-1 text-xs text-red-500">
+                            {errors.description}
+                        </p>
                     )}
                 </div>
 
@@ -223,7 +241,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                             placeholder="Lấy từ loại bàn"
                             disabled
                         />
-                        <p className="mt-1 text-xs text-neutral-400">Giá được lấy từ loại bàn, không thể chỉnh sửa.</p>
+                        <p className="mt-1 text-xs text-neutral-400">
+                            Giá được lấy từ loại bàn, không thể chỉnh sửa.
+                        </p>
                     </div>
 
                     <div>
@@ -233,7 +253,11 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                         {canSelectBranch ? (
                             <Select
                                 options={branchOptions}
-                                value={formData.branchId ? formData.branchId.toString() : ""}
+                                value={
+                                    formData.branchId
+                                        ? formData.branchId.toString()
+                                        : ""
+                                }
                                 onChange={handleBranchChange}
                                 placeholder="Chọn chi nhánh"
                                 className={`h-10 w-full ${errors.branchId ? "border-red-500" : ""}`}
@@ -247,14 +271,17 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
                                     branchOptions.find(
                                         (item) =>
                                             Number(item.value) ===
-                                            (fixedBranchId ?? formData.branchId),
+                                            (fixedBranchId ??
+                                                formData.branchId),
                                     )?.label || ""
                                 }
                                 disabled
                             />
                         )}
                         {errors.branchId && (
-                            <p className="mt-1 text-xs text-red-500">{errors.branchId}</p>
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.branchId}
+                            </p>
                         )}
                     </div>
                 </div>
