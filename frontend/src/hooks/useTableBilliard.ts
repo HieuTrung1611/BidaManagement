@@ -13,36 +13,18 @@ const getTableBilliardByIdFetcher = async (
     return res.data;
 };
 
-const getAllTableBilliardsFetcher = async (
+const getPageTableBilliardsFetcher = async (
     params: PaginationParams,
     branchId?: number,
 ) => {
-    const res = await tableBilliardService.getAllTableBilliards(
+    const res = await tableBilliardService.getPageTableBilliards(
         params,
         branchId,
     );
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách bàn");
     }
-
-    // Fallback filter in case backend has not implemented branch filtering yet.
-    if (!branchId) {
-        return res.data;
-    }
-
-    const filteredContent = res.data.content.filter(
-        (table) => table.branch?.id === branchId,
-    );
-
-    return {
-        ...res.data,
-        content: filteredContent,
-        totalElements: filteredContent.length,
-        totalPages: Math.max(
-            1,
-            Math.ceil(filteredContent.length / (params.size ?? 10)),
-        ),
-    };
+    return res.data;
 };
 
 export const useTableBilliard = (id?: number) => {
@@ -81,7 +63,7 @@ export const useTableBilliards = (
                   params.sortDirection,
               ]
             : null,
-        () => getAllTableBilliardsFetcher(params, branchId),
+        () => getPageTableBilliardsFetcher(params, branchId),
         {
             revalidateOnFocus: false,
             shouldRetryOnError: false,
@@ -101,26 +83,16 @@ export const useTableBilliards = (
     };
 };
 
-const getAllTableBilliardsNoPagingFetcher = async (branchId?: number) => {
-    const res = await tableBilliardService.getAllTableBilliards(
-        {
-            page: 0,
-            size: 10000,
-            sortBy: "createdAt",
-            sortDirection: "desc",
-        },
-        branchId,
-    );
+const getAllTableBilliardsNoPagingFetcher = async (
+    branchId?: number,
+): Promise<ITableBilliardResponse[]> => {
+    const res = await tableBilliardService.getAllTableBilliards(branchId);
 
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách bàn");
     }
 
-    if (!branchId) {
-        return res.data.content;
-    }
-
-    return res.data.content.filter((table) => table.branch?.id === branchId);
+    return res.data;
 };
 
 export const useAllTableBilliards = (

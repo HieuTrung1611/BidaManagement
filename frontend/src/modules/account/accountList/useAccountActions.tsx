@@ -12,6 +12,7 @@ import {
     ToggleRight,
 } from "lucide-react";
 import { useAccount } from "@/hooks/useAccount";
+import { useBranches } from "@/hooks/useBranch";
 import AccountDetail from "./AccountDetail";
 
 export const useAccountActions = () => {
@@ -22,6 +23,8 @@ export const useAccountActions = () => {
 
     const { account: selectedAccount, isLoading: isLoadingAccount } =
         useAccount(selectedAccountId || undefined);
+
+    const { branches } = useBranches();
 
     const handleViewDetails = useCallback((account: IAccountResponse) => {
         setSelectedAccountId(account.id);
@@ -78,6 +81,27 @@ export const useAccountActions = () => {
                 },
             },
             {
+                accessorKey: "branchId",
+                header: "Chi nhánh",
+                size: 180,
+                cell: ({ row }) => {
+                    const branchId = row.getValue("branchId") as number | null;
+                    if (!branchId) {
+                        return (
+                            <span className="text-sm text-muted-foreground italic">
+                                Không có (Admin)
+                            </span>
+                        );
+                    }
+                    const branch = branches.find((b) => b.id === branchId);
+                    return (
+                        <span className="text-sm">
+                            {branch ? branch.name : `#${branchId}`}
+                        </span>
+                    );
+                },
+            },
+            {
                 accessorKey: "isActive",
                 header: "Trạng thái",
                 size: 120,
@@ -93,7 +117,7 @@ export const useAccountActions = () => {
                 },
             },
         ],
-        [handleViewDetails],
+        [handleViewDetails, branches],
     );
 
     const DetailDrawer = () => (

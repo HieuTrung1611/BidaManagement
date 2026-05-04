@@ -15,6 +15,7 @@ import { X } from "lucide-react";
 import Badge from "@/components/ui/badge/Badge";
 import { TimelineRow } from "@/components/common/TimeLineRow";
 import { formatDate } from "@/utils/date";
+import { useBranch } from "@/hooks/useBranch";
 
 interface AccountDetailProps {
     isOpen: boolean;
@@ -29,6 +30,8 @@ const AccountDetail: React.FC<AccountDetailProps> = ({
     account,
     isLoading = false,
 }) => {
+    const { branch } = useBranch(account?.branchId ?? undefined);
+
     if (!account) return null;
 
     return (
@@ -108,6 +111,15 @@ const AccountDetail: React.FC<AccountDetailProps> = ({
                                             ? "Hoạt động"
                                             : "Tạm khóa"}
                                     </Badge>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-muted-foreground">
+                                    Chi nhánh
+                                </label>
+                                <div className="text-sm px-3 py-2 bg-background border rounded">
+                                    {branch ? branch.name : "Không có (Admin)"}
                                 </div>
                             </div>
 

@@ -20,4 +20,5 @@ public class UserResponse {
     String email;
     UserRole role;
     Boolean isActive;
+    Long branchId;
 }

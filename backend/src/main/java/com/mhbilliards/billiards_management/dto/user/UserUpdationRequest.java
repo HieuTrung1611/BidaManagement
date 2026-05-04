@@ -26,4 +26,5 @@ public class UserUpdationRequest {
     String email;
     @Builder.Default
     UserRole role = UserRole.EMPLOYEE;
+    Long branchId;
 }

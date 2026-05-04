@@ -7,6 +7,7 @@ import Label from "../../../components/ui/form/Label";
 import Input from "../../../components/ui/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
 import Select from "@/components/ui/form/Select";
+import { useBranches } from "@/hooks/useBranch";
 
 interface AccountModalProps {
     isOpen: boolean;
@@ -30,12 +31,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         username: "",
         password: "",
         role: USERROLE.EMPLOYEE,
+        branchId: null,
     };
 
     const [formData, setFormData] = useState<IAccountRequest>(initialFormData);
+    const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+    const { branches } = useBranches();
 
     const resetFormData = () => {
         setFormData(initialFormData);
+        setLocalErrors({});
     };
 
     useEffect(() => {
@@ -45,6 +50,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 username: initialData.username,
                 password: "", // Keep password empty for editing
                 role: initialData.role,
+                branchId: initialData.branchId ?? null,
             });
         } else {
             resetFormData();
@@ -65,11 +71,34 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         setFormData((prev) => ({
             ...prev,
             role: value as USERROLE,
+            branchId: value === USERROLE.ADMIN ? null : prev.branchId,
+        }));
+        if (value === USERROLE.ADMIN) {
+            setLocalErrors((prev) => ({ ...prev, branchId: "" }));
+        }
+    };
+
+    const handleBranchChange = (value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            branchId: value ? Number(value) : null,
         }));
     };
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        const newLocalErrors: Record<string, string> = {};
+        if (!initialData && !formData.password.trim()) {
+            newLocalErrors.password = "Mật khẩu là bắt buộc";
+        }
+        if (formData.role !== USERROLE.ADMIN && !formData.branchId) {
+            newLocalErrors.branchId = "Chi nhánh là bắt buộc";
+        }
+        if (Object.keys(newLocalErrors).length > 0) {
+            setLocalErrors(newLocalErrors);
+            return;
+        }
+        setLocalErrors({});
         onSubmit(formData, initialData?.id);
     };
 
@@ -116,6 +145,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         placeholder="Nhập tên đăng nhập..."
                         error={!!errors.username}
                     />
+                    {errors.username && (
+                        <p className="mt-1 text-xs text-red-500">
+                            {errors.username}
+                        </p>
+                    )}
                 </div>
 
                 <div>
@@ -139,19 +173,33 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 </div>
 
                 <div>
-                    <Label htmlFor="password">Mật khẩu</Label>
+                    <Label htmlFor="password">
+                        Mật khẩu
+                        {!initialData && (
+                            <span className="text-red-500">*</span>
+                        )}
+                    </Label>
                     <Input
                         id="password"
                         name="password"
                         type="password"
                         value={formData.password}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                            handleChange(e);
+                            if (localErrors.password) setLocalErrors({});
+                        }}
                         placeholder={
                             initialData
                                 ? "Nhập mật khẩu mới (bỏ trống để giữ nguyên)..."
                                 : "Nhập mật khẩu..."
                         }
+                        error={!!(errors.password || localErrors.password)}
                     />
+                    {(errors?.password || localErrors.password) && (
+                        <p className="mt-1 text-xs text-red-500">
+                            {errors?.password || localErrors.password}
+                        </p>
+                    )}
                 </div>
 
                 <div>
@@ -169,6 +217,37 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         </p>
                     )}
                 </div>
+
+                {formData.role !== USERROLE.ADMIN && (
+                    <div>
+                        <Label htmlFor="branchId">
+                            Chi nhánh <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                            value={formData.branchId?.toString() ?? ""}
+                            onChange={(value) => {
+                                handleBranchChange(value);
+                                if (localErrors.branchId)
+                                    setLocalErrors((prev) => ({
+                                        ...prev,
+                                        branchId: "",
+                                    }));
+                            }}
+                            options={[
+                                { value: "", label: "-- Chọn chi nhánh --" },
+                                ...branches.map((b) => ({
+                                    value: String(b.id),
+                                    label: b.name,
+                                })),
+                            ]}
+                        />
+                        {(localErrors.branchId || errors.branchId) && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {localErrors.branchId || errors.branchId}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex justify-end gap-3 pt-4">
                     <Button

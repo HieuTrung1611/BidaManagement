@@ -14,6 +14,7 @@ import { AxiosError } from "axios";
 import React from "react";
 import { MetaCard } from "@/components/common/MetaCard";
 import { TimelineRow } from "@/components/common/TimeLineRow";
+import { useBranch } from "@/hooks/useBranch";
 
 const formatDateTime = (date?: string) => {
     if (!date) return "--";
@@ -38,6 +39,7 @@ const AccountCurrentDetailTab = () => {
         {},
     );
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const { branch } = useBranch(account?.branchId ?? undefined);
 
     const handleOpenModal = () => {
         if (!account) return;
@@ -90,6 +92,7 @@ const AccountCurrentDetailTab = () => {
               email: account.email,
               role: account.role,
               isActive: account.isActive,
+              branchId: account.branchId ?? null,
           }
         : null;
 
@@ -167,6 +170,11 @@ const AccountCurrentDetailTab = () => {
                 label: "Người cập nhật",
                 value: account.updatedBy || "--",
                 hint: "Lần chỉnh sửa gần nhất",
+            },
+            {
+                label: "Chi nhánh",
+                value: branch ? branch.name : "Không có (Admin)",
+                hint: "Chi nhánh được phân công",
             },
         ];
 

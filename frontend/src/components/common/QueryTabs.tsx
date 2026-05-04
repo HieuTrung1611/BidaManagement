@@ -62,7 +62,7 @@ export default function QueryTabs({
 
             {tabs.map((tab) => (
                 <TabsContent key={tab.value} value={tab.value}>
-                    {tab.content}
+                    {activeTab === tab.value ? tab.content : null}
                 </TabsContent>
             ))}
         </Tabs>

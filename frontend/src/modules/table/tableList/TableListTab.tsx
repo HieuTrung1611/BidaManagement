@@ -14,7 +14,10 @@ import { useAllTableBilliards } from "@/hooks/useTableBilliard";
 import { useAllTableBilliardTypes } from "@/hooks/useTableBilliardType";
 import tableBilliardService from "@/services/tableBilliardService";
 import { UserRole } from "@/types/auth";
-import { ITableBilliardRequest, ITableBilliardResponse } from "@/types/tableBilliard";
+import {
+    ITableBilliardRequest,
+    ITableBilliardResponse,
+} from "@/types/tableBilliard";
 import { AxiosError } from "axios";
 import React from "react";
 import { TableBilliardModal } from "./TableBilliardModal";
@@ -57,12 +60,7 @@ const TableListTab = () => {
           ? !!managedBranchId
           : true;
 
-    const {
-        tableBilliards,
-        isLoading,
-        isError,
-        mutate,
-    } = useAllTableBilliards(
+    const { tableBilliards, isLoading, isError, mutate } = useAllTableBilliards(
         effectiveBranchId,
         shouldFetchTables,
     );
@@ -125,7 +123,7 @@ const TableListTab = () => {
                 const payload = {
                     ...data,
                     branchId: isManager
-                        ? managedBranchId ?? data.branchId
+                        ? (managedBranchId ?? data.branchId)
                         : data.branchId,
                 };
                 return tableBilliardService.createTableBilliard(payload);
@@ -134,7 +132,7 @@ const TableListTab = () => {
                 const payload = {
                     ...data,
                     branchId: isManager
-                        ? managedBranchId ?? data.branchId
+                        ? (managedBranchId ?? data.branchId)
                         : data.branchId,
                 };
                 return tableBilliardService.updateTableBilliard(id, payload);

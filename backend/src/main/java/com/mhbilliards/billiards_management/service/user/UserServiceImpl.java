@@ -10,7 +10,10 @@ import com.mhbilliards.billiards_management.dto.user.UserCreationRequest;
 import com.mhbilliards.billiards_management.dto.user.UserDetaiResponse;
 import com.mhbilliards.billiards_management.dto.user.UserResponse;
 import com.mhbilliards.billiards_management.dto.user.UserUpdationRequest;
+import com.mhbilliards.billiards_management.entity.Branch;
 import com.mhbilliards.billiards_management.entity.User;
+import com.mhbilliards.billiards_management.enums.UserRole;
+import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.UserRepository;
 import com.mhbilliards.billiards_management.specification.UserSpecification;
 
@@ -22,14 +25,17 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BranchRepository branchRepository;
 
     // Conversion function: UserCreationRequest -> User Entity
     private User convertToEntity(UserCreationRequest request) {
+        Branch branch = resolveBranch(request.getRole(), request.getBranchId());
         return User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .role(request.getRole())
+                .branch(branch)
                 .build();
     }
 
@@ -41,6 +47,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .isActive(user.getIsActive())
+                .branchId(user.getBranch() != null ? user.getBranch().getId() : null)
                 .build();
     }
 
@@ -52,11 +59,34 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .isActive(user.getIsActive())
+                .branchId(user.getBranch() != null ? user.getBranch().getId() : null)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .createdBy(user.getCreatedBy())
                 .updatedBy(user.getUpdatedBy())
                 .build();
+    }
+
+    private Branch resolveBranch(UserRole role, Long branchId) {
+        if (role == UserRole.ADMIN) {
+            return null;
+        }
+        if (branchId == null) {
+            throw new RuntimeException("Branch is required for role: " + role);
+        }
+        return branchRepository.findById(branchId)
+                .orElseThrow(() -> new RuntimeException("Branch not found with id: " + branchId));
+    }
+
+    private void validateManagerUniqueness(UserRole role, Long branchId, Long excludeUserId) {
+        if (role != UserRole.MANAGER || branchId == null)
+            return;
+        boolean exists = excludeUserId == null
+                ? userRepository.existsByBranch_IdAndRole(branchId, UserRole.MANAGER)
+                : userRepository.existsByBranch_IdAndRoleAndIdNot(branchId, UserRole.MANAGER, excludeUserId);
+        if (exists) {
+            throw new RuntimeException("Chi nhánh này đã có quản lý, mỗi chi nhánh chỉ được có 1 quản lý");
+        }
     }
 
     // Conversion function: Update existing User Entity from UserUpdationRequest
@@ -68,6 +98,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setEmail(request.getEmail());
         user.setRole(request.getRole());
+        user.setBranch(resolveBranch(request.getRole(), request.getBranchId()));
     }
 
     @Override
@@ -75,6 +106,7 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists");
         }
+        validateManagerUniqueness(request.getRole(), request.getBranchId(), null);
         User user = convertToEntity(request);
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);
@@ -85,6 +117,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
+        validateManagerUniqueness(request.getRole(), request.getBranchId(), id);
         updateEntityFromRequest(user, request);
         User updatedUser = userRepository.save(user);
         return convertToResponse(updatedUser);

@@ -31,6 +31,15 @@ const tableBilliardService = {
     },
 
     getAllTableBilliards: async (
+        branchId?: number,
+    ): Promise<ApiResponse<ITableBilliardResponse[]>> => {
+        const res = await axiosClient.get(`${API_URL}/all`, {
+            params: branchId ? { branchId } : {},
+        });
+        return res.data;
+    },
+
+    getPageTableBilliards: async (
         params: PaginationParams,
         branchId?: number,
     ): Promise<ApiResponse<PageResponse<ITableBilliardResponse>>> => {

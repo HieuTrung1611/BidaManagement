@@ -1,5 +1,7 @@
 package com.mhbilliards.billiards_management.service.tableBilliards;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,8 +61,19 @@ public class TableBilliardServiceImpl implements TableBilliardService {
     }
 
     @Override
-    public Page<TableBilliardResponse> getAllTableBilliards(Pageable pageable) {
+    public Page<TableBilliardResponse> getAllTableBilliards(Long branchId, Pageable pageable) {
+        if (branchId != null) {
+            return tableBilliardRepository.findByBranch_Id(branchId, pageable).map(tableMapper::toResponse);
+        }
         return tableBilliardRepository.findAll(pageable).map(tableMapper::toResponse);
+    }
+
+    @Override
+    public List<TableBilliardResponse> getAllTableBilliardsNoPaging(Long branchId) {
+        List<TableBilliard> tables = branchId != null
+                ? tableBilliardRepository.findByBranch_Id(branchId)
+                : tableBilliardRepository.findAll();
+        return tables.stream().map(tableMapper::toResponse).toList();
     }
 
     @Override

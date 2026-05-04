@@ -1,5 +1,7 @@
 package com.mhbilliards.billiards_management.service.tableBilliards;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -13,7 +15,9 @@ public interface TableBilliardService {
 
     TableBilliardResponse getTableBilliardById(Long id);
 
-    Page<TableBilliardResponse> getAllTableBilliards(Pageable pageable);
+    Page<TableBilliardResponse> getAllTableBilliards(Long branchId, Pageable pageable);
+
+    List<TableBilliardResponse> getAllTableBilliardsNoPaging(Long branchId);
 
     void deleteTableBilliard(Long id);
 }

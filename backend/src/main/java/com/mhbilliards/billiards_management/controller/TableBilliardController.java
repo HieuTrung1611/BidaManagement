@@ -1,9 +1,10 @@
 package com.mhbilliards.billiards_management.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardRequest;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardResponse;
@@ -20,7 +23,7 @@ import com.mhbilliards.billiards_management.utils.ResponseUtil;
 
 import lombok.RequiredArgsConstructor;
 
-@Service
+@RestController
 @RequestMapping("/table-billiard")
 @RequiredArgsConstructor
 public class TableBilliardController {
@@ -48,8 +51,17 @@ public class TableBilliardController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<TableBilliardResponse>>> getAllTableBilliards(Pageable pageable) {
-        Page<TableBilliardResponse> res = tableBilliardService.getAllTableBilliards(pageable);
+    public ResponseEntity<ApiResponse<Page<TableBilliardResponse>>> getAllTableBilliards(
+            @RequestParam(required = false) Long branchId,
+            Pageable pageable) {
+        Page<TableBilliardResponse> res = tableBilliardService.getAllTableBilliards(branchId, pageable);
+        return ResponseUtil.success(res, "Get all table billiards successfully");
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<TableBilliardResponse>>> getAllTableBilliardsNoPaging(
+            @RequestParam(required = false) Long branchId) {
+        List<TableBilliardResponse> res = tableBilliardService.getAllTableBilliardsNoPaging(branchId);
         return ResponseUtil.success(res, "Get all table billiards successfully");
     }
 

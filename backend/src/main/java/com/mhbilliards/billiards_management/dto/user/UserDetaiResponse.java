@@ -22,4 +22,5 @@ public class UserDetaiResponse extends BaseResponse {
     String email;
     UserRole role;
     Boolean isActive;
+    Long branchId;
 }

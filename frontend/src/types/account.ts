@@ -9,6 +9,7 @@ export interface IAccountResponse {
     role: USERROLE;
     email: string;
     isActive: boolean;
+    branchId: number | null;
 }
 
 export enum USERROLE {
@@ -28,4 +29,5 @@ export interface IAccountRequest {
     username: string;
     password: string;
     role: USERROLE;
+    branchId?: number | null;
 }
