@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,14 +32,14 @@ public class TableBilliardController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<TableBilliardResponse>> createTableBilliard(
-            @RequestBody TableBilliardRequest request) {
+            @Valid @RequestBody TableBilliardRequest request) {
         TableBilliardResponse res = tableBilliardService.createTableBilliard(request);
         return ResponseUtil.created(res, "Create table billiard successfully");
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TableBilliardResponse>> updateTableBilliard(
-            @RequestBody TableBilliardRequest request,
+            @Valid @RequestBody TableBilliardRequest request,
             @PathVariable Long id) {
         TableBilliardResponse res = tableBilliardService.updateTableBilliard(id, request);
         return ResponseUtil.success(res, "Update table billiard successfully");

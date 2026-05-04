@@ -28,10 +28,15 @@ public class TableBilliardServiceImpl implements TableBilliardService {
     public TableBilliardResponse createTableBilliard(TableBilliardRequest request) {
         if (tableBilliardRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException(
-                    "Table billiard with name " + request.getName() + " already exists");
+                    "Tên bàn đã tồn tại! ");
         }
 
-        TableBilliard tableBilliard = tableMapper.toEntity(request);
+        TableBilliard tableBilliard = TableBilliard.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .type(tableBilliardTypeRepository.getReferenceById(request.getTypeId()))
+                .branch(branchRepository.getReferenceById(request.getBranchId()))
+                .build();
         tableBilliard = tableBilliardRepository.save(tableBilliard);
         return tableMapper.toResponse(tableBilliard);
     }
@@ -43,7 +48,7 @@ public class TableBilliardServiceImpl implements TableBilliardService {
         if (!tableBilliard.getName().equals(request.getName())
                 && tableBilliardRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException(
-                    "Table billiard with name " + request.getName() + " already exists");
+                    "Tên bàn đã tồn tại! ");
         }
         tableBilliard.setName(request.getName());
         tableBilliard.setDescription(request.getDescription());

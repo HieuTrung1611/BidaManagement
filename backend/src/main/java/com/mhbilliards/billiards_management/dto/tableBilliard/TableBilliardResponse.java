@@ -18,6 +18,5 @@ public class TableBilliardResponse {
     String name;
     String description;
     TableBilliardTypeResponse type;
-    Double pricePerHour;
     BranchResponse branch;
 }

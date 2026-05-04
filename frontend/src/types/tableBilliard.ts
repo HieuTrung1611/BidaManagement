@@ -7,7 +7,7 @@ export interface ITableBilliardRequest {
     description: string;
     typeId: number | null;
     zoneId: number | null;
-    pricePerHour: number;
+    pricePerHour?: number;
     branchId: number | null;
 }
 

@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCrudActions } from "@/hooks/useCrudActions";
 import { useBranches } from "@/hooks/useBranch";
 import { useManagedBranch } from "@/hooks/useManagedBranch";
-import { useAllTableBilliards } from "@/hooks/useTableBilliard";
+import { useTableBilliards } from "@/hooks/useTableBilliard";
 import { useAllTableBilliardTypes } from "@/hooks/useTableBilliardType";
 import tableBilliardService from "@/services/tableBilliardService";
 import { UserRole } from "@/types/auth";
@@ -18,6 +18,7 @@ import {
     ITableBilliardRequest,
     ITableBilliardResponse,
 } from "@/types/tableBilliard";
+import { PaginationState } from "@tanstack/react-table";
 import { AxiosError } from "axios";
 import React from "react";
 import { TableBilliardModal } from "./TableBilliardModal";
@@ -27,40 +28,45 @@ import {
 } from "./useTableBilliardAction";
 
 const TableListTab = () => {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const isAdmin = user?.role === UserRole.ADMIN;
     const isManager = user?.role === UserRole.MANAGER;
-
-    React.useEffect(() => {
-        if (loading) {
-            return;
-        }
-
-        console.log("[TableListTab] user.role:", user?.role ?? null);
-    }, [loading, user?.role]);
 
     const [keyword, setKeyword] = React.useState("");
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
     >(undefined);
+    const [pagination, setPagination] = React.useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10,
+    });
 
     const { branches } = useBranches();
     const { managedBranchId, isLoading: isLoadingManagedBranch } =
         useManagedBranch();
 
-    const effectiveBranchId = isAdmin
-        ? selectedBranchId
-        : isManager
-          ? managedBranchId
-          : undefined;
+    // ADMIN: selectedBranchId (undefined = tất cả), MANAGER: fix cứng chi nhánh được quản lý
+    const effectiveBranchId = isAdmin ? selectedBranchId : managedBranchId;
 
-    const shouldFetchTables = isAdmin
-        ? !!selectedBranchId
-        : isManager
-          ? !!managedBranchId
-          : true;
+    // ADMIN: luôn fetch (mặc định tất cả), MANAGER: chờ xác định được chi nhánh
+    const shouldFetchTables = isAdmin ? true : isManager ? !!managedBranchId : true;
 
-    const { tableBilliards, isLoading, isError, mutate } = useAllTableBilliards(
+    const {
+        tableBilliards,
+        pageNumber,
+        pageSize,
+        totalElements,
+        totalPages,
+        isLoading,
+        isError,
+        mutate,
+    } = useTableBilliards(
+        {
+            page: pagination.pageIndex,
+            size: pagination.pageSize,
+            sortBy: "createdAt",
+            sortDirection: "desc",
+        },
         effectiveBranchId,
         shouldFetchTables,
     );
@@ -70,40 +76,35 @@ const TableListTab = () => {
     const { columns } = useTableBilliardActions();
 
     const branchOptions = React.useMemo(
-        () =>
-            branches.map((branch) => ({
+        () => [
+            { value: "", label: "Tất cả chi nhánh" },
+            ...branches.map((branch) => ({
                 value: branch.id.toString(),
                 label: branch.name,
             })),
+        ],
         [branches],
     );
 
     const selectedBranchLabel = React.useMemo(() => {
-        if (!effectiveBranchId) return "";
-        return (
-            branches.find((branch) => branch.id === effectiveBranchId)?.name ||
-            ""
-        );
+        if (!effectiveBranchId) return "Tất cả";
+        return branches.find((b) => b.id === effectiveBranchId)?.name || "";
     }, [branches, effectiveBranchId]);
 
     const filteredTables = React.useMemo(() => {
         const normalizedKeyword = keyword.trim().toLowerCase();
         if (!normalizedKeyword) return tableBilliards;
 
-        return tableBilliards.filter((table) => {
-            return (
+        return tableBilliards.filter(
+            (table) =>
                 table.name?.toLowerCase().includes(normalizedKeyword) ||
                 table.type?.name?.toLowerCase().includes(normalizedKeyword) ||
-                table.branch?.name?.toLowerCase().includes(normalizedKeyword)
-            );
-        });
+                table.branch?.name?.toLowerCase().includes(normalizedKeyword),
+        );
     }, [tableBilliards, keyword]);
 
-    const canCreateTable = isAdmin
-        ? !!selectedBranchId
-        : isManager
-          ? !!managedBranchId
-          : false;
+    // ADMIN: luôn có thể tạo (chọn chi nhánh trong modal), MANAGER: cần xác định được chi nhánh
+    const canCreateTable = isAdmin ? true : isManager ? !!managedBranchId : false;
 
     const {
         modalState,
@@ -166,19 +167,23 @@ const TableListTab = () => {
                             <Select
                                 options={branchOptions}
                                 value={selectedBranchId?.toString() || ""}
-                                onChange={(value) =>
+                                onChange={(value) => {
                                     setSelectedBranchId(
                                         value ? Number(value) : undefined,
-                                    )
-                                }
-                                placeholder="Chọn chi nhánh"
+                                    );
+                                    setPagination((p) => ({
+                                        ...p,
+                                        pageIndex: 0,
+                                    }));
+                                }}
+                                placeholder="Tất cả chi nhánh"
                                 className="h-10 w-full sm:w-72"
                             />
                         )}
 
                         {isManager && (
                             <Badge color="warning" variant="light">
-                                Chi nhánh quản lý: {selectedBranchLabel || "-"}
+                                Chi nhánh quản lý: {selectedBranchLabel}
                             </Badge>
                         )}
 
@@ -197,12 +202,6 @@ const TableListTab = () => {
                         Thêm bàn
                     </Button>
                 </div>
-
-                {isAdmin && !selectedBranchId && (
-                    <p className="text-sm text-amber-600">
-                        Vui lòng chọn chi nhánh để xem và thêm bàn.
-                    </p>
-                )}
 
                 {isManager && !managedBranchId && !isLoadingManagedBranch && (
                     <p className="text-sm text-red-500">
@@ -232,8 +231,12 @@ const TableListTab = () => {
                                 })
                             }
                             isLoading={isLoading || isLoadingManagedBranch}
-                            manualPagination={false}
-                            isShowPagination={false}
+                            manualPagination
+                            pageCount={totalPages}
+                            pageIndex={pageNumber}
+                            pageSize={pageSize}
+                            totalItems={totalElements}
+                            onPaginationChange={setPagination}
                         />
                     </div>
                 )}
@@ -246,7 +249,7 @@ const TableListTab = () => {
                     initialData={modalState.editingEntity}
                     errors={fieldErrors}
                     tableTypes={tableBilliardTypes}
-                    branchOptions={branchOptions}
+                    branchOptions={branchOptions.filter((o) => o.value !== "")}
                     canSelectBranch={isAdmin}
                     fixedBranchId={managedBranchId}
                 />

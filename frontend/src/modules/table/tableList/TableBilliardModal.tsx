@@ -131,8 +131,9 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
+        const { pricePerHour: _ignored, ...rest } = formData;
         const payload: ITableBilliardRequest = {
-            ...formData,
+            ...rest,
             branchId: canSelectBranch ? formData.branchId : fixedBranchId ?? formData.branchId,
             zoneId: formData.zoneId ?? 1,
         };
@@ -213,22 +214,16 @@ export const TableBilliardModal: React.FC<TableBilliardModalProps> = ({
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <Label htmlFor="pricePerHour">
-                            Giá theo giờ <span className="text-red-500">*</span>
-                        </Label>
+                        <Label htmlFor="pricePerHour">Giá theo giờ</Label>
                         <MoneyVndInput
                             id="pricePerHour"
                             name="pricePerHour"
                             value={formData.pricePerHour}
                             onValueChange={handlePricePerHourChange}
-                            placeholder="Nhập giá theo giờ"
-                            error={!!errors.pricePerHour}
+                            placeholder="Lấy từ loại bàn"
+                            disabled
                         />
-                        {errors.pricePerHour && (
-                            <p className="mt-1 text-xs text-red-500">
-                                {errors.pricePerHour}
-                            </p>
-                        )}
+                        <p className="mt-1 text-xs text-neutral-400">Giá được lấy từ loại bàn, không thể chỉnh sửa.</p>
                     </div>
 
                     <div>
