@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -53,4 +54,14 @@ public class Customer extends BaseEntity {
 
     @Builder.Default
     Boolean isActive = true;
+
+    String photoUrl; // Ảnh khách hàng cho AI nhận diện
+
+    @Builder.Default
+    Integer visitCount = 0; // Số lần ghé
+
+    LocalDateTime lastVisitDate; // Ngày ghé gần nhất
+
+    @Column(columnDefinition = "LONGTEXT")
+    String customerNotes; // Ghi chú về sở thích, phong cách chơi...
 }

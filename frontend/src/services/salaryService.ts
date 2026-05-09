@@ -1,5 +1,8 @@
 import { ApiResponse } from "@/types/base";
-import { ISalaryStatisticsResponse, ISalarySummaryResponse } from "@/types/salary";
+import {
+    ISalaryStatisticsResponse,
+    ISalarySummaryResponse,
+} from "@/types/salary";
 import axiosClient from "./axiosClient";
 
 const API_URL = "/salaries";

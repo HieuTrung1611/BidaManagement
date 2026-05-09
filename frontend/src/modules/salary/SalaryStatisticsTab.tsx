@@ -19,12 +19,13 @@ type SalaryStatisticsTabProps = {
     branches: IBranchResponse[];
 };
 
-const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) => {
+const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({
+    branches,
+}) => {
     const { user } = useAuth();
 
-    const [salaryMonth, setSalaryMonth] = React.useState<string>(
-        getCurrentMonth(),
-    );
+    const [salaryMonth, setSalaryMonth] =
+        React.useState<string>(getCurrentMonth());
     const [keyword, setKeyword] = React.useState<string>("");
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
@@ -60,7 +61,9 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                         <div>
-                            <Label htmlFor="salaryMonthStatistics">Tháng lương</Label>
+                            <Label htmlFor="salaryMonthStatistics">
+                                Tháng lương
+                            </Label>
                             <Input
                                 id="salaryMonthStatistics"
                                 name="salaryMonthStatistics"
@@ -72,7 +75,9 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
 
                         {isAdminLike && (
                             <div>
-                                <Label htmlFor="branchIdStatistics">Chi nhánh</Label>
+                                <Label htmlFor="branchIdStatistics">
+                                    Chi nhánh
+                                </Label>
                                 <Select
                                     options={branchOptions}
                                     value={selectedBranchId?.toString() || ""}
@@ -88,7 +93,9 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                         )}
 
                         <div className="lg:col-span-2">
-                            <Label htmlFor="salaryStatisticsKeyword">Tìm kiếm</Label>
+                            <Label htmlFor="salaryStatisticsKeyword">
+                                Tìm kiếm
+                            </Label>
                             <Input
                                 id="salaryStatisticsKeyword"
                                 name="salaryStatisticsKeyword"
@@ -104,7 +111,9 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             <MetaCard
                                 label="Tổng chi toàn hệ thống"
-                                value={formatCurrency(salaryStatistics.totalSalary)}
+                                value={formatCurrency(
+                                    salaryStatistics.totalSalary,
+                                )}
                                 hint={`Tháng ${salaryStatistics.salaryMonth}`}
                             />
                             <MetaCard
@@ -121,7 +130,11 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                                 label="Trạng thái hệ thống"
                                 value={
                                     <Badge
-                                        color={salaryStatistics.allPaid ? "success" : "warning"}
+                                        color={
+                                            salaryStatistics.allPaid
+                                                ? "success"
+                                                : "warning"
+                                        }
                                         variant="light">
                                         {salaryStatistics.allPaid
                                             ? "Đã thanh toán hết"
@@ -159,7 +172,11 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                                             {branch.branchName}
                                         </CardTitle>
                                         <Badge
-                                            color={branch.allPaid ? "success" : "warning"}
+                                            color={
+                                                branch.allPaid
+                                                    ? "success"
+                                                    : "warning"
+                                            }
                                             variant="light">
                                             {branch.allPaid
                                                 ? "Đã thanh toán hết"
@@ -170,7 +187,9 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                                 <CardContent className="space-y-3">
                                     <MetaCard
                                         label="Cần chi tháng này"
-                                        value={formatCurrency(branch.totalSalary)}
+                                        value={formatCurrency(
+                                            branch.totalSalary,
+                                        )}
                                     />
                                     <div className="grid grid-cols-2 gap-3">
                                         <MetaCard
@@ -188,7 +207,8 @@ const SalaryStatisticsTab: React.FC<SalaryStatisticsTabProps> = ({ branches }) =
                     ) : (
                         <Card className="lg:col-span-2">
                             <CardContent className="py-8 text-center text-neutral-500">
-                                Chưa có dữ liệu thống kê theo điều kiện tìm kiếm.
+                                Chưa có dữ liệu thống kê theo điều kiện tìm
+                                kiếm.
                             </CardContent>
                         </Card>
                     )}

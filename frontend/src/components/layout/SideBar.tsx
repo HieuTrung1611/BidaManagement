@@ -53,7 +53,7 @@ const navItems: NavItem[] = [
     {
         icon: <Users />,
         name: "Khách hàng",
-        path: "/#", // TODO: Add CUSTOMER route to routes.ts
+        path: ROUTES.CUSTOMER.path,
     },
 
     {

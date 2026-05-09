@@ -7,7 +7,7 @@ const API_URL = "/customers";
 const customerService = {
     createCustomer: async (
         req: ICustomerRequest,
-    ): Promise<ApiResponse<null>> => {
+    ): Promise<ApiResponse<ICustomerResponse>> => {
         const res = await axiosClient.post(API_URL, req);
         return res.data;
     },
@@ -15,7 +15,7 @@ const customerService = {
     updateCustomer: async (
         id: number,
         req: ICustomerRequest,
-    ): Promise<ApiResponse<null>> => {
+    ): Promise<ApiResponse<ICustomerResponse>> => {
         const res = await axiosClient.put(`${API_URL}/${id}`, req);
         return res.data;
     },
@@ -27,36 +27,72 @@ const customerService = {
         return res.data;
     },
 
-    getAllCustomersByKeyword: async (
-        keyword: string,
+    getAllCustomers: async (
+        keyword: string = "",
+        branchId: number | null | undefined,
         params: PaginationParams,
     ): Promise<ApiResponse<PageResponse<ICustomerResponse>>> => {
-        const res = await axiosClient.get(`${API_URL}/search`, {
+        const res = await axiosClient.get(API_URL, {
             params: {
                 keyword: keyword,
+                branchId: branchId,
                 page: params.page ?? 0,
                 size: params.size ?? 10,
                 sortBy: params.sortBy ?? "id",
-                sortDirection: params.sortDirection ?? "asc",
+                sortDirection: params.sortDirection ?? "DESC",
             },
         });
         return res.data;
     },
 
-    softDeleteCustomerById: async (id: number): Promise<ApiResponse<null>> => {
+    deleteCustomer: async (id: number): Promise<ApiResponse<null>> => {
         const res = await axiosClient.delete(`${API_URL}/${id}`);
         return res.data;
     },
 
-    restoreCustomerById: async (id: number): Promise<ApiResponse<null>> => {
-        const res = await axiosClient.put(`${API_URL}/${id}/restore`);
+    deactivateCustomer: async (id: number): Promise<ApiResponse<null>> => {
+        const res = await axiosClient.post(`${API_URL}/${id}/deactivate`);
         return res.data;
     },
 
-    permanentDeleteCustomerById: async (
+    reactivateCustomer: async (id: number): Promise<ApiResponse<null>> => {
+        const res = await axiosClient.post(`${API_URL}/${id}/reactivate`);
+        return res.data;
+    },
+
+    uploadCustomerPhoto: async (
         id: number,
-    ): Promise<ApiResponse<null>> => {
-        const res = await axiosClient.delete(`${API_URL}/${id}/permanent`);
+        file: File,
+    ): Promise<ApiResponse<ICustomerResponse>> => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await axiosClient.post(
+            `${API_URL}/${id}/upload-photo`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            },
+        );
+        return res.data;
+    },
+
+    updateCustomerNotes: async (
+        id: number,
+        notes: string,
+    ): Promise<ApiResponse<ICustomerResponse>> => {
+        const res = await axiosClient.put(`${API_URL}/${id}/notes`, {
+            notes,
+        });
+        return res.data;
+    },
+
+    recordCustomerVisit: async (
+        id: number,
+    ): Promise<ApiResponse<ICustomerResponse>> => {
+        const res = await axiosClient.post(`${API_URL}/${id}/record-visit`);
         return res.data;
     },
 };

@@ -24,19 +24,24 @@ import { useSalarySummary } from "@/hooks/useSalary";
 import salaryService from "@/services/salaryService";
 import { UserRole } from "@/types/auth";
 import { IBranchResponse } from "@/types/branch";
-import { formatCurrency, getCurrentMonth, salaryTypeLabel } from "./salaryUtils";
+import {
+    formatCurrency,
+    getCurrentMonth,
+    salaryTypeLabel,
+} from "./salaryUtils";
 
 type SalaryManagementTabProps = {
     branches: IBranchResponse[];
 };
 
-const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) => {
+const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({
+    branches,
+}) => {
     const toast = useToast();
     const { user } = useAuth();
 
-    const [salaryMonth, setSalaryMonth] = React.useState<string>(
-        getCurrentMonth(),
-    );
+    const [salaryMonth, setSalaryMonth] =
+        React.useState<string>(getCurrentMonth());
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
     >(undefined);
@@ -64,7 +69,10 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
 
     const handleCalculate = async () => {
         if (!shouldFetch) {
-            toast.warning("Thiếu thông tin", "Vui lòng chọn chi nhánh trước khi tính lương");
+            toast.warning(
+                "Thiếu thông tin",
+                "Vui lòng chọn chi nhánh trước khi tính lương",
+            );
             return;
         }
 
@@ -76,7 +84,10 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
             );
 
             if (res.success) {
-                toast.success("Thành công", res.message || "Tính lương thành công");
+                toast.success(
+                    "Thành công",
+                    res.message || "Tính lương thành công",
+                );
                 await mutate();
                 return;
             }
@@ -151,13 +162,15 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
                                 {salarySummary.salaryMonth}
                             </Badge>
                             <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                                Chi nhánh: {salarySummary.branchName || "Tất cả chi nhánh"}
+                                Chi nhánh:{" "}
+                                {salarySummary.branchName || "Tất cả chi nhánh"}
                             </span>
                             <span className="text-sm text-neutral-600 dark:text-neutral-400">
                                 Nhân viên: {salarySummary.employeeCount}
                             </span>
                             <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                                Tổng lương: {formatCurrency(salarySummary.totalSalary)}
+                                Tổng lương:{" "}
+                                {formatCurrency(salarySummary.totalSalary)}
                             </span>
                         </div>
                     )}
@@ -192,23 +205,42 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-16 text-center">
+                                            <TableCell
+                                                colSpan={5}
+                                                className="h-16 text-center">
                                                 Đang tải dữ liệu...
                                             </TableCell>
                                         </TableRow>
-                                    ) : salarySummary?.branchSummaries?.length ? (
-                                        salarySummary.branchSummaries.map((item) => (
-                                            <TableRow key={item.branchId}>
-                                                <TableCell>{item.branchName}</TableCell>
-                                                <TableCell>{item.employeeCount}</TableCell>
-                                                <TableCell>{item.totalWorkingDays}</TableCell>
-                                                <TableCell>{item.totalWorkingHours}</TableCell>
-                                                <TableCell>{formatCurrency(item.totalSalary)}</TableCell>
-                                            </TableRow>
-                                        ))
+                                    ) : salarySummary?.branchSummaries
+                                          ?.length ? (
+                                        salarySummary.branchSummaries.map(
+                                            (item) => (
+                                                <TableRow key={item.branchId}>
+                                                    <TableCell>
+                                                        {item.branchName}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.employeeCount}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.totalWorkingDays}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.totalWorkingHours}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatCurrency(
+                                                            item.totalSalary,
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ),
+                                        )
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="h-16 text-center">
+                                            <TableCell
+                                                colSpan={5}
+                                                className="h-16 text-center">
                                                 Chưa có dữ liệu tổng hợp.
                                             </TableCell>
                                         </TableRow>
@@ -240,7 +272,9 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="h-16 text-center">
+                                            <TableCell
+                                                colSpan={9}
+                                                className="h-16 text-center">
                                                 Đang tải dữ liệu...
                                             </TableCell>
                                         </TableRow>
@@ -248,28 +282,54 @@ const SalaryManagementTab: React.FC<SalaryManagementTabProps> = ({ branches }) =
                                         salarySummary.salaries.map((item) => (
                                             <TableRow key={item.id}>
                                                 <TableCell>
-                                                    <div className="font-medium">{item.employeeName}</div>
+                                                    <div className="font-medium">
+                                                        {item.employeeName}
+                                                    </div>
                                                     <div className="text-xs text-neutral-500">
                                                         {item.positionName}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>{item.branchName}</TableCell>
-                                                <TableCell>{salaryTypeLabel(item.salaryType)}</TableCell>
-                                                <TableCell>{item.workingDays}</TableCell>
-                                                <TableCell>{item.workingHours}</TableCell>
-                                                <TableCell>{formatCurrency(item.baseSalary)}</TableCell>
-                                                <TableCell>{formatCurrency(item.bonus)}</TableCell>
-                                                <TableCell>{formatCurrency(item.deduction)}</TableCell>
+                                                <TableCell>
+                                                    {item.branchName}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {salaryTypeLabel(
+                                                        item.salaryType,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {item.workingDays}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {item.workingHours}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatCurrency(
+                                                        item.baseSalary,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatCurrency(item.bonus)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatCurrency(
+                                                        item.deduction,
+                                                    )}
+                                                </TableCell>
                                                 <TableCell>
                                                     <span className="font-semibold text-success-700 dark:text-success-400">
-                                                        {formatCurrency(item.totalSalary)}
+                                                        {formatCurrency(
+                                                            item.totalSalary,
+                                                        )}
                                                     </span>
                                                 </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="h-16 text-center">
+                                            <TableCell
+                                                colSpan={9}
+                                                className="h-16 text-center">
                                                 Chưa có dữ liệu chi tiết lương.
                                             </TableCell>
                                         </TableRow>

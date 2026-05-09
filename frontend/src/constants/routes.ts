@@ -25,6 +25,11 @@ const ROUTES = {
         title: "Bảng lương",
     },
 
+    CUSTOMER: {
+        path: "/admin/customers",
+        title: "Quản lý khách hàng",
+    },
+
     ACCOUNT: {
         path: "/admin/accounts",
         title: "Quản lý tài khoản",
