@@ -11,7 +11,8 @@ const MainFooter: React.FC = () => {
                         QUEUES & CUES
                     </h3>
                     <p className="mt-3 text-sm leading-6 text-neutral-400">
-                        Không gian billiards hiện đại, trải nghiệm thi đấu đỉnh cao cho người chơi ở mọi cấp độ.
+                        Không gian billiards hiện đại, trải nghiệm thi đấu đỉnh
+                        cao cho người chơi ở mọi cấp độ.
                     </p>
                 </div>
 
@@ -21,17 +22,23 @@ const MainFooter: React.FC = () => {
                     </h4>
                     <ul className="mt-4 space-y-2 text-sm">
                         <li>
-                            <a href="#home" className="transition-colors hover:text-orange-300">
+                            <a
+                                href="#home"
+                                className="transition-colors hover:text-orange-300">
                                 Home
                             </a>
                         </li>
                         <li>
-                            <a href="#about" className="transition-colors hover:text-orange-300">
+                            <a
+                                href="#about"
+                                className="transition-colors hover:text-orange-300">
                                 Về chúng tôi
                             </a>
                         </li>
                         <li>
-                            <a href="#branches" className="transition-colors hover:text-orange-300">
+                            <a
+                                href="#branches"
+                                className="transition-colors hover:text-orange-300">
                                 Hệ thống chi nhánh
                             </a>
                         </li>

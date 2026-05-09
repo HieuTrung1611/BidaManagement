@@ -22,7 +22,8 @@ const Home = () => {
                             Nâng Tầm Trải Nghiệm Bida
                         </h1>
                         <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-300 sm:text-base">
-                            Không gian thi đấu chuẩn quốc tế, dịch vụ chuyên nghiệp và hệ thống chi nhánh phủ khắp để bạn luôn có
+                            Không gian thi đấu chuẩn quốc tế, dịch vụ chuyên
+                            nghiệp và hệ thống chi nhánh phủ khắp để bạn luôn có
                             một bàn đấu đỉnh cao gần nhất.
                         </p>
                         <div className="mt-8 flex flex-wrap gap-4">
@@ -44,36 +45,57 @@ const Home = () => {
                             <div className="h-72 rounded-xl border border-orange-500/15 bg-linear-to-b from-orange-500/15 via-transparent to-black/60 p-4">
                                 <div className="h-full rounded-lg border border-dashed border-orange-300/25 bg-black/35" />
                             </div>
-                            <p className="mt-4 text-sm text-neutral-400">Ảnh hero để trống, bạn có thể thay bằng ảnh thật sau.</p>
+                            <p className="mt-4 text-sm text-neutral-400">
+                                Ảnh hero để trống, bạn có thể thay bằng ảnh thật
+                                sau.
+                            </p>
                         </div>
 
                         <div className="absolute -bottom-4 -left-4 rounded-lg border border-orange-500/20 bg-[#11151b]/95 px-5 py-4 backdrop-blur">
-                            <p className="text-xs uppercase tracking-wider text-neutral-400">Mở cửa mỗi ngày</p>
-                            <p className="text-2xl font-bold text-orange-300">24/7</p>
+                            <p className="text-xs uppercase tracking-wider text-neutral-400">
+                                Mở cửa mỗi ngày
+                            </p>
+                            <p className="text-2xl font-bold text-orange-300">
+                                24/7
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="about" className="border-b border-orange-500/10 px-4 py-20 sm:px-6 lg:px-8">
+            <section
+                id="about"
+                className="border-b border-orange-500/10 px-4 py-20 sm:px-6 lg:px-8">
                 <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-12">
                     <div className="rounded-xl border border-orange-500/20 bg-neutral-900/70 p-6 lg:col-span-8">
-                        <h2 className="text-3xl font-semibold text-orange-100">Sứ Mệnh Của Chúng Tôi</h2>
+                        <h2 className="text-3xl font-semibold text-orange-100">
+                            Sứ Mệnh Của Chúng Tôi
+                        </h2>
                         <p className="mt-4 text-sm leading-7 text-neutral-300">
-                            Chúng tôi xây dựng hệ sinh thái billiards hiện đại, nơi người chơi mới dễ dàng bắt đầu và cơ thủ chuyên
-                            nghiệp có thể luyện tập ở tiêu chuẩn cao nhất. Chất lượng bàn, ánh sáng, dịch vụ và cộng đồng là bốn
-                            trụ cột để tạo ra trải nghiệm khác biệt.
+                            Chúng tôi xây dựng hệ sinh thái billiards hiện đại,
+                            nơi người chơi mới dễ dàng bắt đầu và cơ thủ chuyên
+                            nghiệp có thể luyện tập ở tiêu chuẩn cao nhất. Chất
+                            lượng bàn, ánh sáng, dịch vụ và cộng đồng là bốn trụ
+                            cột để tạo ra trải nghiệm khác biệt.
                         </p>
                     </div>
 
                     <div className="grid gap-4 lg:col-span-4">
                         <div className="rounded-xl border border-orange-500/20 bg-neutral-900/70 p-6 text-center">
-                            <p className="text-xs uppercase tracking-wider text-neutral-400">Hoạt động</p>
-                            <p className="mt-2 text-4xl font-bold text-orange-300">24/7</p>
+                            <p className="text-xs uppercase tracking-wider text-neutral-400">
+                                Hoạt động
+                            </p>
+                            <p className="mt-2 text-4xl font-bold text-orange-300">
+                                24/7
+                            </p>
                         </div>
                         <div className="rounded-xl border border-orange-500/20 bg-neutral-900/70 p-6 text-center">
-                            <p className="text-xs uppercase tracking-wider text-neutral-400">Nhiều chi nhánh</p>
-                            <p className="mt-2 text-4xl font-bold text-orange-300">{branches.length}+</p>
+                            <p className="text-xs uppercase tracking-wider text-neutral-400">
+                                Nhiều chi nhánh
+                            </p>
+                            <p className="mt-2 text-4xl font-bold text-orange-300">
+                                {branches.length}+
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -83,11 +105,16 @@ const Home = () => {
                 <div className="mx-auto w-full max-w-6xl">
                     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <p className="text-xs uppercase tracking-[0.3em] text-orange-300/80">Our Locations</p>
-                            <h2 className="mt-2 text-3xl font-semibold text-orange-100 sm:text-4xl">Hệ Thống Chi Nhánh</h2>
+                            <p className="text-xs uppercase tracking-[0.3em] text-orange-300/80">
+                                Our Locations
+                            </p>
+                            <h2 className="mt-2 text-3xl font-semibold text-orange-100 sm:text-4xl">
+                                Hệ Thống Chi Nhánh
+                            </h2>
                         </div>
                         <p className="max-w-md text-sm text-neutral-400">
-                            Danh sách chi nhánh được lấy trực tiếp từ API. Ảnh chi nhánh hiện đang để placeholder theo yêu cầu.
+                            Danh sách chi nhánh được lấy trực tiếp từ API. Ảnh
+                            chi nhánh hiện đang để placeholder theo yêu cầu.
                         </p>
                     </div>
 
@@ -128,13 +155,31 @@ const Home = () => {
                                     </div>
 
                                     <div className="space-y-2 p-5">
-                                        <h3 className="text-lg font-semibold text-orange-100">{branch.name}</h3>
-                                        <p className="line-clamp-2 text-sm text-neutral-400">{branch.address}</p>
-                                        <p className="line-clamp-2 text-sm text-neutral-500">{branch.description || "Thông tin mô tả sẽ cập nhật."}</p>
+                                        <h3 className="text-lg font-semibold text-orange-100">
+                                            {branch.name}
+                                        </h3>
+                                        <p className="line-clamp-2 text-sm text-neutral-400">
+                                            {branch.address}
+                                        </p>
+                                        <p className="line-clamp-2 text-sm text-neutral-500">
+                                            {branch.description ||
+                                                "Thông tin mô tả sẽ cập nhật."}
+                                        </p>
                                         <div className="pt-2 text-xs text-neutral-400">
-                                            <p>Quản lý: {branch.managerName || "Đang cập nhật"}</p>
-                                            <p>SĐT quản lý: {branch.managerPhoneNumber || "Đang cập nhật"}</p>
-                                            <p>Nhân sự: {branch.employeesCount ?? 0}</p>
+                                            <p>
+                                                Quản lý:{" "}
+                                                {branch.managerName ||
+                                                    "Đang cập nhật"}
+                                            </p>
+                                            <p>
+                                                SĐT quản lý:{" "}
+                                                {branch.managerPhoneNumber ||
+                                                    "Đang cập nhật"}
+                                            </p>
+                                            <p>
+                                                Nhân sự:{" "}
+                                                {branch.employeesCount ?? 0}
+                                            </p>
                                         </div>
                                     </div>
                                 </article>
