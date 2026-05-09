@@ -1,5 +1,8 @@
 package com.mhbilliards.billiards_management.controller;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,8 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mhbilliards.billiards_management.dto.customer.CustomerNotesRequest;
+import com.mhbilliards.billiards_management.dto.customer.CustomerRankOption;
 import com.mhbilliards.billiards_management.dto.customer.CustomerRequest;
 import com.mhbilliards.billiards_management.dto.customer.CustomerResponse;
+import com.mhbilliards.billiards_management.enums.CustomerRank;
 import com.mhbilliards.billiards_management.service.customer.CustomerService;
 import com.mhbilliards.billiards_management.utils.ApiResponse;
 import com.mhbilliards.billiards_management.utils.ResponseUtil;
@@ -33,6 +38,15 @@ import lombok.RequiredArgsConstructor;
 public class CustomerController {
 
     private final CustomerService customerService;
+
+    @GetMapping("/ranks")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<List<CustomerRankOption>>> getCustomerRanks() {
+        List<CustomerRankOption> ranks = Arrays.stream(CustomerRank.values())
+                .map(r -> new CustomerRankOption(r.name(), r.getDisplayName(), r.getDiscountPercent()))
+                .toList();
+        return ResponseUtil.success(ranks, "Lấy danh sách hạng khách hàng thành công");
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")

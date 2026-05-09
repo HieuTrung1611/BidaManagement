@@ -102,6 +102,9 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         customerMapper.updateEntity(request, customer);
+        if (request.getRank() != null) {
+            customer.setRank(request.getRank());
+        }
         Customer updatedCustomer = customerRepository.save(customer);
 
         return customerMapper.toResponse(customerRepository.findDetailedById(updatedCustomer.getId())

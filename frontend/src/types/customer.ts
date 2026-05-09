@@ -3,6 +3,12 @@ import { IBranchResponse } from "./branch";
 
 export type CustomerRank = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
 
+export interface ICustomerRankOption {
+    value: CustomerRank;
+    displayName: string;
+    discountPercent: number;
+}
+
 export interface ICustomerRequest {
     name: string;
     email: string;
@@ -10,6 +16,7 @@ export interface ICustomerRequest {
     address: string;
     branchId: number | null;
     customerNotes?: string;
+    rank?: CustomerRank;
 }
 
 export interface ICustomerResponse extends IBaseResponse {

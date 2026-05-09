@@ -26,6 +26,7 @@ import customerService from "@/services/customerService";
 import { UserRole } from "@/types/auth";
 import { ICustomerResponse } from "@/types/customer";
 import { CustomerModal } from "./CustomerModal";
+import { Edit } from "lucide-react";
 
 const CustomerListTab: React.FC = () => {
     const toast = useToast();
@@ -43,10 +44,6 @@ const CustomerListTab: React.FC = () => {
 
     const isAdminLike =
         user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
-
-    const [recordingVisitId, setRecordingVisitId] = React.useState<
-        number | null
-    >(null);
 
     const { branches } = useBranches();
     const { customers, isLoading, mutate } = useCustomers(
@@ -123,24 +120,6 @@ const CustomerListTab: React.FC = () => {
                 axiosError.response?.data?.message ||
                     "Không thể xóa khách hàng",
             );
-        }
-    };
-
-    const handleRecordVisit = async (id: number) => {
-        try {
-            setRecordingVisitId(id);
-            await customerService.recordCustomerVisit(id);
-            toast.success("Thành công", "Ghi lại lần ghé thành công");
-            await mutate();
-        } catch (error: unknown) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            toast.error(
-                "Lỗi",
-                axiosError.response?.data?.message ||
-                    "Không thể ghi lại lần ghé",
-            );
-        } finally {
-            setRecordingVisitId(null);
         }
     };
 
@@ -233,8 +212,27 @@ const CustomerListTab: React.FC = () => {
                             ) : customers && customers.length > 0 ? (
                                 customers.map((customer) => (
                                     <TableRow key={customer.id}>
-                                        <TableCell className="font-medium">
-                                            {customer.name}
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {customer.photoUrl ? (
+                                                    <img
+                                                        src={customer.photoUrl}
+                                                        alt={customer.name}
+                                                        className="h-8 w-8 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700">
+                                                        {customer.name
+                                                            ?.trim()
+                                                            .charAt(0)
+                                                            .toUpperCase() ||
+                                                            "?"}
+                                                    </div>
+                                                )}
+                                                <span className="font-medium">
+                                                    {customer.name}
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell>{customer.email}</TableCell>
                                         <TableCell>
@@ -280,29 +278,14 @@ const CustomerListTab: React.FC = () => {
                                                 <span className="font-medium">
                                                     {customer.visitCount || 0}
                                                 </span>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-blue-600"
-                                                    disabled={
-                                                        recordingVisitId ===
-                                                        customer.id
-                                                    }
-                                                    onClick={() =>
-                                                        handleRecordVisit(
-                                                            customer.id,
-                                                        )
-                                                    }>
-                                                    {recordingVisitId ===
-                                                    customer.id
-                                                        ? "..."
-                                                        : "+"}
-                                                </Button>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 <Button
+                                                    startIcon={
+                                                        <Edit className="h-4 w-4" />
+                                                    }
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={() =>

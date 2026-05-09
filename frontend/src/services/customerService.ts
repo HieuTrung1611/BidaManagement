@@ -1,4 +1,4 @@
-import { ICustomerRequest, ICustomerResponse } from "@/types/customer";
+import { ICustomerRankOption, ICustomerRequest, ICustomerResponse } from "@/types/customer";
 import axiosClient from "./axiosClient";
 import { ApiResponse, PageResponse, PaginationParams } from "@/types/base";
 
@@ -93,6 +93,11 @@ const customerService = {
         id: number,
     ): Promise<ApiResponse<ICustomerResponse>> => {
         const res = await axiosClient.post(`${API_URL}/${id}/record-visit`);
+        return res.data;
+    },
+
+    getRanks: async (): Promise<ApiResponse<ICustomerRankOption[]>> => {
+        const res = await axiosClient.get(`${API_URL}/ranks`);
         return res.data;
     },
 };

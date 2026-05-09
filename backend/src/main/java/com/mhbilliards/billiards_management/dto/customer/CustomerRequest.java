@@ -1,5 +1,6 @@
 package com.mhbilliards.billiards_management.dto.customer;
 
+import com.mhbilliards.billiards_management.enums.CustomerRank;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,4 +35,6 @@ public class CustomerRequest {
     Long branchId;
 
     String customerNotes; // Ghi chú về sở thích, phong cách chơi
+
+    CustomerRank rank; // Hạng khách hàng (tuỳ chọn, dùng khi cập nhật)
 }
