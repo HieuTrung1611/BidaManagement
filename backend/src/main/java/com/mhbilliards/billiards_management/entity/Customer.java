@@ -40,7 +40,7 @@ public class Customer extends BaseEntity {
     String address;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "customer_rank", nullable = false)
     @Builder.Default
     CustomerRank rank = CustomerRank.BRONZE;
 

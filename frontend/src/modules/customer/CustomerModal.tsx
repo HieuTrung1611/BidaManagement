@@ -49,18 +49,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 email: initialData.email,
                 phoneNumber: initialData.phoneNumber,
                 address: initialData.address,
-                                branchId: initialData.branch?.id || null,
-                                customerNotes: initialData.customerNotes || "",
-                            });
-                        } else {
-                            setFormData({
-                                name: "",
-                                email: "",
-                                phoneNumber: "",
-                                address: "",
-                                branchId: null,
-                                customerNotes: "",
                 branchId: initialData.branch?.id || null,
+                customerNotes: initialData.customerNotes || "",
             });
         } else {
             setFormData({
@@ -69,6 +59,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 phoneNumber: "",
                 address: "",
                 branchId: null,
+                customerNotes: "",
             });
         }
         setErrors({});
@@ -84,7 +75,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     );
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >,
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -247,19 +240,19 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             />
                             {errors.branchId && (
                                 <p className="mt-1 text-xs text-red-500">{errors.branchId}</p>
-                                                    <div>
-                                                        <Label htmlFor="customerNotes">Ghi chú</Label>
-                                                        <textarea
-                                                            id="customerNotes"
-                                                            name="customerNotes"
-                                                            value={formData.customerNotes || ""}
-                                                            onChange={handleChange}
-                                                            placeholder="Ghi chú về sở thích, phong cách chơi..."
-                                                            className="h-24 w-full rounded-md border border-neutral-300 p-2 text-sm"
-                                                        />
-                                                    </div>
-
                             )}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="customerNotes">Ghi chú</Label>
+                            <textarea
+                                id="customerNotes"
+                                name="customerNotes"
+                                value={formData.customerNotes || ""}
+                                onChange={handleChange}
+                                placeholder="Ghi chú về sở thích, phong cách chơi..."
+                                className="h-24 w-full rounded-md border border-neutral-300 p-2 text-sm"
+                            />
                         </div>
 
                         <div className="flex justify-end gap-2 pt-4">
