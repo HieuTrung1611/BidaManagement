@@ -32,9 +32,9 @@ const CustomerListTab: React.FC = () => {
     const { user } = useAuth();
 
     const [keyword, setKeyword] = React.useState("");
-    const [selectedBranchId, setSelectedBranchId] = React.useState<number | undefined>(
-        undefined,
-    );
+    const [selectedBranchId, setSelectedBranchId] = React.useState<
+        number | undefined
+    >(undefined);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [selectedCustomer, setSelectedCustomer] = React.useState<
         ICustomerResponse | undefined
@@ -44,7 +44,9 @@ const CustomerListTab: React.FC = () => {
     const isAdminLike =
         user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
 
-    const [recordingVisitId, setRecordingVisitId] = React.useState<number | null>(null);
+    const [recordingVisitId, setRecordingVisitId] = React.useState<
+        number | null
+    >(null);
 
     const { branches } = useBranches();
     const { customers, isLoading, mutate } = useCustomers(
@@ -79,7 +81,8 @@ const CustomerListTab: React.FC = () => {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
                 "Lỗi",
-                axiosError.response?.data?.message || "Không thể vô hiệu hóa khách hàng",
+                axiosError.response?.data?.message ||
+                    "Không thể vô hiệu hóa khách hàng",
             );
         }
     };
@@ -95,13 +98,18 @@ const CustomerListTab: React.FC = () => {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
                 "Lỗi",
-                axiosError.response?.data?.message || "Không thể kích hoạt lại khách hàng",
+                axiosError.response?.data?.message ||
+                    "Không thể kích hoạt lại khách hàng",
             );
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Bạn có chắc muốn xóa khách hàng này? Hành động này không thể hoàn tác."))
+        if (
+            !confirm(
+                "Bạn có chắc muốn xóa khách hàng này? Hành động này không thể hoàn tác.",
+            )
+        )
             return;
 
         try {
@@ -112,7 +120,8 @@ const CustomerListTab: React.FC = () => {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
                 "Lỗi",
-                axiosError.response?.data?.message || "Không thể xóa khách hàng",
+                axiosError.response?.data?.message ||
+                    "Không thể xóa khách hàng",
             );
         }
     };
@@ -127,7 +136,8 @@ const CustomerListTab: React.FC = () => {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
                 "Lỗi",
-                axiosError.response?.data?.message || "Không thể ghi lại lần ghé",
+                axiosError.response?.data?.message ||
+                    "Không thể ghi lại lần ghé",
             );
         } finally {
             setRecordingVisitId(null);
@@ -139,7 +149,8 @@ const CustomerListTab: React.FC = () => {
             <Card>
                 <CardContent className="py-8">
                     <p className="text-center text-neutral-500">
-                        Bạn không có quyền truy cập chức năng quản lý khách hàng.
+                        Bạn không có quyền truy cập chức năng quản lý khách
+                        hàng.
                     </p>
                 </CardContent>
             </Card>
@@ -175,7 +186,9 @@ const CustomerListTab: React.FC = () => {
                                 options={branchOptions}
                                 value={selectedBranchId?.toString() || ""}
                                 onChange={(value) => {
-                                    setSelectedBranchId(value ? Number(value) : undefined);
+                                    setSelectedBranchId(
+                                        value ? Number(value) : undefined,
+                                    );
                                     setPage(0);
                                 }}
                                 placeholder="Chọn chi nhánh"
@@ -211,7 +224,9 @@ const CustomerListTab: React.FC = () => {
                         <TableBody>
                             {isLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="h-16 text-center">
+                                    <TableCell
+                                        colSpan={9}
+                                        className="h-16 text-center">
                                         Đang tải...
                                     </TableCell>
                                 </TableRow>
@@ -222,14 +237,19 @@ const CustomerListTab: React.FC = () => {
                                             {customer.name}
                                         </TableCell>
                                         <TableCell>{customer.email}</TableCell>
-                                        <TableCell>{customer.phoneNumber}</TableCell>
-                                        <TableCell>{customer.branch?.name}</TableCell>
+                                        <TableCell>
+                                            {customer.phoneNumber}
+                                        </TableCell>
+                                        <TableCell>
+                                            {customer.branch?.name}
+                                        </TableCell>
                                         <TableCell>
                                             <Badge
                                                 color={
                                                     customer.rank === "PLATINUM"
                                                         ? "error"
-                                                        : customer.rank === "GOLD"
+                                                        : customer.rank ===
+                                                            "GOLD"
                                                           ? "warning"
                                                           : "info"
                                                 }
@@ -238,13 +258,21 @@ const CustomerListTab: React.FC = () => {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            {(customer.totalSpent || 0).toLocaleString("vi-VN")}
+                                            {(
+                                                customer.totalSpent || 0
+                                            ).toLocaleString("vi-VN")}
                                         </TableCell>
                                         <TableCell>
                                             <Badge
-                                                color={customer.isActive ? "success" : "light"}
+                                                color={
+                                                    customer.isActive
+                                                        ? "success"
+                                                        : "light"
+                                                }
                                                 variant="light">
-                                                {customer.isActive ? "Hoạt động" : "Bị vô hiệu hóa"}
+                                                {customer.isActive
+                                                    ? "Hoạt động"
+                                                    : "Bị vô hiệu hóa"}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
@@ -256,9 +284,19 @@ const CustomerListTab: React.FC = () => {
                                                     size="sm"
                                                     variant="outline"
                                                     className="text-blue-600"
-                                                    disabled={recordingVisitId === customer.id}
-                                                    onClick={() => handleRecordVisit(customer.id)}>
-                                                    {recordingVisitId === customer.id ? "..." : "+"}
+                                                    disabled={
+                                                        recordingVisitId ===
+                                                        customer.id
+                                                    }
+                                                    onClick={() =>
+                                                        handleRecordVisit(
+                                                            customer.id,
+                                                        )
+                                                    }>
+                                                    {recordingVisitId ===
+                                                    customer.id
+                                                        ? "..."
+                                                        : "+"}
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -267,7 +305,11 @@ const CustomerListTab: React.FC = () => {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    onClick={() => handleOpenModal(customer)}>
+                                                    onClick={() =>
+                                                        handleOpenModal(
+                                                            customer,
+                                                        )
+                                                    }>
                                                     Sửa
                                                 </Button>
                                                 {customer.isActive ? (
@@ -276,7 +318,9 @@ const CustomerListTab: React.FC = () => {
                                                         variant="outline"
                                                         className="text-orange-600"
                                                         onClick={() =>
-                                                            handleDeactivate(customer.id)
+                                                            handleDeactivate(
+                                                                customer.id,
+                                                            )
                                                         }>
                                                         Vô hiệu hóa
                                                     </Button>
@@ -286,7 +330,9 @@ const CustomerListTab: React.FC = () => {
                                                         variant="outline"
                                                         className="text-green-600"
                                                         onClick={() =>
-                                                            handleReactivate(customer.id)
+                                                            handleReactivate(
+                                                                customer.id,
+                                                            )
                                                         }>
                                                         Kích hoạt
                                                     </Button>
@@ -297,7 +343,9 @@ const CustomerListTab: React.FC = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="h-16 text-center">
+                                    <TableCell
+                                        colSpan={9}
+                                        className="h-16 text-center">
                                         Không có khách hàng nào.
                                     </TableCell>
                                 </TableRow>
