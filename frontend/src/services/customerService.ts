@@ -1,4 +1,8 @@
-import { ICustomerRankOption, ICustomerRequest, ICustomerResponse } from "@/types/customer";
+import {
+    ICustomerRankOption,
+    ICustomerRequest,
+    ICustomerResponse,
+} from "@/types/customer";
 import axiosClient from "./axiosClient";
 import { ApiResponse, PageResponse, PaginationParams } from "@/types/base";
 

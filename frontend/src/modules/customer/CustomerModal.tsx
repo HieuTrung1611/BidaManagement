@@ -12,7 +12,11 @@ import Select from "@/components/ui/form/Select";
 import { useToast } from "@/context/ToastContext";
 import { useBranches } from "@/hooks/useBranch";
 import customerService from "@/services/customerService";
-import { ICustomerRankOption, ICustomerRequest, ICustomerResponse } from "@/types/customer";
+import {
+    ICustomerRankOption,
+    ICustomerRequest,
+    ICustomerResponse,
+} from "@/types/customer";
 
 type CustomerModalProps = {
     isOpen: boolean;
@@ -31,7 +35,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     const { branches } = useBranches();
 
     const [isLoading, setIsLoading] = React.useState(false);
-    const [rankOptions, setRankOptions] = React.useState<ICustomerRankOption[]>([]);
+    const [rankOptions, setRankOptions] = React.useState<ICustomerRankOption[]>(
+        [],
+    );
     const [photoFile, setPhotoFile] = React.useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
     const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
@@ -50,7 +56,12 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     const [errors, setErrors] = React.useState<Record<string, string>>({});
 
     React.useEffect(() => {
-        customerService.getRanks().then((res) => { if (res.data) setRankOptions(res.data); }).catch(() => {});
+        customerService
+            .getRanks()
+            .then((res) => {
+                if (res.data) setRankOptions(res.data);
+            })
+            .catch(() => {});
     }, []);
 
     React.useEffect(() => {
@@ -99,7 +110,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     );
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >,
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -109,7 +122,10 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     };
 
     const handleBranchChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, branchId: value ? Number(value) : null }));
+        setFormData((prev) => ({
+            ...prev,
+            branchId: value ? Number(value) : null,
+        }));
         if (errors.branchId) setErrors((prev) => ({ ...prev, branchId: "" }));
     };
 
@@ -129,14 +145,17 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
     const validate = (): boolean => {
         const newErrors: Record<string, string> = {};
-        if (!formData.name.trim()) newErrors.name = "Tên khách hàng không được để trống";
+        if (!formData.name.trim())
+            newErrors.name = "Tên khách hàng không được để trống";
         if (!formData.email.trim()) {
             newErrors.email = "Email không được để trống";
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = "Email không hợp lệ";
         }
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Số điện thoại không được để trống";
-        if (!formData.branchId) newErrors.branchId = "Chi nhánh không được để trống";
+        if (!formData.phoneNumber.trim())
+            newErrors.phoneNumber = "Số điện thoại không được để trống";
+        if (!formData.branchId)
+            newErrors.branchId = "Chi nhánh không được để trống";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -161,9 +180,15 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             if (photoFile && savedId) {
                 try {
                     setIsUploadingPhoto(true);
-                    await customerService.uploadCustomerPhoto(savedId, photoFile);
+                    await customerService.uploadCustomerPhoto(
+                        savedId,
+                        photoFile,
+                    );
                 } catch {
-                    toast.error("Cảnh báo", "Lưu thông tin thành công nhưng upload ảnh thất bại");
+                    toast.error(
+                        "Cảnh báo",
+                        "Lưu thông tin thành công nhưng upload ảnh thất bại",
+                    );
                 } finally {
                     setIsUploadingPhoto(false);
                 }
@@ -173,7 +198,10 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             onClose();
         } catch (error: unknown) {
             const axiosError = error as AxiosError<{ message?: string }>;
-            toast.error("Lỗi", axiosError.response?.data?.message || "Đã xảy ra lỗi");
+            toast.error(
+                "Lỗi",
+                axiosError.response?.data?.message || "Đã xảy ra lỗi",
+            );
         } finally {
             setIsLoading(false);
         }
@@ -189,7 +217,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl p-6">
             <div className="mb-6">
                 <h2 className="text-xl font-semibold">
-                    {initialData ? "Chỉnh sửa khách hàng" : "Thêm khách hàng mới"}
+                    {initialData
+                        ? "Chỉnh sửa khách hàng"
+                        : "Thêm khách hàng mới"}
                 </h2>
                 <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                     Nhập thông tin khách hàng.
@@ -201,8 +231,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 <div className="flex flex-col items-center gap-2">
                     <div
                         className="h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 flex items-center justify-center"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
+                        onClick={() => fileInputRef.current?.click()}>
                         {photoPreview || initialData?.photoUrl ? (
                             <img
                                 src={photoPreview || initialData?.photoUrl}
@@ -210,7 +239,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <span className="px-1 text-center text-xs text-neutral-400">Chọn ảnh</span>
+                            <span className="px-1 text-center text-xs text-neutral-400">
+                                Chọn ảnh
+                            </span>
                         )}
                     </div>
                     <input
@@ -224,8 +255,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
+                        onClick={() => fileInputRef.current?.click()}>
                         {initialData?.photoUrl ? "Đổi ảnh" : "Tải ảnh lên"}
                     </Button>
                 </div>
@@ -233,7 +263,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <Label htmlFor="name">
-                            Tên khách hàng <span className="text-red-500">*</span>
+                            Tên khách hàng{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="name"
@@ -243,7 +274,11 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             placeholder="Nhập tên khách hàng"
                             error={!!errors.name}
                         />
-                        {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+                        {errors.name && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.name}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -259,12 +294,17 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             placeholder="Nhập email"
                             error={!!errors.email}
                         />
-                        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                        {errors.email && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div>
                         <Label htmlFor="phoneNumber">
-                            Số điện thoại <span className="text-red-500">*</span>
+                            Số điện thoại{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="phoneNumber"
@@ -274,7 +314,11 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             placeholder="Nhập số điện thoại"
                             error={!!errors.phoneNumber}
                         />
-                        {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber}</p>}
+                        {errors.phoneNumber && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.phoneNumber}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -299,7 +343,11 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             placeholder="Chọn chi nhánh"
                             className="h-10 w-full"
                         />
-                        {errors.branchId && <p className="mt-1 text-xs text-red-500">{errors.branchId}</p>}
+                        {errors.branchId && (
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.branchId}
+                            </p>
+                        )}
                     </div>
 
                     {/* Hạng khách hàng - chỉ hiện khi edit */}
@@ -352,4 +400,3 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         </Modal>
     );
 };
-
