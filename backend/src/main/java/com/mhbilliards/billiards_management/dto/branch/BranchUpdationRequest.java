@@ -20,7 +20,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BranchUpdationRequest {
     @NotBlank(message = "Tên chi nhánh không được để trống")
-    @Pattern(regexp = "^[\\p{L} ]+$", message = "Tên chi nhánh không hợp lệ")
     String name;
 
     @NotBlank(message = "Địa chỉ chi nhánh không được để trống")
