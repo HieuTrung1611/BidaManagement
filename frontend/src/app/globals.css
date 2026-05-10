@@ -318,8 +318,23 @@
     body {
         @apply bg-background text-foreground font-sans;
     }
-  html {
-    @apply font-sans;
+    html {
+        @apply font-sans;
+        /* Tắt CSS scroll-behavior để tránh conflict với JavaScript */
+        /* scroll-behavior: smooth; */
+        scroll-padding-top: 96px; /* Header height */
+    }
+    
+    /* Optimize scroll performance */
+    * {
+        scroll-margin-top: 96px;
+    }
+    
+    /* Enable GPU acceleration for smooth scrolling */
+    @media (prefers-reduced-motion: no-preference) {
+        /* html {
+            scroll-behavior: smooth;
+        } */
     }
 }
 

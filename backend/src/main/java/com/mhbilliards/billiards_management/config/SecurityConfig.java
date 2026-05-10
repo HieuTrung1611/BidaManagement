@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -69,6 +70,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // /auth/** → ai cũng gọi được (login, register)
+                        .requestMatchers(HttpMethod.GET, "/branches/**").permitAll() // Cho phép xem danh sách chi nhánh
+                                                                                     // không cần đăng nhập
                         .anyRequest().authenticated()) // Các API khác → phải đăng nhập (có token)
                 // Cấu hình authentication provider NGAY TRONG http
                 .userDetailsService(customUserDetailService);
