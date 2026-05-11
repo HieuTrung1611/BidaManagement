@@ -14,6 +14,11 @@ import com.mhbilliards.billiards_management.entity.Shift;
 public interface ShiftMapper {
     ShiftResponse toResponse(Shift shift);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
     Shift toEntity(ShiftRequest request);
 
     List<ShiftResponse> toResponseList(List<Shift> shifts);
