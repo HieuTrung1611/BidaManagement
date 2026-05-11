@@ -1,5 +1,8 @@
 package com.mhbilliards.billiards_management.dto.combo;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,4 +28,7 @@ public class UpdateComboDTO {
     Double discountedPrice;
 
     Boolean isActive;
+
+    @Valid
+    List<ComboItemRequestDTO> items;
 }

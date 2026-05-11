@@ -1,7 +1,11 @@
 package com.mhbilliards.billiards_management.dto.combo;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +38,8 @@ public class CreateComboDTO {
     Long branchId;
 
     Boolean isActive;
+
+    @NotEmpty(message = "Items list cannot be empty")
+    @Valid
+    List<ComboItemRequestDTO> items;
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,7 @@ public interface ComboItemRepository extends JpaRepository<ComboItem, Long>, Jpa
     @Query("SELECT ci FROM ComboItem ci WHERE ci.combo.id = :comboId")
     List<ComboItem> findByComboId(@Param("comboId") Long comboId);
 
+    @Modifying
     @Query("DELETE FROM ComboItem ci WHERE ci.combo.id = :comboId")
     void deleteByComboId(@Param("comboId") Long comboId);
 }
