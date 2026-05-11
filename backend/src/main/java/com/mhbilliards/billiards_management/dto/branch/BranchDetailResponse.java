@@ -26,6 +26,7 @@ public class BranchDetailResponse extends BaseResponse {
     String description;
     String managerName;
     String managerPhoneNumber;
+    String phone;
     int employeesCount;
     List<EmployeeResponse> employees;
     List<BranchImageDTO> branchImages;

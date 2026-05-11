@@ -49,6 +49,26 @@ const ROUTES = {
         title: "Chi tiết chi nhánh",
         parent: "BRANCH",
     },
+
+    PRODUCT: {
+        path: "/admin/products",
+        title: "Quản lý sản phẩm",
+    },
+
+    EQUIPMENT: {
+        path: "/admin/equipments",
+        title: "Quản lý thiết bị",
+    },
+
+    COMBO: {
+        path: "/admin/combos",
+        title: "Quản lý combo",
+    },
+
+    SESSION: {
+        path: "/admin/sessions",
+        title: "Quản lý phiên chơi",
+    },
 };
 
 export default ROUTES;

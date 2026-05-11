@@ -8,17 +8,21 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
+/**
+ * Entity quản lý combo được sử dụng trong session
+ * Session có thể có nhiều combo khác nhau
+ */
 @Entity
 @Table(name = "session_combos")
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -35,7 +39,7 @@ public class SessionCombo extends BaseEntity {
     Integer quantity; // Số lượng combo
 
     @Column(nullable = false)
-    Double price; // Giá combo tại thời điểm đặt
+    Double price; // Giá combo tại thời điểm đặt (discountedPrice)
 
     @Column(nullable = false)
     Double totalAmount; // Tổng = quantity * price

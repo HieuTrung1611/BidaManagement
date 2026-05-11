@@ -3,7 +3,6 @@ package com.mhbilliards.billiards_management.entity;
 import java.time.LocalDateTime;
 
 import com.mhbilliards.billiards_management.enums.SessionStatus;
-import com.mhbilliards.billiards_management.enums.TableStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

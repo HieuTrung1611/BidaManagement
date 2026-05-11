@@ -30,6 +30,8 @@ public class Branch extends BaseEntity {
     @Column(nullable = false)
     String address;
 
+    String phone;
+
     String description;
 
     @Builder.Default

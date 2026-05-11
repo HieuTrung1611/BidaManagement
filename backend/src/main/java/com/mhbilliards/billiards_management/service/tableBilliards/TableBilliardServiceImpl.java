@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardRequest;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardResponse;
 import com.mhbilliards.billiards_management.entity.TableBilliard;
+import com.mhbilliards.billiards_management.enums.TableStatus;
 import com.mhbilliards.billiards_management.mapper.TableMapper;
 import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.TableBilliardRepository;
@@ -86,6 +87,15 @@ public class TableBilliardServiceImpl implements TableBilliardService {
         TableBilliard tableBilliard = tableBilliardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
         tableBilliardRepository.delete(tableBilliard);
+    }
+
+    @Override
+    public TableBilliardResponse updateTableStatus(Long id, TableStatus status) {
+        TableBilliard tableBilliard = tableBilliardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Table billiard with id " + id + " not found"));
+        tableBilliard.setStatus(status);
+        tableBilliard = tableBilliardRepository.save(tableBilliard);
+        return tableMapper.toResponse(tableBilliard);
     }
 
 }
