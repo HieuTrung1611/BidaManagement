@@ -17,6 +17,12 @@ public interface TableMapper {
 
     @Mapping(source = "branchId", target = "branch.id")
     @Mapping(source = "typeId", target = "type.id")
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
     TableBilliard toEntity(TableBilliardRequest tableBilliardRequest);
 
     List<TableBilliardResponse> toResponseList(List<TableBilliard> tableBilliardList);
@@ -26,6 +32,7 @@ public interface TableMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "status", ignore = true)
     @Mapping(source = "typeId", target = "type.id")
     @Mapping(source = "branchId", target = "branch.id")
     void updateEntity(TableBilliardRequest tableBilliardRequest, @MappingTarget TableBilliard tableBilliard);

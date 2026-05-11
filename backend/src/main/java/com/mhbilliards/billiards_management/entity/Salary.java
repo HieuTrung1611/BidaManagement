@@ -1,8 +1,5 @@
 package com.mhbilliards.billiards_management.entity;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
