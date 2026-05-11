@@ -1,23 +1,35 @@
-import { IUserResponse } from "./auth";
 import { IBaseResponse } from "./base";
+import { IBranchResponse } from "./branch";
 
-export enum EMembershipLevel {
-    NORMAL = "NORMAL",
-    SILVER = "SILVER",
-    GOLD = "GOLD",
-    DIAMOND = "DIAMOND",
+export type CustomerRank = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+
+export interface ICustomerRankOption {
+    value: CustomerRank;
+    displayName: string;
+    discountPercent: number;
 }
 
 export interface ICustomerRequest {
     name: string;
     email: string;
-    phone: string;
-    address?: string;
-    dob?: string;
-    points?: number;
-    membershipLevel?: EMembershipLevel;
+    phoneNumber: string;
+    address: string;
+    branchId: number | null;
+    customerNotes?: string;
+    rank?: CustomerRank;
 }
 
-export interface ICustomerResponse extends ICustomerRequest, IBaseResponse {
-    user: IUserResponse;
+export interface ICustomerResponse extends IBaseResponse {
+    name: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+    rank: CustomerRank;
+    totalSpent: number;
+    branch: IBranchResponse;
+    isActive: boolean;
+    photoUrl?: string;
+    visitCount: number;
+    lastVisitDate?: string;
+    customerNotes?: string;
 }

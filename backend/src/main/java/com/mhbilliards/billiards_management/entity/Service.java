@@ -37,7 +37,10 @@ public class Service extends BaseEntity {
     ServiceType type;
 
     @Column(nullable = false)
-    Double price; // Giá dịch vụ
+    Double priceCost;
+
+    @Column(nullable = false)
+    Double priceSale;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)

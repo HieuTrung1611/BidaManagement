@@ -310,8 +310,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
                     <div>
                         <Label htmlFor="shiftId">
-                            Ca làm việc{" "}
-                            <span className="text-red-500">*</span>
+                            Ca làm việc <span className="text-red-500">*</span>
                         </Label>
                         <Select
                             options={shiftOptions}
@@ -393,7 +392,11 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                             name="baseSalary"
                             value={formData.baseSalary ?? null}
                             onValueChange={handleBaseSalaryChange}
-                            placeholder={formData.salaryType === "HOURLY" ? "Lương theo giờ không cần nhập" : "Nhập lương cơ bản"}
+                            placeholder={
+                                formData.salaryType === "HOURLY"
+                                    ? "Lương theo giờ không cần nhập"
+                                    : "Nhập lương cơ bản"
+                            }
                             error={!!errors.baseSalary}
                             disabled={formData.salaryType === "HOURLY"}
                         />

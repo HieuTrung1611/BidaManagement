@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardRequest;
 import com.mhbilliards.billiards_management.dto.tableBilliard.TableBilliardResponse;
+import com.mhbilliards.billiards_management.enums.TableStatus;
 
 public interface TableBilliardService {
     TableBilliardResponse createTableBilliard(TableBilliardRequest request);
@@ -20,4 +21,6 @@ public interface TableBilliardService {
     List<TableBilliardResponse> getAllTableBilliardsNoPaging(Long branchId);
 
     void deleteTableBilliard(Long id);
+
+    TableBilliardResponse updateTableStatus(Long id, TableStatus status);
 }

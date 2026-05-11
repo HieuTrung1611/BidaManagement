@@ -1,5 +1,8 @@
 import salaryService from "@/services/salaryService";
-import { ISalaryStatisticsResponse, ISalarySummaryResponse } from "@/types/salary";
+import {
+    ISalaryStatisticsResponse,
+    ISalarySummaryResponse,
+} from "@/types/salary";
 import useSWR from "swr";
 
 const getSalarySummaryFetcher = async (
@@ -43,7 +46,11 @@ const getSalaryStatisticsFetcher = async (
     branchId?: number,
     keyword?: string,
 ): Promise<ISalaryStatisticsResponse> => {
-    const res = await salaryService.getSalaryStatistics(salaryMonth, branchId, keyword);
+    const res = await salaryService.getSalaryStatistics(
+        salaryMonth,
+        branchId,
+        keyword,
+    );
 
     if (!res.data) {
         throw new Error("Lỗi khi tải thống kê bảng lương");

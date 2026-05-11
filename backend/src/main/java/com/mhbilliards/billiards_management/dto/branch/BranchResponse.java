@@ -21,6 +21,7 @@ public class BranchResponse {
     String description;
     String managerName;
     String managerPhoneNumber;
+    String phone;
     int employeesCount;
     List<BranchImageDTO> branchImages;
 

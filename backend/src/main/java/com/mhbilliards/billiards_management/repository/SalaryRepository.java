@@ -13,18 +13,18 @@ import com.mhbilliards.billiards_management.entity.Salary;
 
 @Repository
 public interface SalaryRepository extends JpaRepository<Salary, Long>, JpaSpecificationExecutor<Salary> {
-    Optional<Salary> findByEmployeeIdAndSalaryMonth(Long employeeId, String salaryMonth);
+        Optional<Salary> findByEmployeeIdAndSalaryMonth(Long employeeId, String salaryMonth);
 
-    @Query("""
-            select s
-            from Salary s
-            join fetch s.employee e
-            join fetch e.branch
-            join fetch e.position
-            where s.salaryMonth = :salaryMonth
-            and (:branchId is null or e.branch.id = :branchId)
-            order by e.branch.name asc, e.name asc
-            """)
-    List<Salary> findDetailedBySalaryMonth(@Param("salaryMonth") String salaryMonth,
-            @Param("branchId") Long branchId);
+        @Query("""
+                        select s
+                        from Salary s
+                        join fetch s.employee e
+                        join fetch e.branch
+                        join fetch e.position
+                        where s.salaryMonth = :salaryMonth
+                        and (:branchId is null or e.branch.id = :branchId)
+                        order by e.branch.name asc, e.name asc
+                        """)
+        List<Salary> findDetailedBySalaryMonth(@Param("salaryMonth") String salaryMonth,
+                        @Param("branchId") Long branchId);
 }

@@ -16,6 +16,7 @@ import {
     Ellipsis,
     IdCardLanyard,
     LayoutGrid,
+    ShoppingCart,
     SquareRoundCorner,
     Users,
 } from "lucide-react";
@@ -42,6 +43,16 @@ const navItems: NavItem[] = [
         path: ROUTES.TABLEMANAGEMENT.path,
     },
     {
+        icon: <ShoppingCart />,
+        name: "Sản phẩm & Dịch vụ",
+        subItems: [
+            { name: "Phiên chơi", path: ROUTES.SESSION.path },
+            { name: "Sản phẩm", path: ROUTES.PRODUCT.path },
+            { name: "Thiết bị", path: ROUTES.EQUIPMENT.path },
+            { name: "Combo", path: ROUTES.COMBO.path },
+        ],
+    },
+    {
         icon: <IdCardLanyard />,
         name: "Nhân sự",
         subItems: [
@@ -53,7 +64,7 @@ const navItems: NavItem[] = [
     {
         icon: <Users />,
         name: "Khách hàng",
-        path: "/#", // TODO: Add CUSTOMER route to routes.ts
+        path: ROUTES.CUSTOMER.path,
     },
 
     {
