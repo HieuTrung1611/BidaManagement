@@ -8,7 +8,11 @@ import Checkbox from "@/components/ui/form/input/Checkbox";
 import MoneyVndInput from "@/components/ui/form/input/MoneyVndInput";
 import Select from "@/components/ui/form/Select";
 import Button from "@/components/ui/button/Button";
-import { IComboRequest, IComboResponse, IComboItemRequest } from "@/types/combo";
+import {
+    IComboRequest,
+    IComboResponse,
+    IComboItemRequest,
+} from "@/types/combo";
 import { IBranchResponse } from "@/types/branch";
 import { IProductResponse } from "@/types/product";
 import { IEquipmentResponse } from "@/types/equipment";
@@ -65,11 +69,12 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                 discountedPrice: initialData.discountedPrice ?? 0,
                 branchId: initialData.branchId ?? 0,
                 isActive: initialData.isActive ?? true,
-                items: initialData.items?.map((item) => ({
-                    itemType: item.itemType,
-                    itemId: item.itemId,
-                    quantity: item.quantity,
-                })) ?? [],
+                items:
+                    initialData.items?.map((item) => ({
+                        itemType: item.itemType,
+                        itemId: item.itemId,
+                        quantity: item.quantity,
+                    })) ?? [],
             });
             return;
         }
@@ -108,7 +113,9 @@ export const ComboModal: React.FC<ComboModalProps> = ({
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -174,7 +181,7 @@ export const ComboModal: React.FC<ComboModalProps> = ({
             ...prev,
             items: prev.items.map((item, i) => {
                 if (i !== index) return item;
-                
+
                 // If changing itemType, reset itemId
                 if (field === "itemType") {
                     return {
@@ -183,7 +190,7 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                         itemId: 0,
                     };
                 }
-                
+
                 return {
                     ...item,
                     [field]: value,
@@ -193,9 +200,10 @@ export const ComboModal: React.FC<ComboModalProps> = ({
     };
 
     const savingsAmount = formData.regularPrice - formData.discountedPrice;
-    const savingsPercent = formData.regularPrice > 0
-        ? (savingsAmount / formData.regularPrice) * 100
-        : 0;
+    const savingsPercent =
+        formData.regularPrice > 0
+            ? (savingsAmount / formData.regularPrice) * 100
+            : 0;
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -235,7 +243,9 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                             error={!!errors.name}
                         />
                         {errors.name && (
-                            <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+                            <p className="mt-1 text-xs text-red-500">
+                                {errors.name}
+                            </p>
                         )}
                     </div>
 
@@ -245,7 +255,11 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                         </Label>
                         <Select
                             options={branchOptions}
-                            value={formData.branchId ? formData.branchId.toString() : ""}
+                            value={
+                                formData.branchId
+                                    ? formData.branchId.toString()
+                                    : ""
+                            }
                             onChange={handleBranchChange}
                             placeholder="Chọn chi nhánh"
                             error={!!errors.branchId}
@@ -275,7 +289,8 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <Label>
-                            Sản phẩm trong combo <span className="text-red-500">*</span>
+                            Sản phẩm trong combo{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Button
                             type="button"
@@ -290,7 +305,8 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                     {formData.items.length === 0 ? (
                         <div className="rounded-md border border-dashed border-gray-300 p-8 text-center">
                             <p className="text-sm text-gray-500">
-                                Chưa có sản phẩm nào. Nhấn &quot;Thêm sản phẩm&quot; để bắt đầu.
+                                Chưa có sản phẩm nào. Nhấn &quot;Thêm sản
+                                phẩm&quot; để bắt đầu.
                             </p>
                         </div>
                     ) : (
@@ -304,13 +320,23 @@ export const ComboModal: React.FC<ComboModalProps> = ({
                                             options={itemTypeOptions}
                                             value={item.itemType}
                                             onChange={(value) =>
-                                                handleItemChange(index, "itemType", value)
+                                                handleItemChange(
+                                                    index,
+                                                    "itemType",
+                                                    value,
+                                                )
                                             }
                                             placeholder="Loại"
                                         />
                                         <Select
-                                            options={getItemOptions(item.itemType)}
-                                            value={item.itemId ? item.itemId.toString() : ""}
+                                            options={getItemOptions(
+                                                item.itemType,
+                                            )}
+                                            value={
+                                                item.itemId
+                                                    ? item.itemId.toString()
+                                                    : ""
+                                            }
                                             onChange={(value) =>
                                                 handleItemChange(
                                                     index,
@@ -368,7 +394,8 @@ export const ComboModal: React.FC<ComboModalProps> = ({
 
                     <div>
                         <Label htmlFor="discountedPrice">
-                            Giá combo (ưu đãi) <span className="text-red-500">*</span>
+                            Giá combo (ưu đãi){" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <MoneyVndInput
                             id="discountedPrice"

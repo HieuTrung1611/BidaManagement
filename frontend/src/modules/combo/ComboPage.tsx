@@ -27,7 +27,9 @@ const COMBO_TABS = [
                         Xem thống kê doanh số và độ phổ biến của các combo.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>Chức năng thống kê đang được phát triển...</CardContent>
+                <CardContent>
+                    Chức năng thống kê đang được phát triển...
+                </CardContent>
             </Card>
         ),
     },

@@ -23,10 +23,12 @@ interface ComboListTabProps {
 
 const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
     const [keyword, setKeyword] = React.useState("");
-    const [selectedBranchId, setSelectedBranchId] = React.useState<number | undefined>(
-        undefined,
+    const [selectedBranchId, setSelectedBranchId] = React.useState<
+        number | undefined
+    >(undefined);
+    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(
+        null,
     );
-    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(null);
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
@@ -40,17 +42,29 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
     }, [keyword, effectiveBranchId, isActiveFilter]);
 
     const { branches } = useBranches();
-    
+
     // Fetch all products and equipments for combo items dropdown
-    const { products: allProducts } = useProducts("", null, true, {
-        page: 0,
-        size: 1000,
-    }, effectiveBranchId);
-    
-    const { equipments: allEquipments } = useEquipments("", null, true, {
-        page: 0,
-        size: 1000,
-    }, effectiveBranchId);
+    const { products: allProducts } = useProducts(
+        "",
+        null,
+        true,
+        {
+            page: 0,
+            size: 1000,
+        },
+        effectiveBranchId,
+    );
+
+    const { equipments: allEquipments } = useEquipments(
+        "",
+        null,
+        true,
+        {
+            page: 0,
+            size: 1000,
+        },
+        effectiveBranchId,
+    );
 
     const branchFilterOptions = React.useMemo(
         () => [
@@ -145,9 +159,15 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
                         {!isBranchFixed && (
                             <Select
                                 options={branchFilterOptions}
-                                value={selectedBranchId ? selectedBranchId.toString() : ""}
+                                value={
+                                    selectedBranchId
+                                        ? selectedBranchId.toString()
+                                        : ""
+                                }
                                 onChange={(value) =>
-                                    setSelectedBranchId(value ? Number(value) : undefined)
+                                    setSelectedBranchId(
+                                        value ? Number(value) : undefined,
+                                    )
                                 }
                                 placeholder="Lọc theo chi nhánh"
                                 className="h-10 w-full sm:w-56"
@@ -234,7 +254,9 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
                                     variant="danger"
                                     onClick={handleConfirmDelete}
                                     disabled={deleteState.isDeleting}>
-                                    {deleteState.isDeleting ? "Đang xóa..." : "Xóa"}
+                                    {deleteState.isDeleting
+                                        ? "Đang xóa..."
+                                        : "Xóa"}
                                 </Button>
                             </div>
                         </div>

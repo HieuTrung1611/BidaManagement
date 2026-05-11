@@ -27,7 +27,9 @@ const EQUIPMENT_TABS = [
                         Xem thống kê tình trạng và lịch sử cho thuê thiết bị.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>Chức năng thống kê đang được phát triển...</CardContent>
+                <CardContent>
+                    Chức năng thống kê đang được phát triển...
+                </CardContent>
             </Card>
         ),
     },

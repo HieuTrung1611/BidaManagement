@@ -7,7 +7,11 @@ import { ProductModal } from "./ProductModal";
 import { useProducts } from "@/hooks/useProduct";
 import { useCrudActions } from "@/hooks/useCrudActions";
 import productService from "@/services/productService";
-import { IProductRequest, IProductResponse, ProductType } from "@/types/product";
+import {
+    IProductRequest,
+    IProductResponse,
+    ProductType,
+} from "@/types/product";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InputSearch from "@/components/common/InputSearch";
 import Button from "@/components/ui/button/Button";
@@ -21,11 +25,15 @@ interface ProductListTabProps {
 
 const ProductListTab: React.FC<ProductListTabProps> = ({ branchId }) => {
     const [keyword, setKeyword] = React.useState("");
-    const [selectedType, setSelectedType] = React.useState<ProductType | null>(null);
-    const [selectedBranchId, setSelectedBranchId] = React.useState<number | undefined>(
-        undefined,
+    const [selectedType, setSelectedType] = React.useState<ProductType | null>(
+        null,
     );
-    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(null);
+    const [selectedBranchId, setSelectedBranchId] = React.useState<
+        number | undefined
+    >(undefined);
+    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(
+        null,
+    );
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
@@ -144,7 +152,9 @@ const ProductListTab: React.FC<ProductListTabProps> = ({ branchId }) => {
                             options={typeFilterOptions}
                             value={selectedType ?? ""}
                             onChange={(value) =>
-                                setSelectedType(value ? (value as ProductType) : null)
+                                setSelectedType(
+                                    value ? (value as ProductType) : null,
+                                )
                             }
                             placeholder="Lọc theo loại"
                             className="h-10 w-full sm:w-48"
@@ -152,9 +162,15 @@ const ProductListTab: React.FC<ProductListTabProps> = ({ branchId }) => {
                         {!isBranchFixed && (
                             <Select
                                 options={branchFilterOptions}
-                                value={selectedBranchId ? selectedBranchId.toString() : ""}
+                                value={
+                                    selectedBranchId
+                                        ? selectedBranchId.toString()
+                                        : ""
+                                }
                                 onChange={(value) =>
-                                    setSelectedBranchId(value ? Number(value) : undefined)
+                                    setSelectedBranchId(
+                                        value ? Number(value) : undefined,
+                                    )
                                 }
                                 placeholder="Lọc theo chi nhánh"
                                 className="h-10 w-full sm:w-56"
@@ -239,7 +255,9 @@ const ProductListTab: React.FC<ProductListTabProps> = ({ branchId }) => {
                                     variant="danger"
                                     onClick={handleConfirmDelete}
                                     disabled={deleteState.isDeleting}>
-                                    {deleteState.isDeleting ? "Đang xóa..." : "Xóa"}
+                                    {deleteState.isDeleting
+                                        ? "Đang xóa..."
+                                        : "Xóa"}
                                 </Button>
                             </div>
                         </div>

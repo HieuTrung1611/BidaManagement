@@ -101,7 +101,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         [],
     );
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -144,7 +146,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         }));
     };
 
-    const handleStockQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleStockQuantityChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         setFormData((prev) => ({
             ...prev,
             stockQuantity: Number(e.target.value) || 0,
@@ -255,7 +259,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
                     <div>
                         <Label htmlFor="stockQuantity">
-                            Số lượng tồn kho <span className="text-red-500">*</span>
+                            Số lượng tồn kho{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="stockQuantity"
@@ -298,7 +303,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                         </Label>
                         <Select
                             options={branchOptions}
-                            value={formData.branchId ? formData.branchId.toString() : ""}
+                            value={
+                                formData.branchId
+                                    ? formData.branchId.toString()
+                                    : ""
+                            }
                             onChange={handleBranchChange}
                             placeholder="Chọn chi nhánh"
                             error={!!errors.branchId}

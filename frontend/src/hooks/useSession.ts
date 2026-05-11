@@ -72,8 +72,7 @@ export const useSessions = (
             params.sortBy,
             params.sortDirection,
         ],
-        () =>
-            getSessionsFetcher(tableId, customerId, status, branchId, params),
+        () => getSessionsFetcher(tableId, customerId, status, branchId, params),
         {
             revalidateOnFocus: false,
             shouldRetryOnError: false,

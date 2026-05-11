@@ -2,12 +2,19 @@ import React from "react";
 import { AxiosError } from "axios";
 import { PaginationState } from "@tanstack/react-table";
 
-import { useEquipmentColumns, renderEquipmentActions } from "./useEquipmentAction";
+import {
+    useEquipmentColumns,
+    renderEquipmentActions,
+} from "./useEquipmentAction";
 import { EquipmentModal } from "./EquipmentModal";
 import { useEquipments } from "@/hooks/useEquipment";
 import { useCrudActions } from "@/hooks/useCrudActions";
 import equipmentService from "@/services/equipmentService";
-import { IEquipmentRequest, IEquipmentResponse, EquipmentType } from "@/types/equipment";
+import {
+    IEquipmentRequest,
+    IEquipmentResponse,
+    EquipmentType,
+} from "@/types/equipment";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InputSearch from "@/components/common/InputSearch";
 import Button from "@/components/ui/button/Button";
@@ -21,11 +28,14 @@ interface EquipmentListTabProps {
 
 const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
     const [keyword, setKeyword] = React.useState("");
-    const [selectedType, setSelectedType] = React.useState<EquipmentType | null>(null);
-    const [selectedBranchId, setSelectedBranchId] = React.useState<number | undefined>(
-        undefined,
+    const [selectedType, setSelectedType] =
+        React.useState<EquipmentType | null>(null);
+    const [selectedBranchId, setSelectedBranchId] = React.useState<
+        number | undefined
+    >(undefined);
+    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(
+        null,
     );
-    const [isActiveFilter, setIsActiveFilter] = React.useState<boolean | null>(null);
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
@@ -147,7 +157,9 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
                             options={typeFilterOptions}
                             value={selectedType ?? ""}
                             onChange={(value) =>
-                                setSelectedType(value ? (value as EquipmentType) : null)
+                                setSelectedType(
+                                    value ? (value as EquipmentType) : null,
+                                )
                             }
                             placeholder="Lọc theo loại"
                             className="h-10 w-full sm:w-48"
@@ -155,9 +167,15 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
                         {!isBranchFixed && (
                             <Select
                                 options={branchFilterOptions}
-                                value={selectedBranchId ? selectedBranchId.toString() : ""}
+                                value={
+                                    selectedBranchId
+                                        ? selectedBranchId.toString()
+                                        : ""
+                                }
                                 onChange={(value) =>
-                                    setSelectedBranchId(value ? Number(value) : undefined)
+                                    setSelectedBranchId(
+                                        value ? Number(value) : undefined,
+                                    )
                                 }
                                 placeholder="Lọc theo chi nhánh"
                                 className="h-10 w-full sm:w-56"
@@ -242,7 +260,9 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
                                     variant="danger"
                                     onClick={handleConfirmDelete}
                                     disabled={deleteState.isDeleting}>
-                                    {deleteState.isDeleting ? "Đang xóa..." : "Xóa"}
+                                    {deleteState.isDeleting
+                                        ? "Đang xóa..."
+                                        : "Xóa"}
                                 </Button>
                             </div>
                         </div>

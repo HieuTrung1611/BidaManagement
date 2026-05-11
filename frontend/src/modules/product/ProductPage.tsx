@@ -27,7 +27,9 @@ const PRODUCT_TABS = [
                         Xem thống kê bán hàng và tồn kho sản phẩm.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>Chức năng thống kê đang được phát triển...</CardContent>
+                <CardContent>
+                    Chức năng thống kê đang được phát triển...
+                </CardContent>
             </Card>
         ),
     },

@@ -1,5 +1,9 @@
 import axiosClient from "./axiosClient";
-import { IProductRequest, IProductResponse, ProductType } from "@/types/product";
+import {
+    IProductRequest,
+    IProductResponse,
+    ProductType,
+} from "@/types/product";
 import { ApiResponse, PageResponse, PaginationParams } from "@/types/base";
 
 const API_URL = "/products";

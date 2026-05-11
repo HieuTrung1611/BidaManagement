@@ -44,7 +44,8 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         [],
     );
 
-    const [formData, setFormData] = useState<IEquipmentRequest>(initialFormData);
+    const [formData, setFormData] =
+        useState<IEquipmentRequest>(initialFormData);
 
     const resetFormData = useCallback(() => {
         setFormData(initialFormData);
@@ -88,7 +89,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         [branches],
     );
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
@@ -117,7 +120,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         }));
     };
 
-    const handleTotalQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTotalQuantityChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const newTotal = Number(e.target.value) || 0;
         setFormData((prev) => ({
             ...prev,
@@ -127,7 +132,9 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
         }));
     };
 
-    const handleAvailableQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvailableQuantityChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
         const newAvailable = Number(e.target.value) || 0;
         setFormData((prev) => ({
             ...prev,
@@ -222,7 +229,8 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
 
                     <div>
                         <Label htmlFor="totalQuantity">
-                            Tổng số lượng <span className="text-red-500">*</span>
+                            Tổng số lượng{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="totalQuantity"
@@ -243,7 +251,8 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
 
                     <div>
                         <Label htmlFor="availableQuantity">
-                            Số lượng còn trống <span className="text-red-500">*</span>
+                            Số lượng còn trống{" "}
+                            <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="availableQuantity"
@@ -272,7 +281,11 @@ export const EquipmentModal: React.FC<EquipmentModalProps> = ({
                         </Label>
                         <Select
                             options={branchOptions}
-                            value={formData.branchId ? formData.branchId.toString() : ""}
+                            value={
+                                formData.branchId
+                                    ? formData.branchId.toString()
+                                    : ""
+                            }
                             onChange={handleBranchChange}
                             placeholder="Chọn chi nhánh"
                             error={!!errors.branchId}
