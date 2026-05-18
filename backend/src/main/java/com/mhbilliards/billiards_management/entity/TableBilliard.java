@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TableBilliard extends BaseEntity {
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     String name;
 
     String description;

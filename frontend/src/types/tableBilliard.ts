@@ -2,6 +2,8 @@ import { IBaseResponse } from "./base";
 import { IBranchResponse } from "./branch";
 import { ITableBilliardTypeResponse } from "./tableBilliardType";
 
+export type TableStatus = "AVAILABLE" | "IN_USE" | "MAINTENANCE" | "RESERVED";
+
 export interface ITableBilliardRequest {
     name: string;
     description: string;
@@ -15,6 +17,6 @@ export interface ITableBilliardResponse extends IBaseResponse {
     name: string;
     description: string;
     type: ITableBilliardTypeResponse | null;
-    pricePerHour: number;
+    status: TableStatus;
     branch: IBranchResponse | null;
 }

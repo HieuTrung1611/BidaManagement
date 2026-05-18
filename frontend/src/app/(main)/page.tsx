@@ -347,10 +347,6 @@ const Home = () => {
                                 Hệ Thống Chi Nhánh
                             </h2>
                         </div>
-                        <p className="max-w-md text-sm text-neutral-400">
-                            Danh sách chi nhánh được lấy trực tiếp từ API. Ảnh
-                            chi nhánh hiện đang để placeholder theo yêu cầu.
-                        </p>
                     </div>
 
                     {isLoading ? (

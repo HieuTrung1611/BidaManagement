@@ -14,8 +14,10 @@ import {
     CircleUser,
     Columns3Cog,
     Ellipsis,
+    History,
     IdCardLanyard,
     LayoutGrid,
+    Play,
     ShoppingCart,
     SquareRoundCorner,
     Users,
@@ -33,6 +35,11 @@ type NavItem = {
 
 const navItems: NavItem[] = [
     {
+        icon: <Play />,
+        name: "Phiên chơi",
+        path: ROUTES.SESSION.path,
+    },
+    {
         icon: <LayoutGrid />,
         name: "Tổng quan",
         path: ROUTES.HOMEADMIN.path,
@@ -46,11 +53,15 @@ const navItems: NavItem[] = [
         icon: <ShoppingCart />,
         name: "Sản phẩm & Dịch vụ",
         subItems: [
-            { name: "Phiên chơi", path: ROUTES.SESSION.path },
             { name: "Sản phẩm", path: ROUTES.PRODUCT.path },
             { name: "Thiết bị", path: ROUTES.EQUIPMENT.path },
             { name: "Combo", path: ROUTES.COMBO.path },
         ],
+    },
+    {
+        icon: <History />,
+        name: "Lịch sử phiên chơi",
+        path: ROUTES.SESSION_HISTORY.path,
     },
     {
         icon: <IdCardLanyard />,

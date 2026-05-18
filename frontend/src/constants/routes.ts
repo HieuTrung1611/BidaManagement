@@ -69,6 +69,16 @@ const ROUTES = {
         path: "/admin/sessions",
         title: "Quản lý phiên chơi",
     },
+
+    SESSION_HISTORY: {
+        path: "/admin/sessions/history",
+        title: "Lịch sử phiên chơi",
+    },
+
+    INVOICE: {
+        path: "/admin/invoices",
+        title: "Quản lý hóa đơn",
+    },
 };
 
 export default ROUTES;

@@ -13,6 +13,8 @@ import com.mhbilliards.billiards_management.entity.TableBilliard;
 public interface TableBilliardRepository extends JpaRepository<TableBilliard, Long> {
     boolean existsByName(String name);
 
+    boolean existsByNameAndBranch_Id(String name, Long branchId);
+
     List<TableBilliard> findByBranch_Id(Long branchId);
 
     Page<TableBilliard> findByBranch_Id(Long branchId, Pageable pageable);

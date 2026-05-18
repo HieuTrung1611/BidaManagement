@@ -65,7 +65,8 @@ export const useTableBilliards = (
             : null,
         () => getPageTableBilliardsFetcher(params, branchId),
         {
-            revalidateOnFocus: false,
+            revalidateOnFocus: true,
+            revalidateOnMount: true,
             shouldRetryOnError: false,
             keepPreviousData: true,
         },

@@ -37,7 +37,7 @@ public class Invoice extends BaseEntity {
     BilliardSession session;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id", nullable = true) // nullable: walk-in customers have no account
     Customer customer;
 
     @Column(nullable = false)

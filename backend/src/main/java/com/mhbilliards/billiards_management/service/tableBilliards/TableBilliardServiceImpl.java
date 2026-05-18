@@ -27,9 +27,12 @@ public class TableBilliardServiceImpl implements TableBilliardService {
 
     @Override
     public TableBilliardResponse createTableBilliard(TableBilliardRequest request) {
-        if (tableBilliardRepository.existsByName(request.getName())) {
+        if (tableBilliardRepository.existsByNameAndBranch_Id(
+                request.getName(),
+                request.getBranchId())) {
+
             throw new IllegalArgumentException(
-                    "Tên bàn đã tồn tại! ");
+                    "Tên bàn đã tồn tại trong chi nhánh!");
         }
 
         TableBilliard tableBilliard = TableBilliard.builder()

@@ -1,5 +1,6 @@
 package com.mhbilliards.billiards_management.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,10 @@ public interface BilliardSessionRepository
 
     @Query("SELECT bs FROM BilliardSession bs WHERE bs.branch.id = :branchId")
     List<BilliardSession> findByBranchId(@Param("branchId") Long branchId);
+
+    @Query("SELECT bs FROM BilliardSession bs WHERE bs.branch.id = :branchId AND bs.startTime >= :startOfDay AND bs.startTime < :endOfDay ORDER BY bs.startTime DESC")
+    List<BilliardSession> findByBranchIdAndDateRange(
+            @Param("branchId") Long branchId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
 }

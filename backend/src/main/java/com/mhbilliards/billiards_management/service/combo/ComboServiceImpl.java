@@ -63,7 +63,7 @@ public class ComboServiceImpl implements ComboService {
 
         // Create combo items
         List<ComboItem> comboItems = createComboItems(combo, request.getItems());
-        
+
         // Add items to the collection (don't replace it)
         combo.getItems().addAll(comboItems);
 
@@ -136,7 +136,7 @@ public class ComboServiceImpl implements ComboService {
 
             // Create new items
             List<ComboItem> newItems = createComboItems(combo, request.getItems());
-            
+
             // Add new items to the cleared collection
             combo.getItems().addAll(newItems);
         }
