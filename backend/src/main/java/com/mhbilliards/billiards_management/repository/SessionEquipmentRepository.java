@@ -14,9 +14,9 @@ import com.mhbilliards.billiards_management.entity.SessionEquipment;
 public interface SessionEquipmentRepository
         extends JpaRepository<SessionEquipment, Long>, JpaSpecificationExecutor<SessionEquipment> {
 
-    @Query("SELECT se FROM SessionEquipment se WHERE se.session.id = :sessionId")
+    @Query("SELECT se FROM SessionEquipment se LEFT JOIN FETCH se.equipment WHERE se.session.id = :sessionId")
     List<SessionEquipment> findBySessionId(@Param("sessionId") Long sessionId);
 
-    @Query("SELECT se FROM SessionEquipment se WHERE se.session.id = :sessionId AND se.endTime IS NULL")
+    @Query("SELECT se FROM SessionEquipment se LEFT JOIN FETCH se.equipment WHERE se.session.id = :sessionId AND se.endTime IS NULL")
     List<SessionEquipment> findActiveRentalsBySessionId(@Param("sessionId") Long sessionId);
 }

@@ -47,4 +47,9 @@ public interface BilliardSessionService {
      * Lấy sessions theo branch + ngày, kèm chi tiết sản phẩm/combo/thiết bị
      */
     List<SessionWithDetailsDTO> getSessionsWithDetailsByBranch(Long branchId, LocalDate date);
+
+    /**
+     * Lấy session với chi tiết đầy đủ theo ID
+     */
+    SessionWithDetailsDTO getSessionWithDetailsById(Long sessionId);
 }

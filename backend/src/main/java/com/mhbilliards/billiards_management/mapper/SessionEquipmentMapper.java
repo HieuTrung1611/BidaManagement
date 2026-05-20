@@ -14,7 +14,7 @@ import com.mhbilliards.billiards_management.entity.SessionEquipment;
 
 @Mapper(componentModel = "spring")
 public interface SessionEquipmentMapper {
-    @Mapping(source = "session.id", target = "sessionId")
+    @Mapping(target = "sessionId", ignore = true)
     @Mapping(source = "equipment.id", target = "equipmentId")
     @Mapping(source = "equipment.name", target = "equipmentName")
     @Mapping(target = "durationHours", source = ".", qualifiedByName = "calculateDurationHours")

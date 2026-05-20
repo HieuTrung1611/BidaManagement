@@ -10,7 +10,7 @@ import com.mhbilliards.billiards_management.entity.SessionCombo;
 
 @Mapper(componentModel = "spring")
 public interface SessionComboMapper {
-    @Mapping(source = "session.id", target = "sessionId")
+    @Mapping(target = "sessionId", ignore = true)
     @Mapping(source = "combo.id", target = "comboId")
     @Mapping(source = "combo.name", target = "comboName")
     SessionComboResponseDTO toResponseDTO(SessionCombo sessionCombo);

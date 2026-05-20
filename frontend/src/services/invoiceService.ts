@@ -1,5 +1,5 @@
+import { ApiResponse, PageResponse } from "@/types/base";
 import axiosClient from "./axiosClient";
-import { IApiResponse, IPaginatedResponse } from "@/types/base";
 import {
     IInvoiceDTO,
     IInvoice,
@@ -11,31 +11,37 @@ const invoiceService = {
     /**
      * Generate invoice preview (không lưu DB)
      */
-    generateInvoice: async (sessionId: number): Promise<IInvoiceDTO> => {
-        const response = await axiosClient.get<IApiResponse<IInvoiceDTO>>(
+    generateInvoice: async (
+        sessionId: number,
+    ): Promise<ApiResponse<IInvoiceDTO>> => {
+        const response = await axiosClient.get<ApiResponse<IInvoiceDTO>>(
             `/invoices/session/${sessionId}`,
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Get saved invoice by ID
      */
-    getInvoiceById: async (id: number): Promise<IInvoice> => {
-        const response = await axiosClient.get<IApiResponse<IInvoice>>(
+    getInvoiceById: async (
+        id: number,
+    ): Promise<ApiResponse<IInvoice>> => {
+        const response = await axiosClient.get<ApiResponse<IInvoice>>(
             `/invoices/${id}`,
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Get saved invoice by session ID
      */
-    getInvoiceBySessionId: async (sessionId: number): Promise<IInvoice> => {
-        const response = await axiosClient.get<IApiResponse<IInvoice>>(
+    getInvoiceBySessionId: async (
+        sessionId: number,
+    ): Promise<ApiResponse<IInvoice>> => {
+        const response = await axiosClient.get<ApiResponse<IInvoice>>(
             `/invoices/session/${sessionId}/saved`,
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
@@ -43,11 +49,11 @@ const invoiceService = {
      */
     getInvoices: async (
         params: IInvoiceListParams,
-    ): Promise<IPaginatedResponse<IInvoice>> => {
+    ): Promise<ApiResponse<PageResponse<IInvoice>>> => {
         const response = await axiosClient.get<
-            IApiResponse<IPaginatedResponse<IInvoice>>
+            ApiResponse<PageResponse<IInvoice>>
         >(`/invoices`, { params });
-        return response.data.data;
+        return response.data;
     },
 
     /**
@@ -57,14 +63,14 @@ const invoiceService = {
         branchId: number,
         startDate?: string,
         endDate?: string,
-    ): Promise<IRevenueReport> => {
-        const response = await axiosClient.get<IApiResponse<IRevenueReport>>(
+    ): Promise<ApiResponse<IRevenueReport>> => {
+        const response = await axiosClient.get<ApiResponse<IRevenueReport>>(
             `/invoices/revenue`,
             {
                 params: { branchId, startDate, endDate },
             },
         );
-        return response.data.data;
+        return response.data;
     },
 };
 

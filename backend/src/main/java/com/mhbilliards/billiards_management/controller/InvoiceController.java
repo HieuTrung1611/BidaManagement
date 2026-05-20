@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mhbilliards.billiards_management.dto.invoice.InvoiceDTO;
+import com.mhbilliards.billiards_management.dto.invoice.InvoiceResponseDTO;
 import com.mhbilliards.billiards_management.entity.Invoice;
 import com.mhbilliards.billiards_management.enums.InvoiceStatus;
 import com.mhbilliards.billiards_management.service.invoice.InvoiceService;
@@ -43,8 +44,8 @@ public class InvoiceController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
-    public ResponseEntity<ApiResponse<Invoice>> getInvoiceById(@PathVariable Long id) {
-        Invoice invoice = invoiceService.getInvoiceById(id);
+    public ResponseEntity<ApiResponse<InvoiceResponseDTO>> getInvoiceById(@PathVariable Long id) {
+        InvoiceResponseDTO invoice = invoiceService.getInvoiceById(id);
         return ResponseUtil.success(invoice, "Lấy hóa đơn thành công");
     }
 
@@ -53,8 +54,8 @@ public class InvoiceController {
      */
     @GetMapping("/session/{sessionId}/saved")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
-    public ResponseEntity<ApiResponse<Invoice>> getInvoiceBySession(@PathVariable Long sessionId) {
-        Invoice invoice = invoiceService.getInvoiceBySessionId(sessionId);
+    public ResponseEntity<ApiResponse<InvoiceResponseDTO>> getInvoiceBySession(@PathVariable Long sessionId) {
+        InvoiceResponseDTO invoice = invoiceService.getInvoiceBySessionId(sessionId);
         return ResponseUtil.success(invoice, "Lấy hóa đơn thành công");
     }
 

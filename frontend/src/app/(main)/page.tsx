@@ -19,7 +19,7 @@ const Home = () => {
                         <p className="mb-3 text-xs uppercase tracking-[0.35em] text-orange-300/80">
                             Premium Billiards Lounge
                         </p>
-                        <h1 className="text-4xl font-bold leading-tight text-orange-100 sm:text-5xl lg:text-6xl [font-family:var(--font-diablo)]">
+                        <h1 className="text-4xl font-bold leading-tight text-orange-100 sm:text-5xl lg:text-6xl font-anton">
                             Nâng Tầm Trải Nghiệm Bida
                         </h1>
                         <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-300 sm:text-base">

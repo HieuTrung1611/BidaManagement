@@ -92,4 +92,11 @@ public class BilliardSessionController {
         List<SessionWithDetailsDTO> response = sessionService.getSessionsWithDetailsByBranch(branchId, targetDate);
         return ResponseUtil.success(response, "Lấy lịch sử phiên chơi thành công");
     }
+
+    @GetMapping("/{id}/details")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    public ResponseEntity<ApiResponse<SessionWithDetailsDTO>> getSessionWithDetails(@PathVariable Long id) {
+        SessionWithDetailsDTO response = sessionService.getSessionWithDetailsById(id);
+        return ResponseUtil.success(response, "Lấy thông tin chi tiết session thành công");
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.mhbilliards.billiards_management.dto.invoice.InvoiceDTO;
+import com.mhbilliards.billiards_management.dto.invoice.InvoiceResponseDTO;
 import com.mhbilliards.billiards_management.dto.invoice.SessionComboInvoiceDTO;
 import com.mhbilliards.billiards_management.dto.sessionEquipment.SessionEquipmentResponseDTO;
 import com.mhbilliards.billiards_management.dto.sessionProduct.SessionProductResponseDTO;
@@ -28,6 +29,7 @@ import com.mhbilliards.billiards_management.entity.SessionEquipment;
 import com.mhbilliards.billiards_management.entity.SessionProduct;
 import com.mhbilliards.billiards_management.enums.InvoiceStatus;
 import com.mhbilliards.billiards_management.event.SessionEndedEvent;
+import com.mhbilliards.billiards_management.mapper.InvoiceMapper;
 import com.mhbilliards.billiards_management.mapper.SessionEquipmentMapper;
 import com.mhbilliards.billiards_management.mapper.SessionProductMapper;
 import com.mhbilliards.billiards_management.repository.BilliardSessionRepository;
@@ -51,6 +53,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         private final SessionEquipmentRepository sessionEquipmentRepository;
         private final SessionProductMapper sessionProductMapper;
         private final SessionEquipmentMapper sessionEquipmentMapper;
+        private final InvoiceMapper invoiceMapper;
 
         /**
          * Triggered AFTER the session transaction commits.
@@ -255,16 +258,18 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         @Override
         @Transactional(readOnly = true)
-        public Invoice getInvoiceById(Long id) {
-                return invoiceRepository.findById(id)
+        public InvoiceResponseDTO getInvoiceById(Long id) {
+                Invoice invoice = invoiceRepository.findById(id)
                                 .orElseThrow(() -> new RuntimeException("Invoice không tồn tại"));
+                return invoiceMapper.toResponseDTO(invoice);
         }
 
         @Override
         @Transactional(readOnly = true)
-        public Invoice getInvoiceBySessionId(Long sessionId) {
-                return invoiceRepository.findBySessionId(sessionId)
+        public InvoiceResponseDTO getInvoiceBySessionId(Long sessionId) {
+                Invoice invoice = invoiceRepository.findBySessionId(sessionId)
                                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn cho session này"));
+                return invoiceMapper.toResponseDTO(invoice);
         }
 
         @Override

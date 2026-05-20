@@ -293,4 +293,12 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
                                                 sessionEquipmentRepository.findBySessionId(sessionId)))
                                 .build();
         }
+
+        @Override
+        @Transactional(readOnly = true)
+        public SessionWithDetailsDTO getSessionWithDetailsById(Long sessionId) {
+                BilliardSession session = sessionRepository.findById(sessionId)
+                                .orElseThrow(() -> new RuntimeException("Session không tồn tại"));
+                return toSessionWithDetails(session);
+        }
 }

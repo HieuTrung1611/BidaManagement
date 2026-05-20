@@ -27,9 +27,12 @@ import { AddProductsTab } from "./tabs/AddProductsTab";
 import { AddEquipmentsTab } from "./tabs/AddEquipmentsTab";
 import { AddCombosTab } from "./tabs/AddCombosTab";
 import { SessionItemsTab } from "./tabs/SessionItemsTab";
-import { InvoiceModal } from "./InvoiceModal";
-import { useInvoicePreview } from "@/hooks/useInvoice";
-import { IInvoiceDTO } from "@/types/invoice";
+import { ConfirmEndSessionModal } from "./ConfirmEndSessionModal";
+import { PaymentCompletedModal } from "./PaymentCompletedModal";
+import { calculateRoundedDuration } from "@/utils/sessionCalculations";
+import { ISessionWithDetails } from "@/types/session";
+import { IInvoice } from "@/types/invoice";
+import invoiceService from "@/services/invoiceService";
 
 interface SessionDetailCardProps {
     table: ITableBilliardResponse | null;
@@ -49,17 +52,15 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
     );
     const [notes, setNotes] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-    const [sessionIdForInvoice, setSessionIdForInvoice] = useState<
-        number | null
-    >(null);
-    const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [isEndingSession, setIsEndingSession] = useState(false);
+    const [sessionDetails, setSessionDetails] =
+        useState<ISessionWithDetails | null>(null);
+    const [invoice, setInvoice] = useState<IInvoice | null>(null);
+    const [isLoadingPaymentData, setIsLoadingPaymentData] = useState(false);
+    const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
-
-    // Fetch invoice preview when modal is shown
-    const { invoice, isLoading: isLoadingInvoice } = useInvoicePreview(
-        showInvoiceModal ? sessionIdForInvoice : null,
-    );
 
     const toast = useToast();
     const { customers, isLoading: isLoadingCustomers } = useCustomers(
@@ -80,6 +81,28 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
 
     const activeSession = activeSessions?.[0] || session;
 
+    // Check for pending payment on component mount (only once per session)
+    useEffect(() => {
+        const checkPendingPayment = async () => {
+            const pending = localStorage.getItem("pendingPayment");
+            if (pending && activeSession && !showPaymentModal && !isLoadingPaymentData) {
+                try {
+                    const { sessionId: pendingSessionId } = JSON.parse(pending);
+                    if (pendingSessionId === activeSession.id) {
+                        // Load session details and invoice
+                        await loadPaymentData(activeSession.id);
+                    }
+                } catch (error) {
+                    console.error("Error loading pending payment:", error);
+                }
+            }
+        };
+
+        if (activeSession) {
+            checkPendingPayment();
+        }
+    }, [activeSession?.id, showPaymentModal, isLoadingPaymentData]);
+
     useEffect(() => {
         setSelectedCustomerId(null);
         setNotes("");
@@ -96,13 +119,94 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
         return () => clearInterval(interval);
     }, [activeSession]);
 
+    const loadPaymentData = async (sessionId: number, retryCount = 0) => {
+        setIsLoadingPaymentData(true);
+        try {
+            console.log("========== LOADING PAYMENT DATA ==========");
+            console.log("Session ID:", sessionId);
+            console.log("Retry attempt:", retryCount + 1);
+
+            // Load session details first
+            const sessionDetailsRes = await sessionService.getSessionWithDetails(sessionId);
+            console.log("\n=== SESSION DETAILS RESPONSE ===");
+            console.log("Full response:", sessionDetailsRes);
+            console.log("Response data:", sessionDetailsRes?.data);
+            console.log("Response structure:", JSON.stringify(sessionDetailsRes, null, 2));
+
+            if (!sessionDetailsRes.data) {
+                throw new Error("Không có dữ liệu session");
+            }
+
+            setSessionDetails(sessionDetailsRes.data);
+
+            // Then load invoice - with retry logic for async invoice creation
+            try {
+                const invoiceRes = await invoiceService.getInvoiceBySessionId(sessionId);
+                console.log("\n=== INVOICE RESPONSE ===");
+                console.log("Full response:", invoiceRes);
+                console.log("Response data:", invoiceRes?.data);
+                console.log("Data type:", typeof invoiceRes?.data);
+                console.log("Data is null:", invoiceRes?.data === null);
+                console.log("Data is undefined:", invoiceRes?.data === undefined);
+                console.log("Response structure:", JSON.stringify(invoiceRes, null, 2));
+
+                if (!invoiceRes?.data) {
+                    // Invoice might not be created yet (async event), retry up to 5 times
+                    if (retryCount < 5) {
+                        console.log("Invoice not ready (data is null/undefined), retrying in 500ms...");
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        return loadPaymentData(sessionId, retryCount + 1);
+                    }
+                    throw new Error("Không có dữ liệu hóa đơn sau 5 lần thử");
+                }
+
+                console.log("\n=== SETTING INVOICE ===");
+                console.log("Invoice to set:", invoiceRes.data);
+                setInvoice(invoiceRes.data);
+            } catch (invoiceError: any) {
+                console.error("\n=== INVOICE FETCH ERROR ===");
+                console.error("Full error:", invoiceError);
+                console.log("Error response:", invoiceError?.response);
+                console.log("Error status:", invoiceError?.response?.status);
+                console.log("Error data:", invoiceError?.response?.data);
+                console.log("Error message:", invoiceError?.message);
+                
+                // If 404, invoice not created yet - retry
+                if (invoiceError?.response?.status === 404 && retryCount < 5) {
+                    console.log("Invoice not found (404), retrying in 500ms...");
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    return loadPaymentData(sessionId, retryCount + 1);
+                }
+                
+                // Otherwise, throw to outer catch
+                throw invoiceError;
+            }
+
+            console.log("\n=== OPENING PAYMENT MODAL ===");
+            console.log("Session details state:", sessionDetails);
+            console.log("Invoice state:", invoice);
+            console.log("Show payment modal:", true);
+            setShowPaymentModal(true);
+        } catch (error: any) {
+            console.error("\n=== PAYMENT DATA LOADING ERROR ===");
+            console.error("Full error:", error);
+            toast.error(
+                "Lỗi",
+                error.response?.data?.message || error.message ||
+                    "Không thể tải thông tin thanh toán",
+            );
+        } finally {
+            setIsLoadingPaymentData(false);
+        }
+    };
+
     const handleStartSession = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!table) return;
 
         setIsSubmitting(true);
         try {
-            await sessionService.startSession({
+            const res = await sessionService.startSession({
                 tableId: table.id,
                 customerId: selectedCustomerId,
                 notes: notes || undefined,
@@ -126,32 +230,29 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
         }
     };
 
-    const handleEndSession = async () => {
-        if (!displaySession?.id) return;
-
-        // Show invoice modal first
-        setSessionIdForInvoice(displaySession.id);
-        setShowInvoiceModal(true);
+    const handleEndSession = () => {
+        if (!activeSession) return;
+        setShowConfirmModal(true);
     };
 
-    const handleConfirmPayment = async () => {
-        if (!sessionIdForInvoice) return;
+    const handleConfirmEnd = async () => {
+        if (!activeSession) return;
 
+        setIsEndingSession(true);
         try {
-            setIsConfirmingPayment(true);
             // End session - backend will automatically create invoice
-            await sessionService.endSession(sessionIdForInvoice);
+            await sessionService.endSession(activeSession.id);
 
-            toast.success(
-                "Thành công",
-                "Đã kết thúc phiên chơi và lưu hóa đơn",
-            );
+            toast.success("Thành công", "Đã kết thúc phiên chơi");
 
-            // Close modal and refresh
-            setShowInvoiceModal(false);
-            setSessionIdForInvoice(null);
-            onSuccess();
-            onClose();
+            // Close confirm modal
+            setShowConfirmModal(false);
+
+            // Load payment data
+            await loadPaymentData(activeSession.id);
+
+            // Refresh sessions
+            mutateSessions();
         } catch (error: any) {
             toast.error(
                 "Lỗi",
@@ -159,13 +260,27 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                     "Không thể kết thúc phiên chơi",
             );
         } finally {
-            setIsConfirmingPayment(false);
+            setIsEndingSession(false);
         }
     };
 
-    const handleInvoiceClose = () => {
-        setShowInvoiceModal(false);
-        setSessionIdForInvoice(null);
+    const handleCompletePayment = async () => {
+        setIsCompletingPayment(true);
+        try {
+            // Clear pending payment from localStorage
+            localStorage.removeItem("pendingPayment");
+
+            toast.success("Thành công", "Đã hoàn tất thanh toán");
+
+            // Close all modals
+            setShowPaymentModal(false);
+            onSuccess();
+            onClose();
+        } catch (error: any) {
+            toast.error("Lỗi", "Có lỗi xảy ra");
+        } finally {
+            setIsCompletingPayment(false);
+        }
     };
 
     if (!table) {
@@ -359,13 +474,16 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                                         })()}
                                     </p>
                                     <p className="text-xs text-gray-600">
-                                        Bắt đầu:{" "}
-                                        {new Date(
-                                            displaySession.startTime,
-                                        ).toLocaleTimeString("vi-VN", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
+                                        Tính tiền:{" "}
+                                        <span className="font-semibold text-green-700">
+                                            {calculateRoundedDuration(
+                                                new Date(
+                                                    displaySession.startTime,
+                                                ),
+                                                currentTime,
+                                            ).toFixed(2)}
+                                            h
+                                        </span>
                                     </p>
                                 </div>
                             </div>
@@ -449,7 +567,7 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                             {/* End Session Button */}
                             <Button
                                 onClick={handleEndSession}
-                                disabled={showInvoiceModal}
+                                disabled={showPaymentModal || isEndingSession}
                                 variant="danger"
                                 className="w-full"
                                 size="md">
@@ -460,14 +578,23 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                 </div>
             </div>
 
-            {/* Invoice Modal */}
-            <InvoiceModal
-                isOpen={showInvoiceModal}
-                onClose={handleInvoiceClose}
+            {/* Confirm End Session Modal */}
+            <ConfirmEndSessionModal
+                isOpen={showConfirmModal}
+                onClose={() => setShowConfirmModal(false)}
+                onConfirm={handleConfirmEnd}
+                isLoading={isEndingSession}
+                tableName={table?.name}
+            />
+
+            {/* Payment Completed Modal */}
+            <PaymentCompletedModal
+                isOpen={showPaymentModal}
+                sessionDetails={sessionDetails}
                 invoice={invoice}
-                isLoading={isLoadingInvoice}
-                onConfirm={handleConfirmPayment}
-                isConfirming={isConfirmingPayment}
+                isLoading={isLoadingPaymentData}
+                onCompletePayment={handleCompletePayment}
+                isCompletingPayment={isCompletingPayment}
             />
         </>
     );

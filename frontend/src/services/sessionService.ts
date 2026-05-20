@@ -176,6 +176,14 @@ const sessionService = {
         );
         return res.data;
     },
+
+    // Get session with full details (products, combos, equipment) by ID
+    getSessionWithDetails: async (
+        sessionId: number,
+    ): Promise<ApiResponse<ISessionWithDetails>> => {
+        const res = await axiosClient.get(`/sessions/${sessionId}/details`);
+        return res.data;
+    },
 };
 
 export default sessionService;

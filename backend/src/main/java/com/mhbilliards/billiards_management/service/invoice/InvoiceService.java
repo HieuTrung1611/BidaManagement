@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.mhbilliards.billiards_management.dto.invoice.InvoiceDTO;
+import com.mhbilliards.billiards_management.dto.invoice.InvoiceResponseDTO;
 import com.mhbilliards.billiards_management.entity.Invoice;
 import com.mhbilliards.billiards_management.enums.InvoiceStatus;
 
@@ -21,14 +22,14 @@ public interface InvoiceService {
     Invoice createInvoiceFromSession(Long sessionId);
 
     /**
-     * Lấy invoice theo ID
+     * Lấy invoice theo ID - trả về DTO
      */
-    Invoice getInvoiceById(Long id);
+    InvoiceResponseDTO getInvoiceById(Long id);
 
     /**
-     * Lấy invoice theo sessionId
+     * Lấy invoice theo sessionId - trả về DTO
      */
-    Invoice getInvoiceBySessionId(Long sessionId);
+    InvoiceResponseDTO getInvoiceBySessionId(Long sessionId);
 
     /**
      * Lấy danh sách invoice theo branch và khoảng thời gian

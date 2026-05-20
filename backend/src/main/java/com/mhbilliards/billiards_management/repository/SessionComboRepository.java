@@ -14,6 +14,6 @@ import com.mhbilliards.billiards_management.entity.SessionCombo;
 public interface SessionComboRepository
         extends JpaRepository<SessionCombo, Long>, JpaSpecificationExecutor<SessionCombo> {
 
-    @Query("SELECT sc FROM SessionCombo sc WHERE sc.session.id = :sessionId")
+    @Query("SELECT sc FROM SessionCombo sc LEFT JOIN FETCH sc.combo WHERE sc.session.id = :sessionId")
     List<SessionCombo> findBySessionId(@Param("sessionId") Long sessionId);
 }

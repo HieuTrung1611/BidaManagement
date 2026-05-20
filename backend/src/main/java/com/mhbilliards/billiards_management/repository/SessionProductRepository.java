@@ -14,6 +14,6 @@ import com.mhbilliards.billiards_management.entity.SessionProduct;
 public interface SessionProductRepository
         extends JpaRepository<SessionProduct, Long>, JpaSpecificationExecutor<SessionProduct> {
 
-    @Query("SELECT sp FROM SessionProduct sp WHERE sp.session.id = :sessionId")
+    @Query("SELECT sp FROM SessionProduct sp LEFT JOIN FETCH sp.product WHERE sp.session.id = :sessionId")
     List<SessionProduct> findBySessionId(@Param("sessionId") Long sessionId);
 }

@@ -11,6 +11,14 @@ import {
 } from "@/types/session";
 import { Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useInvoicePreview } from "@/hooks/useInvoice";
+import {
+    calculateRoundedDuration,
+    calculateEquipmentCost,
+    calculateTotal,
+    calculateDiscount,
+    roundHalfUp,
+} from "@/utils/sessionCalculations";
 
 interface SessionItemsTabProps {
     sessionId: number;
@@ -30,9 +38,13 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
     const [now, setNow] = useState(new Date());
     const toast = useToast();
 
-    // Live clock — updates every 30 s to show current elapsed rental time
+    // Fetch invoice preview for pricing info
+    const { invoice, isLoading: isLoadingInvoice } =
+        useInvoicePreview(sessionId);
+
+    // Live clock — updates every second for real-time calculation
     useEffect(() => {
-        const interval = setInterval(() => setNow(new Date()), 30000);
+        const interval = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(interval);
     }, []);
 
@@ -100,10 +112,82 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
         );
     }
 
-    const totalAmount =
-        products.reduce((sum, p) => sum + p.totalAmount, 0) +
-        equipments.reduce((sum, e) => sum + (e.totalAmount || 0), 0) +
-        combos.reduce((sum, c) => sum + c.totalAmount, 0);
+    // Calculate real-time costs with proper rounding
+    // Products cost - sum all products and round
+    const productsCost = roundHalfUp(
+        products.reduce((sum, p) => sum + p.totalAmount, 0),
+        2,
+    );
+
+    // Equipments cost - calculate active equipment with rounded duration
+    const equipmentsCost = roundHalfUp(
+        equipments.reduce((sum, e) => {
+            if (e.isReturned) {
+                return sum + (e.totalAmount || 0);
+            }
+            // For active equipment, calculate with rounded duration and proper rounding
+            const cost = calculateEquipmentCost(
+                e.quantity,
+                e.hourlyRate,
+                new Date(e.startTime),
+                now,
+            );
+            return sum + cost;
+        }, 0),
+        2,
+    );
+
+    // Combos cost - sum all combos and round
+    const combosCost = roundHalfUp(
+        combos.reduce((sum, c) => sum + c.totalAmount, 0),
+        2,
+    );
+
+    // Total items cost (already rounded components)
+    const itemsCost = calculateTotal([
+        productsCost,
+        equipmentsCost,
+        combosCost,
+    ]);
+
+    // Calculate table rental cost with rounded duration
+    let tableRentalCost = 0;
+    let roundedDuration = 0;
+    if (invoice) {
+        const startTime = new Date(invoice.startTime);
+        const endTime = invoice.endTime ? new Date(invoice.endTime) : now;
+        roundedDuration = calculateRoundedDuration(startTime, endTime);
+        // Calculate and round table rental cost (hourlyRate * duration)
+        tableRentalCost = roundHalfUp(
+            invoice.tableHourlyRate * roundedDuration,
+            2,
+        );
+    }
+
+    // Calculate subtotal with proper rounding
+    const subtotal = calculateTotal([tableRentalCost, itemsCost]);
+
+    // Calculate discount with proper rounding (like backend BigDecimal)
+    let discountAmount = 0;
+    let discountPercent = 0;
+    if (
+        invoice?.customerRank &&
+        invoice.discountAmount > 0 &&
+        invoice.subtotal > 0
+    ) {
+        // Calculate discount percent from invoice snapshot
+        // Backend: discountAmount = subtotal * discountPercent / 100
+        // So: discountPercent = discountAmount / subtotal * 100
+        discountPercent = roundHalfUp(
+            (invoice.discountAmount / invoice.subtotal) * 100,
+            2,
+        );
+        // Apply discount percent to current subtotal
+        discountAmount = calculateDiscount(subtotal, discountPercent);
+    }
+
+    // Grand total with proper rounding
+    const grandTotal = roundHalfUp(subtotal - discountAmount, 2);
 
     return (
         <div className="space-y-6">
@@ -142,7 +226,7 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                     </span>
                                     <Button
                                         size="sm"
-                                        variant="ghost"
+                                        variant="outline"
                                         onClick={() =>
                                             handleDeleteProduct(product.id)
                                         }>
@@ -166,21 +250,25 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                     </h3>
                     <div className="space-y-2">
                         {equipments.map((equipment) => {
-                            const liveHours = !equipment.isReturned
-                                ? (now.getTime() -
-                                      new Date(equipment.startTime).getTime()) /
-                                  3_600_000
-                                : null;
-                            const displayHours = equipment.isReturned
-                                ? equipment.durationHours
-                                : liveHours;
+                            const startTime = new Date(equipment.startTime);
+                            const endTime = equipment.endTime
+                                ? new Date(equipment.endTime)
+                                : now;
+
+                            // Use rounded duration matching backend logic
+                            const roundedHours = calculateRoundedDuration(
+                                startTime,
+                                endTime,
+                            );
+
                             const displayAmount = equipment.isReturned
                                 ? equipment.totalAmount
-                                : liveHours != null
-                                  ? liveHours *
-                                    equipment.hourlyRate *
-                                    equipment.quantity
-                                  : null;
+                                : calculateEquipmentCost(
+                                      equipment.quantity,
+                                      equipment.hourlyRate,
+                                      startTime,
+                                      endTime,
+                                  );
 
                             return (
                                 <div
@@ -196,20 +284,18 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                                 "vi-VN",
                                             )}{" "}
                                             VNĐ/giờ
-                                            {displayHours != null && (
-                                                <span
-                                                    className={
-                                                        !equipment.isReturned
-                                                            ? "text-amber-600 font-medium"
-                                                            : ""
-                                                    }>
-                                                    {" "}
-                                                    ({displayHours.toFixed(2)}h
-                                                    {!equipment.isReturned &&
-                                                        " đang chạy"}
-                                                    )
-                                                </span>
-                                            )}
+                                            <span
+                                                className={
+                                                    !equipment.isReturned
+                                                        ? "text-amber-600 font-medium"
+                                                        : ""
+                                                }>
+                                                {" "}
+                                                ({roundedHours.toFixed(2)}h
+                                                {!equipment.isReturned &&
+                                                    " đang chạy"}
+                                                )
+                                            </span>
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -223,15 +309,15 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                         ) : (
                                             <span className="font-semibold text-amber-600">
                                                 ~
-                                                {Math.round(
-                                                    displayAmount ?? 0,
-                                                ).toLocaleString("vi-VN")}{" "}
+                                                {displayAmount!.toLocaleString(
+                                                    "vi-VN",
+                                                )}{" "}
                                                 VNĐ
                                             </span>
                                         )}
                                         <Button
                                             size="sm"
-                                            variant="ghost"
+                                            variant="outline"
                                             onClick={() =>
                                                 handleDeleteEquipment(
                                                     equipment.id,
@@ -280,7 +366,7 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                     </span>
                                     <Button
                                         size="sm"
-                                        variant="ghost"
+                                        variant="outline"
                                         onClick={() =>
                                             handleDeleteCombo(combo.id)
                                         }>
@@ -305,20 +391,77 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                     </div>
                 )}
 
-            {/* Total */}
-            {(products.length > 0 ||
-                equipments.length > 0 ||
-                combos.length > 0) && (
-                <div className="pt-4 border-t">
-                    <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Tổng tạm tính:</span>
-                        <span className="text-green-600">
-                            {totalAmount.toLocaleString("vi-VN")} VNĐ
+            {/* Cost Breakdown */}
+            {invoice && (
+                <div className="pt-4 border-t space-y-3">
+                    {/* Table Rental */}
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">
+                            Tiền bàn ({invoice.tableType} -{" "}
+                            {roundedDuration.toFixed(2)}h)
+                        </span>
+                        <span className="font-medium">
+                            {tableRentalCost.toLocaleString("vi-VN")} VNĐ
                         </span>
                     </div>
-                    <p className="text-xs text-gray-500 text-right mt-1">
-                        * Chưa bao gồm tiền giờ chơi bàn và giảm giá
+
+                    {/* Items Cost */}
+                    {itemsCost > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">
+                                Sản phẩm & Dịch vụ
+                            </span>
+                            <span className="font-medium">
+                                {itemsCost.toLocaleString("vi-VN")} VNĐ
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Subtotal */}
+                    <div className="flex justify-between items-center text-sm pt-2 border-t border-dashed">
+                        <span className="text-gray-700 font-medium">
+                            Tạm tính
+                        </span>
+                        <span className="font-semibold">
+                            {subtotal.toLocaleString("vi-VN")} VNĐ
+                        </span>
+                    </div>
+
+                    {/* Discount */}
+                    {discountAmount > 0 && (
+                        <div className="flex justify-between items-center text-sm text-red-600">
+                            <span>
+                                Giảm giá
+                                {invoice.customerRank &&
+                                    ` (${invoice.customerRank})`}
+                            </span>
+                            <span className="font-medium">
+                                -{discountAmount.toLocaleString("vi-VN")} VNĐ
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Grand Total */}
+                    <div className="flex justify-between items-center text-lg font-bold pt-2 border-t">
+                        <span>Tổng cộng</span>
+                        <span className="text-green-600">
+                            {grandTotal.toLocaleString("vi-VN")} VNĐ
+                        </span>
+                    </div>
+
+                    <p className="text-xs text-gray-500 text-center">
+                        * Tính toán theo mốc 15 phút (làm tròn lên)
                     </p>
+                </div>
+            )}
+
+            {/* Loading Invoice Info */}
+            {isLoadingInvoice && !invoice && (
+                <div className="pt-4 border-t">
+                    <div className="flex items-center justify-center py-4 text-gray-500 text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Đang tải thông tin tính giá...
+                    </div>
                 </div>
             )}
         </div>

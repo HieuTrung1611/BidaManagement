@@ -70,27 +70,32 @@ export interface IInvoice {
     id: number;
     invoiceNumber: string;
     invoiceDate: string;
+    status: InvoiceStatus;
+    notes: string | null;
+    
+    // Session info
+    sessionId: number;
+    
+    // Customer info (nullable for walk-in customers)
+    customerId: number | null;
+    customerName: string | null;
+    customerPhone: string | null;
+    
+    // Branch info
+    branchId: number;
+    branchName: string;
+    branchAddress: string;
+    branchPhone: string;
+    
+    // Financial details
     subtotal: number;
     discountPercent: number;
     discountAmount: number;
     totalAmount: number;
-    status: InvoiceStatus;
-    notes: string | null;
-    session: {
-        id: number;
-        startTime: string;
-        endTime: string;
-        durationHours: number;
-    };
-    customer: {
-        id: number;
-        name: string;
-        phoneNumber: string;
-    } | null;
-    branch: {
-        id: number;
-        name: string;
-    };
+    
+    // Timestamps
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface IInvoiceListParams {
