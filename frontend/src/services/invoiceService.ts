@@ -23,9 +23,7 @@ const invoiceService = {
     /**
      * Get saved invoice by ID
      */
-    getInvoiceById: async (
-        id: number,
-    ): Promise<ApiResponse<IInvoice>> => {
+    getInvoiceById: async (id: number): Promise<ApiResponse<IInvoice>> => {
         const response = await axiosClient.get<ApiResponse<IInvoice>>(
             `/invoices/${id}`,
         );

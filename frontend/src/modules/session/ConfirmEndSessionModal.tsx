@@ -13,9 +13,13 @@ interface ConfirmEndSessionModalProps {
     tableName?: string;
 }
 
-export const ConfirmEndSessionModal: React.FC<
-    ConfirmEndSessionModalProps
-> = ({ isOpen, onClose, onConfirm, isLoading, tableName }) => {
+export const ConfirmEndSessionModal: React.FC<ConfirmEndSessionModalProps> = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    isLoading,
+    tableName,
+}) => {
     return (
         <Modal
             isOpen={isOpen}

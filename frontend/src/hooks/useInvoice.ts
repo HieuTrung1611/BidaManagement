@@ -133,7 +133,8 @@ export const useInvoiceBySession = (sessionId: number | null | undefined) => {
  * Hook to get invoices list
  */
 export const useInvoices = (params: IInvoiceListParams) => {
-    const shouldFetch = params.branchId !== undefined && params.branchId !== null;
+    const shouldFetch =
+        params.branchId !== undefined && params.branchId !== null;
 
     const { data, error, isLoading, mutate } = useSWR<PageResponse<IInvoice>>(
         shouldFetch ? [`/invoices`, params] : null,
@@ -166,7 +167,9 @@ export const useRevenue = (
     const shouldFetch = branchId !== undefined && branchId !== null;
 
     const { data, error, isLoading, mutate } = useSWR<IRevenueReport>(
-        shouldFetch ? [`/invoices/revenue`, branchId, startDate, endDate] : null,
+        shouldFetch
+            ? [`/invoices/revenue`, branchId, startDate, endDate]
+            : null,
         () => getRevenueFetcher(branchId!, startDate, endDate),
         {
             revalidateOnFocus: false,

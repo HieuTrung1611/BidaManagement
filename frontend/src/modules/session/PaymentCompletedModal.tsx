@@ -115,9 +115,7 @@ export const PaymentCompletedModal: React.FC<PaymentCompletedModalProps> = ({
                             </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-sm text-green-100">
-                                Mã hóa đơn
-                            </p>
+                            <p className="text-sm text-green-100">Mã hóa đơn</p>
                             <p className="text-xl font-bold">
                                 {invoice.invoiceNumber}
                             </p>
@@ -213,8 +211,8 @@ export const PaymentCompletedModal: React.FC<PaymentCompletedModalProps> = ({
                                 <div className="bg-orange-50 px-4 py-2 flex items-center gap-2">
                                     <ShoppingBag className="w-5 h-5 text-orange-600" />
                                     <span className="font-semibold text-orange-900">
-                                        Sản phẩm ({sessionDetails.products.length}
-                                        )
+                                        Sản phẩm (
+                                        {sessionDetails.products.length})
                                     </span>
                                 </div>
                                 <div className="divide-y">
@@ -262,7 +260,9 @@ export const PaymentCompletedModal: React.FC<PaymentCompletedModalProps> = ({
                                                 className="px-4 py-3 flex justify-between items-center">
                                                 <div>
                                                     <p className="font-medium">
-                                                        {equipment.equipmentName}
+                                                        {
+                                                            equipment.equipmentName
+                                                        }
                                                     </p>
                                                     <p className="text-sm text-gray-600">
                                                         {equipment.quantity} x{" "}
@@ -309,7 +309,9 @@ export const PaymentCompletedModal: React.FC<PaymentCompletedModalProps> = ({
                                                 </p>
                                                 <p className="text-sm text-gray-600">
                                                     {combo.quantity} x{" "}
-                                                    {formatCurrency(combo.price)}
+                                                    {formatCurrency(
+                                                        combo.price,
+                                                    )}
                                                 </p>
                                             </div>
                                             <span className="font-semibold text-green-600">

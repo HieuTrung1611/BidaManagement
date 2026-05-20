@@ -72,11 +72,15 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             console.log("Retry attempt:", retryCount + 1);
 
             // Load session details first
-            const sessionDetailsRes = await sessionService.getSessionWithDetails(sessionId);
+            const sessionDetailsRes =
+                await sessionService.getSessionWithDetails(sessionId);
             console.log("\n=== SESSION DETAILS RESPONSE (MODAL) ===");
             console.log("Full response:", sessionDetailsRes);
             console.log("Response data:", sessionDetailsRes?.data);
-            console.log("Response structure:", JSON.stringify(sessionDetailsRes, null, 2));
+            console.log(
+                "Response structure:",
+                JSON.stringify(sessionDetailsRes, null, 2),
+            );
 
             if (!sessionDetailsRes.data) {
                 throw new Error("Không có dữ liệu session");
@@ -86,20 +90,31 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
 
             // Then load invoice - with retry logic for async invoice creation
             try {
-                const invoiceRes = await invoiceService.getInvoiceBySessionId(sessionId);
+                const invoiceRes =
+                    await invoiceService.getInvoiceBySessionId(sessionId);
                 console.log("\n=== INVOICE RESPONSE (MODAL) ===");
                 console.log("Full response:", invoiceRes);
                 console.log("Response data:", invoiceRes?.data);
                 console.log("Data type:", typeof invoiceRes?.data);
                 console.log("Data is null:", invoiceRes?.data === null);
-                console.log("Data is undefined:", invoiceRes?.data === undefined);
-                console.log("Response structure:", JSON.stringify(invoiceRes, null, 2));
+                console.log(
+                    "Data is undefined:",
+                    invoiceRes?.data === undefined,
+                );
+                console.log(
+                    "Response structure:",
+                    JSON.stringify(invoiceRes, null, 2),
+                );
 
                 if (!invoiceRes?.data) {
                     // Invoice might not be created yet (async event), retry up to 5 times
                     if (retryCount < 5) {
-                        console.log("Invoice not ready (data is null/undefined), retrying in 500ms...");
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                        console.log(
+                            "Invoice not ready (data is null/undefined), retrying in 500ms...",
+                        );
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 500),
+                        );
                         return loadPaymentData(sessionId, retryCount + 1);
                     }
                     throw new Error("Không có dữ liệu hóa đơn sau 5 lần thử");
@@ -115,14 +130,16 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 console.log("Error status:", invoiceError?.response?.status);
                 console.log("Error data:", invoiceError?.response?.data);
                 console.log("Error message:", invoiceError?.message);
-                
+
                 // If 404, invoice not created yet - retry
                 if (invoiceError?.response?.status === 404 && retryCount < 5) {
-                    console.log("Invoice not found (404), retrying in 500ms...");
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    console.log(
+                        "Invoice not found (404), retrying in 500ms...",
+                    );
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                     return loadPaymentData(sessionId, retryCount + 1);
                 }
-                
+
                 // Otherwise, throw to outer catch
                 throw invoiceError;
             }
@@ -137,7 +154,8 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             console.error("Full error:", error);
             toast.error(
                 "Lỗi",
-                error.response?.data?.message || error.message ||
+                error.response?.data?.message ||
+                    error.message ||
                     "Không thể tải thông tin thanh toán",
             );
         } finally {
