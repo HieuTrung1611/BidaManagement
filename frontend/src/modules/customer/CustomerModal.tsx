@@ -9,8 +9,8 @@ import Label from "@/components/ui/form/Label";
 import Input from "@/components/ui/form/input/InputField";
 import Select from "@/components/ui/form/Select";
 
-import { useToast } from "@/context/ToastContext";
 import { useBranches } from "@/hooks/useBranch";
+import { useToast } from "@/context/ToastContext";
 import customerService from "@/services/customerService";
 import {
     ICustomerRankOption,
@@ -21,25 +21,31 @@ import {
 type CustomerModalProps = {
     isOpen: boolean;
     onClose: () => void;
+    onSubmit: (data: ICustomerRequest, id?: number) => void;
     onSuccess: () => void;
-    initialData?: ICustomerResponse;
+    isSubmitting?: boolean;
+    initialData?: ICustomerResponse | null;
+    errors?: Record<string, string>;
 };
 
 export const CustomerModal: React.FC<CustomerModalProps> = ({
     isOpen,
     onClose,
+    onSubmit,
     onSuccess,
+    isSubmitting = false,
     initialData,
+    errors = {},
 }) => {
-    const toast = useToast();
     const { branches } = useBranches();
+    const toast = useToast();
 
-    const [isLoading, setIsLoading] = React.useState(false);
     const [rankOptions, setRankOptions] = React.useState<ICustomerRankOption[]>(
         [],
     );
     const [photoFile, setPhotoFile] = React.useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
+    const [isLoading, setIsLoading] = React.useState(false);
     const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -50,10 +56,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         address: "",
         branchId: null,
         customerNotes: "",
-        rank: undefined,
+        rank: "BRONZE", // Rank mặc định khi tạo mới
     });
-
-    const [errors, setErrors] = React.useState<Record<string, string>>({});
 
     React.useEffect(() => {
         customerService
@@ -75,6 +79,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 customerNotes: initialData.customerNotes || "",
                 rank: initialData.rank,
             });
+            setPhotoPreview(initialData.photoUrl || null);
         } else {
             setFormData({
                 name: "",
@@ -83,12 +88,11 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 address: "",
                 branchId: null,
                 customerNotes: "",
-                rank: undefined,
+                rank: "BRONZE", // Rank mặc định khi tạo mới
             });
+            setPhotoPreview(null);
         }
-        setErrors({});
         setPhotoFile(null);
-        setPhotoPreview(null);
     }, [initialData, isOpen]);
 
     const branchOptions = React.useMemo(
@@ -116,9 +120,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     ) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
     };
 
     const handleBranchChange = (value: string) => {
@@ -126,7 +127,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             ...prev,
             branchId: value ? Number(value) : null,
         }));
-        if (errors.branchId) setErrors((prev) => ({ ...prev, branchId: "" }));
     };
 
     const handleRankChange = (value: string) => {
@@ -143,47 +143,63 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         setPhotoPreview(URL.createObjectURL(file));
     };
 
-    const validate = (): boolean => {
-        const newErrors: Record<string, string> = {};
-        if (!formData.name.trim())
-            newErrors.name = "Tên khách hàng không được để trống";
-        if (!formData.email.trim()) {
-            newErrors.email = "Email không được để trống";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Email không hợp lệ";
-        }
-        if (!formData.phoneNumber.trim())
-            newErrors.phoneNumber = "Số điện thoại không được để trống";
-        if (!formData.branchId)
-            newErrors.branchId = "Chi nhánh không được để trống";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validate()) return;
 
         try {
             setIsLoading(true);
             let savedId: number | undefined = initialData?.id;
 
             if (initialData) {
-                await customerService.updateCustomer(initialData.id, formData);
-                toast.success("Thành công", "Cập nhật khách hàng thành công");
+                const res = await customerService.updateCustomer(
+                    initialData.id,
+                    formData,
+                );
+                if (res.success) {
+                    toast.success(
+                        "Thành công",
+                        res.message || "Cập nhật khách hàng thành công",
+                    );
+                } else {
+                    toast.error(
+                        res.message,
+                        res.errors?.[0] || "Cập nhật khách hàng thất bại",
+                    );
+                }
             } else {
                 const res = await customerService.createCustomer(formData);
                 savedId = res.data?.id;
-                toast.success("Thành công", "Tạo khách hàng thành công");
+                if (res.success) {
+                    toast.success(
+                        "Thành công",
+                        res.message || "Tạo khách hàng thành công",
+                    );
+                } else {
+                    toast.error(
+                        res.message,
+                        res.errors?.[0] || "Tạo khách hàng thất bại",
+                    );
+                }
             }
 
             if (photoFile && savedId) {
                 try {
                     setIsUploadingPhoto(true);
-                    await customerService.uploadCustomerPhoto(
+                    const res = await customerService.uploadCustomerPhoto(
                         savedId,
                         photoFile,
                     );
+                    if (res.success) {
+                        toast.success(
+                            "Thành công",
+                            res.message || "Upload ảnh khách hàng thành công",
+                        );
+                    } else {
+                        toast.error(
+                            res.message,
+                            res.errors?.[0] || "Upload ảnh khách hàng thất bại",
+                        );
+                    }
                 } catch {
                     toast.error(
                         "Cảnh báo",
@@ -195,7 +211,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             }
 
             onSuccess();
-            onClose();
+            handleClose();
         } catch (error: unknown) {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
@@ -230,16 +246,16 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 {/* Ảnh khách hàng */}
                 <div className="flex flex-col items-center gap-2">
                     <div
-                        className="h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 flex items-center justify-center"
+                        className="h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 hover:border-primary transition-colors flex items-center justify-center"
                         onClick={() => fileInputRef.current?.click()}>
-                        {photoPreview || initialData?.photoUrl ? (
+                        {photoPreview ? (
                             <img
-                                src={photoPreview || initialData?.photoUrl}
+                                src={photoPreview}
                                 alt="Ảnh khách hàng"
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <span className="px-1 text-center text-xs text-neutral-400">
+                            <span className="px-2 text-center text-xs text-neutral-400">
                                 Chọn ảnh
                             </span>
                         )}
@@ -256,7 +272,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={() => fileInputRef.current?.click()}>
-                        {initialData?.photoUrl ? "Đổi ảnh" : "Tải ảnh lên"}
+                        {photoPreview ? "Đổi ảnh" : "Tải ảnh lên"}
                     </Button>
                 </div>
 
@@ -350,19 +366,19 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                         )}
                     </div>
 
-                    {/* Hạng khách hàng - chỉ hiện khi edit */}
-                    {initialData && (
-                        <div>
-                            <Label htmlFor="rank">Hạng khách hàng</Label>
-                            <Select
-                                options={rankSelectOptions}
-                                value={formData.rank || ""}
-                                onChange={handleRankChange}
-                                placeholder="Chọn hạng"
-                                className="h-10 w-full"
-                            />
-                        </div>
-                    )}
+                    <div>
+                        <Label htmlFor="rank">
+                            Hạng khách hàng{" "}
+                            <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                            options={rankSelectOptions}
+                            value={formData.rank || ""}
+                            onChange={handleRankChange}
+                            placeholder="Chọn hạng"
+                            className="h-10 w-full"
+                        />
+                    </div>
                 </div>
 
                 <div>

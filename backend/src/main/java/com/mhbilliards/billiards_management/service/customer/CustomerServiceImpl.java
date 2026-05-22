@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.mhbilliards.billiards_management.dto.customer.CustomerRequest;
 import com.mhbilliards.billiards_management.dto.customer.CustomerResponse;
 import com.mhbilliards.billiards_management.entity.Customer;
+import com.mhbilliards.billiards_management.enums.CustomerRank;
 import com.mhbilliards.billiards_management.mapper.CustomerMapper;
 import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.CustomerRepository;
@@ -51,6 +52,9 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerMapper.toEntity(request);
         customer.setBranch(branchRepository.getReferenceById(branchId));
         customer.setIsActive(true);
+        if (customer.getRank() == null) {
+            customer.setRank(CustomerRank.BRONZE);
+        }
 
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(customerRepository.findDetailedById(savedCustomer.getId())

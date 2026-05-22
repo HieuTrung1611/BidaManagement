@@ -30,11 +30,12 @@ public interface SessionEquipmentMapper {
         if (sessionEquipment.getTotalAmount() != null && sessionEquipment.getTotalAmount() > 0) {
             return 1.0;
         }
-        
+
         // Backward compatibility: Calculate actual duration for old equipment
         if (sessionEquipment.getStartTime() != null && sessionEquipment.getEndTime() != null) {
             long minutes = ChronoUnit.MINUTES.between(sessionEquipment.getStartTime(), sessionEquipment.getEndTime());
-            // Avoid showing 0.0 if endTime == startTime (can happen with old charged equipment)
+            // Avoid showing 0.0 if endTime == startTime (can happen with old charged
+            // equipment)
             if (minutes == 0 && sessionEquipment.getTotalAmount() != null) {
                 return 1.0; // Assume 1 hour if charged but times are equal
             }

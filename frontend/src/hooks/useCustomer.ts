@@ -3,11 +3,21 @@ import { ICustomerResponse } from "@/types/customer";
 import { PaginationParams } from "@/types/base";
 import useSWR from "swr";
 
+const getCustomerByIdFetcher = async (
+    id: number,
+): Promise<ICustomerResponse> => {
+    const res = await customerService.getCustomerById(id);
+    if (!res.data) {
+        throw new Error("Không tìm thấy khách hàng");
+    }
+    return res.data;
+};
+
 const getCustomersFetcher = async (
     keyword: string = "",
     branchId: number | null | undefined,
     params: PaginationParams,
-): Promise<ICustomerResponse[]> => {
+) => {
     const res = await customerService.getAllCustomers(
         keyword,
         branchId,
@@ -16,7 +26,27 @@ const getCustomersFetcher = async (
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách khách hàng");
     }
-    return res.data?.content || [];
+    return res.data;
+};
+
+export const useCustomer = (id?: number) => {
+    const shouldFetch = id !== undefined;
+
+    const { data, error, isLoading, mutate } = useSWR<ICustomerResponse>(
+        shouldFetch ? ["/customers", id] : null,
+        () => getCustomerByIdFetcher(id!),
+        {
+            revalidateOnFocus: false,
+            shouldRetryOnError: false,
+        },
+    );
+
+    return {
+        customer: data,
+        isLoading,
+        isError: error,
+        mutate,
+    };
 };
 
 export const useCustomers = (
@@ -38,7 +68,11 @@ export const useCustomers = (
     );
 
     return {
-        customers: data ?? [],
+        customers: data?.content ?? [],
+        pageNumber: data?.pageNumber ?? params.page ?? 0,
+        pageSize: data?.pageSize ?? params.size ?? 10,
+        totalElements: data?.totalElements ?? 0,
+        totalPages: data?.totalPages ?? 1,
         isLoading,
         isError: error,
         mutate,

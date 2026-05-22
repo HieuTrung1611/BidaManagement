@@ -73,7 +73,8 @@ public class SessionEquipmentServiceImpl implements SessionEquipmentService {
         Equipment equipment = sessionEquipment.getEquipment();
 
         // New logic: Equipment is charged 1 hour upfront
-        // If totalAmount already set, equipment is already charged - just verify and return
+        // If totalAmount already set, equipment is already charged - just verify and
+        // return
         if (sessionEquipment.getTotalAmount() != null && sessionEquipment.getTotalAmount() > 0) {
             // Already charged upfront when rented, quantity will be returned on session end
             // This method is just for marking as "returned" if needed
@@ -94,7 +95,7 @@ public class SessionEquipmentServiceImpl implements SessionEquipmentService {
         Double totalAmount = sessionEquipment.getHourlyRate() * hours * sessionEquipment.getQuantity();
 
         sessionEquipment.setTotalAmount(totalAmount);
-        
+
         // Return available quantity for old logic equipment
         equipment.setAvailableQuantity(equipment.getAvailableQuantity() + sessionEquipment.getQuantity());
         equipmentRepository.save(equipment);

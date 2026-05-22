@@ -2,124 +2,124 @@
 
 import React from "react";
 import { AxiosError } from "axios";
+import { PaginationState } from "@tanstack/react-table";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
-import Label from "@/components/ui/form/Label";
-import Input from "@/components/ui/form/input/InputField";
 import Select from "@/components/ui/form/Select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table/table";
+import InputSearch from "@/components/common/InputSearch";
+import { DataTable } from "@/components/ui/table/DataTable";
 
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
 import { useBranches } from "@/hooks/useBranch";
 import { useCustomers } from "@/hooks/useCustomer";
+import { useCrudActions } from "@/hooks/useCrudActions";
 import customerService from "@/services/customerService";
 import { UserRole } from "@/types/auth";
-import { ICustomerResponse } from "@/types/customer";
+import { ICustomerRequest, ICustomerResponse } from "@/types/customer";
 import { CustomerModal } from "./CustomerModal";
-import { Edit } from "lucide-react";
+import { useCustomerColumns, renderCustomerActions } from "./useCustomerAction";
 
 const CustomerListTab: React.FC = () => {
-    const toast = useToast();
     const { user } = useAuth();
 
     const [keyword, setKeyword] = React.useState("");
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
     >(undefined);
-    const [isModalOpen, setIsModalOpen] = React.useState(false);
-    const [selectedCustomer, setSelectedCustomer] = React.useState<
-        ICustomerResponse | undefined
-    >(undefined);
-    const [page, setPage] = React.useState(0);
+    const [pagination, setPagination] = React.useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10,
+    });
 
     const isAdminLike =
         user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
 
-    const { branches } = useBranches();
-    const { customers, isLoading, mutate } = useCustomers(
-        keyword,
-        selectedBranchId,
-        { page, size: 10 },
-        isAdminLike,
-    );
+    React.useEffect(() => {
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, [keyword, selectedBranchId]);
 
-    const branchOptions = React.useMemo(
-        () =>
-            branches.map((branch) => ({
+    const { branches } = useBranches();
+    const {
+        customers,
+        pageNumber,
+        pageSize,
+        totalElements,
+        totalPages,
+        isLoading,
+        mutate,
+    } = useCustomers(keyword, selectedBranchId, {
+        page: pagination.pageIndex,
+        size: pagination.pageSize,
+    });
+
+    const { columns, DetailDrawer } = useCustomerColumns();
+
+    const {
+        modalState,
+        openAddModal,
+        openEditModal,
+        closeModal,
+        handleSubmit,
+        fieldErrors,
+    } = useCrudActions<ICustomerRequest, ICustomerResponse, number>({
+        onSuccess: mutate,
+        service: {
+            create: customerService.createCustomer,
+            update: customerService.updateCustomer,
+            remove: customerService.deleteCustomer,
+            getId: (customer) => customer.id,
+        },
+        extractErrorMessage: (error) => {
+            const axiosError = error as AxiosError<{ message?: string }>;
+            return axiosError.response?.data?.message;
+        },
+    });
+
+    const branchFilterOptions = React.useMemo(
+        () => [
+            { value: "", label: "Tất cả chi nhánh" },
+            ...branches.map((branch) => ({
                 value: branch.id.toString(),
                 label: branch.name,
             })),
+        ],
         [branches],
     );
 
-    const handleOpenModal = (customer?: ICustomerResponse) => {
-        setSelectedCustomer(customer);
-        setIsModalOpen(true);
+    const handleEdit = (customer: ICustomerResponse) => {
+        openEditModal(customer);
     };
 
-    const handleDeactivate = async (id: number) => {
-        if (!confirm("Bạn có chắc muốn vô hiệu hóa khách hàng này?")) return;
-
-        try {
-            await customerService.deactivateCustomer(id);
-            toast.success("Thành công", "Vô hiệu hóa khách hàng thành công");
-            await mutate();
-        } catch (error: unknown) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            toast.error(
-                "Lỗi",
-                axiosError.response?.data?.message ||
-                    "Không thể vô hiệu hóa khách hàng",
-            );
-        }
-    };
-
-    const handleReactivate = async (id: number) => {
-        if (!confirm("Bạn có chắc muốn kích hoạt lại khách hàng này?")) return;
-
-        try {
-            await customerService.reactivateCustomer(id);
-            toast.success("Thành công", "Kích hoạt lại khách hàng thành công");
-            await mutate();
-        } catch (error: unknown) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            toast.error(
-                "Lỗi",
-                axiosError.response?.data?.message ||
-                    "Không thể kích hoạt lại khách hàng",
-            );
-        }
-    };
-
-    const handleDelete = async (id: number) => {
+    const handleDeactivate = async (customer: ICustomerResponse) => {
         if (
             !confirm(
-                "Bạn có chắc muốn xóa khách hàng này? Hành động này không thể hoàn tác.",
+                `Bạn có chắc muốn vô hiệu hóa khách hàng "${customer.name}"?`,
             )
         )
             return;
 
         try {
-            await customerService.deleteCustomer(id);
-            toast.success("Thành công", "Xóa khách hàng thành công");
+            await customerService.deactivateCustomer(customer.id);
             await mutate();
         } catch (error: unknown) {
-            const axiosError = error as AxiosError<{ message?: string }>;
-            toast.error(
-                "Lỗi",
-                axiosError.response?.data?.message ||
-                    "Không thể xóa khách hàng",
-            );
+            console.error("Error deactivating customer:", error);
+        }
+    };
+
+    const handleReactivate = async (customer: ICustomerResponse) => {
+        if (
+            !confirm(
+                `Bạn có chắc muốn kích hoạt lại khách hàng "${customer.name}"?`,
+            )
+        )
+            return;
+
+        try {
+            await customerService.reactivateCustomer(customer.id);
+            await mutate();
+        } catch (error: unknown) {
+            console.error("Error reactivating customer:", error);
         }
     };
 
@@ -138,212 +138,76 @@ const CustomerListTab: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <Card>
+            <Card className="min-w-0">
                 <CardHeader>
                     <CardTitle>Danh sách khách hàng</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                        <div>
-                            <Label htmlFor="keyword">Tìm kiếm</Label>
-                            <Input
-                                id="keyword"
-                                name="keyword"
-                                type="text"
-                                value={keyword}
-                                onChange={(e) => {
-                                    setKeyword(e.target.value);
-                                    setPage(0);
-                                }}
-                                placeholder="Tên, email hoặc SĐT"
-                            />
-                        </div>
+                <CardContent className="min-w-0">
+                    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between min-w-0">
+                        <InputSearch
+                            value={keyword}
+                            onChange={setKeyword}
+                            placeholder="Tên, email hoặc SĐT..."
+                            className="flex-1 sm:flex-initial sm:w-80 min-w-0"
+                        />
+                        <Select
+                            options={branchFilterOptions}
+                            value={
+                                selectedBranchId
+                                    ? selectedBranchId.toString()
+                                    : ""
+                            }
+                            onChange={(value) =>
+                                setSelectedBranchId(
+                                    value ? Number(value) : undefined,
+                                )
+                            }
+                            placeholder="Lọc theo chi nhánh"
+                            className="h-10 w-full sm:w-56"
+                        />
+                        <Button
+                            size="sm"
+                            className="sm:ml-auto shrink-0"
+                            onClick={openAddModal}>
+                            Thêm khách hàng
+                        </Button>
+                    </div>
 
-                        <div>
-                            <Label htmlFor="branchId">Chi nhánh</Label>
-                            <Select
-                                options={branchOptions}
-                                value={selectedBranchId?.toString() || ""}
-                                onChange={(value) => {
-                                    setSelectedBranchId(
-                                        value ? Number(value) : undefined,
-                                    );
-                                    setPage(0);
-                                }}
-                                placeholder="Chọn chi nhánh"
-                                className="h-10 w-full"
-                            />
-                        </div>
-
-                        <div className="flex items-end">
-                            <Button onClick={() => handleOpenModal()}>
-                                + Thêm khách hàng
-                            </Button>
-                        </div>
+                    <div className="min-w-0">
+                        <DataTable
+                            columns={columns}
+                            data={customers}
+                            renderActions={(customer) =>
+                                renderCustomerActions(
+                                    customer,
+                                    handleEdit,
+                                    handleDeactivate,
+                                    handleReactivate,
+                                )
+                            }
+                            isLoading={isLoading}
+                            manualPagination
+                            pageCount={totalPages}
+                            pageIndex={pageNumber}
+                            pageSize={pageSize}
+                            totalItems={totalElements}
+                            onPaginationChange={setPagination}
+                        />
                     </div>
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Tên khách hàng</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>SĐT</TableHead>
-                                <TableHead>Chi nhánh</TableHead>
-                                <TableHead>Hạng</TableHead>
-                                <TableHead>Tổng chi tiêu</TableHead>
-                                <TableHead>Trạng thái</TableHead>
-                                <TableHead>Lần ghé</TableHead>
-                                <TableHead>Hành động</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={9}
-                                        className="h-16 text-center">
-                                        Đang tải...
-                                    </TableCell>
-                                </TableRow>
-                            ) : customers && customers.length > 0 ? (
-                                customers.map((customer) => (
-                                    <TableRow key={customer.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                {customer.photoUrl ? (
-                                                    <img
-                                                        src={customer.photoUrl}
-                                                        alt={customer.name}
-                                                        className="h-8 w-8 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700">
-                                                        {customer.name
-                                                            ?.trim()
-                                                            .charAt(0)
-                                                            .toUpperCase() ||
-                                                            "?"}
-                                                    </div>
-                                                )}
-                                                <span className="font-medium">
-                                                    {customer.name}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{customer.email}</TableCell>
-                                        <TableCell>
-                                            {customer.phoneNumber}
-                                        </TableCell>
-                                        <TableCell>
-                                            {customer.branch?.name}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                color={
-                                                    customer.rank === "PLATINUM"
-                                                        ? "error"
-                                                        : customer.rank ===
-                                                            "GOLD"
-                                                          ? "warning"
-                                                          : "info"
-                                                }
-                                                variant="light">
-                                                {customer.rank}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {(
-                                                customer.totalSpent || 0
-                                            ).toLocaleString("vi-VN")}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                color={
-                                                    customer.isActive
-                                                        ? "success"
-                                                        : "light"
-                                                }
-                                                variant="light">
-                                                {customer.isActive
-                                                    ? "Hoạt động"
-                                                    : "Bị vô hiệu hóa"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium">
-                                                    {customer.visitCount || 0}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    startIcon={
-                                                        <Edit className="h-4 w-4" />
-                                                    }
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() =>
-                                                        handleOpenModal(
-                                                            customer,
-                                                        )
-                                                    }>
-                                                    Sửa
-                                                </Button>
-                                                {customer.isActive ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="text-orange-600"
-                                                        onClick={() =>
-                                                            handleDeactivate(
-                                                                customer.id,
-                                                            )
-                                                        }>
-                                                        Vô hiệu hóa
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="text-green-600"
-                                                        onClick={() =>
-                                                            handleReactivate(
-                                                                customer.id,
-                                                            )
-                                                        }>
-                                                        Kích hoạt
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={9}
-                                        className="h-16 text-center">
-                                        Không có khách hàng nào.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
             <CustomerModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={() => mutate()}
-                initialData={selectedCustomer}
+                isOpen={modalState.isModalOpen}
+                onClose={closeModal}
+                onSubmit={handleSubmit}
+                onSuccess={mutate}
+                isSubmitting={modalState.isSubmitting}
+                initialData={modalState.editingEntity}
+                errors={fieldErrors}
             />
+
+            <DetailDrawer />
         </div>
     );
 };
