@@ -119,13 +119,15 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
         2,
     );
 
-    // Equipments cost - calculate active equipment with rounded duration
+    // Equipments cost - NEW LOGIC: Equipment is charged 1 hour upfront
     const equipmentsCost = roundHalfUp(
         equipments.reduce((sum, e) => {
-            if (e.isReturned) {
-                return sum + (e.totalAmount || 0);
+            // If totalAmount is set, equipment is already charged (new logic: 1 hour upfront)
+            if (e.totalAmount !== null && e.totalAmount !== undefined) {
+                return sum + e.totalAmount;
             }
-            // For active equipment, calculate with rounded duration and proper rounding
+            // Backward compatibility: Old equipment without totalAmount (shouldn't happen with new rentals)
+            // Calculate with 1 hour charge
             const cost = calculateEquipmentCost(
                 e.quantity,
                 e.hourlyRate,
@@ -255,13 +257,12 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                 ? new Date(equipment.endTime)
                                 : now;
 
-                            // Use rounded duration matching backend logic
-                            const roundedHours = calculateRoundedDuration(
-                                startTime,
-                                endTime,
-                            );
-
-                            const displayAmount = equipment.isReturned
+                            // NEW LOGIC: Equipment is charged 1 hour upfront
+                            // If totalAmount is set, show it directly (no dynamic calculation)
+                            const isCharged =
+                                equipment.totalAmount !== null &&
+                                equipment.totalAmount !== undefined;
+                            const displayAmount = isCharged
                                 ? equipment.totalAmount
                                 : calculateEquipmentCost(
                                       equipment.quantity,
@@ -269,6 +270,12 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                       startTime,
                                       endTime,
                                   );
+
+                            // For charged equipment, always show 1.00h
+                            // For old equipment (backward compatibility), calculate duration
+                            const displayHours = isCharged
+                                ? 1.0
+                                : calculateRoundedDuration(startTime, endTime);
 
                             return (
                                 <div
@@ -286,22 +293,23 @@ export const SessionItemsTab: React.FC<SessionItemsTabProps> = ({
                                             VNĐ/giờ
                                             <span
                                                 className={
-                                                    !equipment.isReturned
-                                                        ? "text-amber-600 font-medium"
-                                                        : ""
+                                                    isCharged
+                                                        ? "text-green-600 font-medium"
+                                                        : "text-amber-600 font-medium"
                                                 }>
                                                 {" "}
-                                                ({roundedHours.toFixed(2)}h
-                                                {!equipment.isReturned &&
-                                                    " đang chạy"}
+                                                ({displayHours.toFixed(2)}h
+                                                {isCharged
+                                                    ? " - Đã tính"
+                                                    : " đang chạy"}
                                                 )
                                             </span>
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {equipment.isReturned ? (
+                                        {isCharged ? (
                                             <span className="font-semibold text-green-600">
-                                                {equipment.totalAmount!.toLocaleString(
+                                                {displayAmount!.toLocaleString(
                                                     "vi-VN",
                                                 )}{" "}
                                                 VNĐ

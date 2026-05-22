@@ -25,8 +25,19 @@ public interface SessionEquipmentMapper {
 
     @Named("calculateDurationHours")
     default Double calculateDurationHours(SessionEquipment sessionEquipment) {
+        // NEW LOGIC: Equipment charged 1 hour upfront
+        // If totalAmount is set, it means equipment is charged (show 1.0h)
+        if (sessionEquipment.getTotalAmount() != null && sessionEquipment.getTotalAmount() > 0) {
+            return 1.0;
+        }
+        
+        // Backward compatibility: Calculate actual duration for old equipment
         if (sessionEquipment.getStartTime() != null && sessionEquipment.getEndTime() != null) {
             long minutes = ChronoUnit.MINUTES.between(sessionEquipment.getStartTime(), sessionEquipment.getEndTime());
+            // Avoid showing 0.0 if endTime == startTime (can happen with old charged equipment)
+            if (minutes == 0 && sessionEquipment.getTotalAmount() != null) {
+                return 1.0; // Assume 1 hour if charged but times are equal
+            }
             return BigDecimal.valueOf(minutes)
                     .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP)
                     .doubleValue();

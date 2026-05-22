@@ -109,13 +109,17 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
                 session.setEndTime(endTime);
 
                 // Auto-return any equipment that was not manually returned before session ends
+                // Note: Equipment is now charged 1 hour upfront, so totalAmount is already set
                 List<SessionEquipment> activeEquipments = sessionEquipmentRepository
                                 .findActiveRentalsBySessionId(sessionId);
                 for (SessionEquipment se : activeEquipments) {
-                        se.setEndTime(endTime);
-                        long minutes = ChronoUnit.MINUTES.between(se.getStartTime(), endTime);
-                        double hours = minutes / 60.0;
-                        se.setTotalAmount(se.getHourlyRate() * hours * se.getQuantity());
+                        // Only update if not already charged (backward compatibility)
+                        if (se.getEndTime() == null) {
+                                se.setEndTime(endTime);
+                                long minutes = ChronoUnit.MINUTES.between(se.getStartTime(), endTime);
+                                double hours = minutes / 60.0;
+                                se.setTotalAmount(se.getHourlyRate() * hours * se.getQuantity());
+                        }
                         // Restore available quantity (entity is managed, dirty-checked by JPA)
                         se.getEquipment().setAvailableQuantity(
                                         se.getEquipment().getAvailableQuantity() + se.getQuantity());
@@ -153,6 +157,7 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
 
         /**
          * Calculate rounded duration using 15-minute blocks
+         * Minimum charge: 0.25h (15 minutes)
          */
         private BigDecimal calculateRoundedDuration(LocalDateTime startTime, LocalDateTime endTime) {
                 if (startTime == null || endTime == null) {
@@ -172,6 +177,12 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
                 BigDecimal totalHours = BigDecimal.valueOf(fullHours)
                                 .add(BigDecimal.valueOf(roundedMinutes).divide(BigDecimal.valueOf(60), 2,
                                                 RoundingMode.HALF_UP));
+
+                // Ensure minimum charge of 0.25h (15 minutes)
+                BigDecimal minimumCharge = BigDecimal.valueOf(0.25);
+                if (totalHours.compareTo(minimumCharge) < 0) {
+                        return minimumCharge;
+                }
 
                 return totalHours;
         }

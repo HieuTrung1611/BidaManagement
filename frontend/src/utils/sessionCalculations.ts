@@ -10,6 +10,7 @@ export const roundHalfUp = (value: number, decimals: number = 2): number => {
 /**
  * Calculate rounded duration using 15-minute blocks
  * Matches backend logic in BilliardSessionServiceImpl.calculateRoundedDuration
+ * Minimum charge: 0.25h (15 minutes)
  */
 export const calculateRoundedDuration = (
     startTime: Date,
@@ -19,7 +20,7 @@ export const calculateRoundedDuration = (
         (endTime.getTime() - startTime.getTime()) / (1000 * 60),
     );
 
-    if (totalMinutes <= 0) return 0;
+    if (totalMinutes <= 0) return 0.25; // Minimum 15 minutes
 
     const fullHours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
@@ -33,12 +34,16 @@ export const calculateRoundedDuration = (
 
     // Convert to hours with 2 decimal places using HALF_UP rounding
     const totalHours = fullHours + roundedMinutes / 60;
-    return roundHalfUp(totalHours, 2);
+    const result = roundHalfUp(totalHours, 2);
+
+    // Ensure minimum charge of 0.25h (15 minutes)
+    return result < 0.25 ? 0.25 : result;
 };
 
 /**
- * Calculate equipment cost with rounded duration
- * Matches backend calculation with proper rounding
+ * Calculate equipment cost - NEW LOGIC: Always charge 1 hour upfront
+ * Equipment is no longer calculated by duration, it's charged 1 hour when rented
+ * This function is kept for backward compatibility with old equipment rentals
  */
 export const calculateEquipmentCost = (
     quantity: number,
@@ -46,9 +51,8 @@ export const calculateEquipmentCost = (
     startTime: Date,
     endTime: Date,
 ): number => {
-    const roundedDuration = calculateRoundedDuration(startTime, endTime);
-    // Calculate: quantity * hourlyRate * duration
-    const cost = quantity * hourlyRate * roundedDuration;
+    // New logic: Always charge 1 hour
+    const cost = quantity * hourlyRate * 1.0;
     // Round to 2 decimal places like backend
     return roundHalfUp(cost, 2);
 };

@@ -3,7 +3,6 @@ package com.mhbilliards.billiards_management.service.sessionEquipment;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,12 +46,18 @@ public class SessionEquipmentServiceImpl implements SessionEquipmentService {
         equipment.setAvailableQuantity(equipment.getAvailableQuantity() - request.getQuantity());
         equipmentRepository.save(equipment);
 
+        // Charge equipment for 1 hour upfront (no rounding)
+        LocalDateTime now = LocalDateTime.now();
+        Double totalAmount = equipment.getRentalPricePerHour() * 1.0 * request.getQuantity();
+
         SessionEquipment sessionEquipment = SessionEquipment.builder()
                 .session(session)
                 .equipment(equipment)
                 .quantity(request.getQuantity())
-                .startTime(LocalDateTime.now())
+                .startTime(now)
+                .endTime(now) // Mark as charged
                 .hourlyRate(equipment.getRentalPricePerHour())
+                .totalAmount(totalAmount) // Charged for 1 hour
                 .build();
 
         SessionEquipment savedSessionEquipment = sessionEquipmentRepository.save(sessionEquipment);
@@ -65,11 +70,22 @@ public class SessionEquipmentServiceImpl implements SessionEquipmentService {
         SessionEquipment sessionEquipment = sessionEquipmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Session equipment không tồn tại"));
 
+        Equipment equipment = sessionEquipment.getEquipment();
+
+        // New logic: Equipment is charged 1 hour upfront
+        // If totalAmount already set, equipment is already charged - just verify and return
+        if (sessionEquipment.getTotalAmount() != null && sessionEquipment.getTotalAmount() > 0) {
+            // Already charged upfront when rented, quantity will be returned on session end
+            // This method is just for marking as "returned" if needed
+            return sessionEquipmentMapper.toResponseDTO(sessionEquipment);
+        }
+
+        // Backward compatibility: Old logic for equipment rented before new pricing
         if (sessionEquipment.getEndTime() != null) {
             throw new RuntimeException("Thiết bị này đã được trả rồi");
         }
 
-        // Set end time and calculate total amount
+        // Calculate based on actual usage time (old logic)
         LocalDateTime endTime = LocalDateTime.now();
         sessionEquipment.setEndTime(endTime);
 
@@ -78,9 +94,8 @@ public class SessionEquipmentServiceImpl implements SessionEquipmentService {
         Double totalAmount = sessionEquipment.getHourlyRate() * hours * sessionEquipment.getQuantity();
 
         sessionEquipment.setTotalAmount(totalAmount);
-
-        // Return available quantity
-        Equipment equipment = sessionEquipment.getEquipment();
+        
+        // Return available quantity for old logic equipment
         equipment.setAvailableQuantity(equipment.getAvailableQuantity() + sessionEquipment.getQuantity());
         equipmentRepository.save(equipment);
 

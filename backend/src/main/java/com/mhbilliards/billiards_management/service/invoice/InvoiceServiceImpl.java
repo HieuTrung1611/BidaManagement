@@ -323,6 +323,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         /**
          * Tính thời gian chơi làm tròn theo mốc 15 phút
          * Logic: 1-15p → 15p, 16-30p → 30p, 31-45p → 45p, 46-60p → 60p
+         * Minimum charge: 0.25h (15 minutes)
          * 
          * Ví dụ:
          * - 1h10p = 70 phút → 1 giờ + 15 phút → 1.25 giờ
@@ -352,6 +353,12 @@ public class InvoiceServiceImpl implements InvoiceService {
                 BigDecimal totalHours = BigDecimal.valueOf(fullHours)
                                 .add(BigDecimal.valueOf(roundedMinutes).divide(BigDecimal.valueOf(60), 2,
                                                 RoundingMode.HALF_UP));
+
+                // Ensure minimum charge of 0.25h (15 minutes)
+                BigDecimal minimumCharge = BigDecimal.valueOf(0.25);
+                if (totalHours.compareTo(minimumCharge) < 0) {
+                        return minimumCharge;
+                }
 
                 return totalHours;
         }
