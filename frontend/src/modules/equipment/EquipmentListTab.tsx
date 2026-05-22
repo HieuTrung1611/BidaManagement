@@ -21,12 +21,23 @@ import Button from "@/components/ui/button/Button";
 import { DataTable } from "@/components/ui/table/DataTable";
 import { useBranches } from "@/hooks/useBranch";
 import Select from "@/components/ui/form/Select";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types/auth";
+import { useManagedBranch } from "@/hooks/useManagedBranch";
+import Badge from "@/components/ui/badge/Badge";
 
 interface EquipmentListTabProps {
     branchId?: number;
 }
 
 const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const isManager = user?.role === UserRole.MANAGER;
+
+    const { managedBranchId, isLoading: isLoadingManagedBranch } =
+        useManagedBranch();
+
     const [keyword, setKeyword] = React.useState("");
     const [selectedType, setSelectedType] =
         React.useState<EquipmentType | null>(null);
@@ -41,8 +52,15 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
         pageSize: 10,
     });
 
+    // Ưu tiên branchId từ props (nếu có), sau đó check role
+    // ADMIN: dùng selectedBranchId (undefined = tất cả)
+    // MANAGER: dùng managedBranchId (chi nhánh được quản lý)
     const isBranchFixed = branchId !== undefined;
-    const effectiveBranchId = isBranchFixed ? branchId : selectedBranchId;
+    const effectiveBranchId = isBranchFixed
+        ? branchId
+        : isAdmin
+          ? selectedBranchId
+          : managedBranchId;
 
     React.useEffect(() => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -60,6 +78,11 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
         ],
         [branches],
     );
+
+    const selectedBranchLabel = React.useMemo(() => {
+        if (!effectiveBranchId) return "Tất cả";
+        return branches.find((b) => b.id === effectiveBranchId)?.name || "";
+    }, [branches, effectiveBranchId]);
 
     const typeFilterOptions = React.useMemo(
         () => [
@@ -164,7 +187,7 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
                             placeholder="Lọc theo loại"
                             className="h-10 w-full sm:w-48"
                         />
-                        {!isBranchFixed && (
+                        {!isBranchFixed && isAdmin && (
                             <Select
                                 options={branchFilterOptions}
                                 value={
@@ -181,6 +204,19 @@ const EquipmentListTab: React.FC<EquipmentListTabProps> = ({ branchId }) => {
                                 className="h-10 w-full sm:w-56"
                             />
                         )}
+                        {!isBranchFixed && isManager && managedBranchId && (
+                            <Badge color="warning" variant="light">
+                                Chi nhánh: {selectedBranchLabel}
+                            </Badge>
+                        )}
+                        {!isBranchFixed &&
+                            isManager &&
+                            !managedBranchId &&
+                            !isLoadingManagedBranch && (
+                                <Badge color="error" variant="light">
+                                    Tài khoản chưa được gán chi nhánh
+                                </Badge>
+                            )}
                         <Select
                             options={statusFilterOptions}
                             value={

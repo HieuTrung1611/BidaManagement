@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import com.mhbilliards.billiards_management.entity.Employee;
 import com.mhbilliards.billiards_management.entity.User;
 import com.mhbilliards.billiards_management.enums.UserRole;
-import com.mhbilliards.billiards_management.repository.EmployeeRepository;
 import com.mhbilliards.billiards_management.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CurrentUserAccessService {
 
-    private static final String MANAGER_POSITION_CODE = "MANAGER";
-
     private final UserRepository userRepository;
-    private final EmployeeRepository employeeRepository;
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -71,15 +67,10 @@ public class CurrentUserAccessService {
             throw new AccessDeniedException("Chỉ quản lý mới có chi nhánh quản lý mặc định");
         }
 
-        Employee employee = employeeRepository.findDetailedByEmail(user.getEmail())
-                .orElseThrow(
-                        () -> new RuntimeException("Không tìm thấy hồ sơ nhân viên tương ứng với tài khoản quản lý"));
-
-        if (employee.getPosition() == null || employee.getPosition().getCode() == null
-                || !MANAGER_POSITION_CODE.equalsIgnoreCase(employee.getPosition().getCode())) {
-            throw new AccessDeniedException("Tài khoản hiện tại không có quyền quản lý chi nhánh");
+        if (user.getBranch() == null || user.getBranch().getId() == null) {
+            throw new RuntimeException("Tài khoản quản lý chưa được gán chi nhánh");
         }
 
-        return employee.getBranch().getId();
+        return user.getBranch().getId();
     }
 }

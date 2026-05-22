@@ -1,56 +1,30 @@
 import { useAuth } from "@/context/AuthContext";
-import employeeService from "@/services/employeeService";
 import { UserRole } from "@/types/auth";
-import useSWR from "swr";
 import { useAccountByUsername } from "./useAccount";
 
-const getManagedBranchIdFetcher = async (email: string): Promise<number> => {
-    const res = await employeeService.getAllEmployees(email, undefined, {
-        page: 0,
-        size: 50,
-        sortBy: "id",
-        sortDirection: "asc",
-    });
-
-    if (!res.data) {
-        throw new Error("Không thể tải thông tin chi nhánh của quản lý");
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const managerEmployee = res.data.content.find(
-        (employee) => employee.email?.trim().toLowerCase() === normalizedEmail,
-    );
-
-    if (!managerEmployee?.branch?.id) {
-        throw new Error("Không tìm thấy chi nhánh của tài khoản quản lý");
-    }
-
-    return managerEmployee.branch.id;
-};
-
+/**
+ * Hook để lấy branchId của tài khoản hiện tại
+ * - ADMIN: branchId = null (quản lý tất cả chi nhánh)
+ * - MANAGER/EMPLOYEE: branchId = số cụ thể (quản lý/làm việc tại chi nhánh đó)
+ */
 export const useManagedBranch = () => {
     const { user } = useAuth();
     const isManager = user?.role === UserRole.MANAGER;
 
-    const { account, isLoading: isLoadingAccount } = useAccountByUsername(
-        user?.username,
-    );
+    const {
+        account,
+        isLoading: isLoadingAccount,
+        isError,
+    } = useAccountByUsername(user?.username);
 
-    const managerEmail = isManager ? account?.email : undefined;
-
-    const { data, error, isLoading, mutate } = useSWR<number>(
-        managerEmail ? ["/managed-branch", managerEmail] : null,
-        () => getManagedBranchIdFetcher(managerEmail!),
-        {
-            revalidateOnFocus: false,
-            shouldRetryOnError: false,
-        },
-    );
+    // branchId được lấy trực tiếp từ account
+    // null = ADMIN (có thể quản lý tất cả chi nhánh)
+    // number = MANAGER/EMPLOYEE (làm việc tại chi nhánh cụ thể)
+    const managedBranchId = account?.branchId ?? undefined;
 
     return {
-        managedBranchId: data,
-        isLoading: isManager ? isLoading || isLoadingAccount : false,
-        isError: error,
-        mutate,
+        managedBranchId,
+        isLoading: isLoadingAccount,
+        isError,
     };
 };

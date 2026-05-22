@@ -6,6 +6,7 @@ import { AxiosError } from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { useBranches } from "@/hooks/useBranch";
+import { useManagedBranch } from "@/hooks/useManagedBranch";
 import { useAttendanceDaily } from "@/hooks/useAttendance";
 import attendanceService from "@/services/attendanceService";
 import { UserRole } from "@/types/auth";
@@ -77,13 +78,19 @@ const EmployeeAttendancePage: React.FC = () => {
     const [isConfirming, setIsConfirming] = React.useState(false);
 
     const { branches } = useBranches();
+    const { managedBranchId, isLoading: isLoadingManagedBranch } =
+        useManagedBranch();
 
-    const isAdminLike =
-        user?.role === UserRole.ADMIN || user?.role === UserRole.ACCOUNTANT;
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const isManager = user?.role === UserRole.MANAGER;
+    const isAccountant = user?.role === UserRole.ACCOUNTANT;
+    const isAdminLike = isAdmin || isAccountant;
+
+    // ADMIN/ACCOUNTANT: Phải chọn chi nhánh, truyền selectedBranchId vào API
+    // MANAGER: Không truyền branchId (undefined), backend sẽ tự lấy từ Employee record
     const requireBranchSelection = isAdminLike;
-
-    const canFetchAttendance = !requireBranchSelection || !!selectedBranchId;
-    const branchIdForApi = selectedBranchId;
+    const canFetchAttendance = isManager || (isAdminLike && !!selectedBranchId);
+    const branchIdForApi = isAdminLike ? selectedBranchId : undefined;
 
     const { attendanceDaily, isLoading, isError, mutate } = useAttendanceDaily(
         canFetchAttendance ? attendanceDate : undefined,
@@ -102,6 +109,14 @@ const EmployeeAttendancePage: React.FC = () => {
             })),
         [branches],
     );
+
+    const selectedBranchLabel = React.useMemo(() => {
+        const effectiveBranchId = selectedBranchId || managedBranchId;
+        if (!effectiveBranchId) return "Tất cả";
+        return (
+            branches.find((b) => b.id === effectiveBranchId)?.name || "Tất cả"
+        );
+    }, [branches, selectedBranchId, managedBranchId]);
 
     const isConfirmed = attendanceDaily?.confirmed ?? false;
 
@@ -157,16 +172,14 @@ const EmployeeAttendancePage: React.FC = () => {
         );
     };
 
-    const getRequestBranchId = (
-        data?: IAttendanceDailyResponse,
-    ): number | undefined => {
-        if (selectedBranchId) return selectedBranchId;
-        if (data?.branchId) return data.branchId;
-        return undefined;
+    const getRequestBranchId = (): number | undefined => {
+        // ADMIN/ACCOUNTANT: truyền selectedBranchId
+        // MANAGER: không truyền (undefined), backend tự lấy từ Employee
+        return isAdminLike ? selectedBranchId : undefined;
     };
 
     const handleSave = async () => {
-        const requestBranchId = getRequestBranchId(attendanceDaily);
+        const requestBranchId = getRequestBranchId();
 
         if (requireBranchSelection && !requestBranchId) {
             toast.error(
@@ -219,7 +232,7 @@ const EmployeeAttendancePage: React.FC = () => {
     };
 
     const handleConfirm = async () => {
-        const requestBranchId = getRequestBranchId(attendanceDaily);
+        const requestBranchId = getRequestBranchId();
 
         if (requireBranchSelection && !requestBranchId) {
             toast.error(
@@ -262,7 +275,7 @@ const EmployeeAttendancePage: React.FC = () => {
     const canConfirm =
         !isConfirmed &&
         !!attendanceDaily?.canConfirm &&
-        (!requireBranchSelection || !!getRequestBranchId(attendanceDaily));
+        (!requireBranchSelection || !!getRequestBranchId());
 
     return (
         <Card>
@@ -282,7 +295,7 @@ const EmployeeAttendancePage: React.FC = () => {
                         />
                     </div>
 
-                    {requireBranchSelection && (
+                    {requireBranchSelection ? (
                         <div>
                             <Label htmlFor="branchId">Chi nhánh</Label>
                             <Select
@@ -296,6 +309,23 @@ const EmployeeAttendancePage: React.FC = () => {
                                 placeholder="Chọn chi nhánh"
                                 className="h-10 w-full"
                             />
+                        </div>
+                    ) : (
+                        <div>
+                            <Label>Chi nhánh</Label>
+                            <div className="flex h-10 items-center">
+                                {isLoadingManagedBranch ? (
+                                    <Badge color="light">Đang tải...</Badge>
+                                ) : managedBranchId ? (
+                                    <Badge color="info">
+                                        {selectedBranchLabel}
+                                    </Badge>
+                                ) : (
+                                    <Badge color="error">
+                                        Không xác định được chi nhánh
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     )}
 
@@ -329,7 +359,9 @@ const EmployeeAttendancePage: React.FC = () => {
 
                 {!canFetchAttendance && (
                     <p className="text-sm text-amber-600">
-                        Vui lòng chọn chi nhánh để tải dữ liệu chấm công.
+                        {isManager
+                            ? "Đang tải thông tin chi nhánh..."
+                            : "Vui lòng chọn chi nhánh để tải dữ liệu chấm công."}
                     </p>
                 )}
 

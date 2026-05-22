@@ -16,12 +16,23 @@ import { DataTable } from "@/components/ui/table/DataTable";
 import { useBranches } from "@/hooks/useBranch";
 import Select from "@/components/ui/form/Select";
 import { useShifts } from "@/hooks/useShift";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types/auth";
+import { useManagedBranch } from "@/hooks/useManagedBranch";
+import Badge from "@/components/ui/badge/Badge";
 
 interface EmployeeListTabProps {
     branchId?: number;
 }
 
 const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const isManager = user?.role === UserRole.MANAGER;
+
+    const { managedBranchId, isLoading: isLoadingManagedBranch } =
+        useManagedBranch();
+
     const [keyword, setKeyword] = React.useState("");
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
@@ -31,8 +42,15 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
         pageSize: 10,
     });
 
+    // Ưu tiên branchId từ props (nếu có), sau đó check role
+    // ADMIN: dùng selectedBranchId (undefined = tất cả)
+    // MANAGER: dùng managedBranchId (chi nhánh được quản lý)
     const isBranchFixed = branchId !== undefined;
-    const effectiveBranchId = isBranchFixed ? branchId : selectedBranchId;
+    const effectiveBranchId = isBranchFixed
+        ? branchId
+        : isAdmin
+          ? selectedBranchId
+          : managedBranchId;
 
     React.useEffect(() => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -57,6 +75,11 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
         ],
         [branches],
     );
+
+    const selectedBranchLabel = React.useMemo(() => {
+        if (!effectiveBranchId) return "Tất cả";
+        return branches.find((b) => b.id === effectiveBranchId)?.name || "";
+    }, [branches, effectiveBranchId]);
 
     const {
         employees,
@@ -118,7 +141,7 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                         placeholder="Nhập từ khóa tìm kiếm..."
                         className="flex-1 sm:flex-initial sm:w-80 min-w-0"
                     />
-                    {!isBranchFixed && (
+                    {!isBranchFixed && isAdmin && (
                         <Select
                             options={branchFilterOptions}
                             value={
@@ -135,6 +158,19 @@ const EmployeeListTab: React.FC<EmployeeListTabProps> = ({ branchId }) => {
                             className="h-10 w-full sm:w-56"
                         />
                     )}
+                    {!isBranchFixed && isManager && managedBranchId && (
+                        <Badge color="warning" variant="light">
+                            Chi nhánh: {selectedBranchLabel}
+                        </Badge>
+                    )}
+                    {!isBranchFixed &&
+                        isManager &&
+                        !managedBranchId &&
+                        !isLoadingManagedBranch && (
+                            <Badge color="error" variant="light">
+                                Tài khoản chưa được gán chi nhánh
+                            </Badge>
+                        )}
                     <Button
                         size="sm"
                         className="sm:ml-auto shrink-0"
