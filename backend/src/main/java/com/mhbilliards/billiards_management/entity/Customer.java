@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -56,6 +57,10 @@ public class Customer extends BaseEntity {
     Boolean isActive = true;
 
     String photoUrl; // Ảnh khách hàng cho AI nhận diện
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String faceEmbedding;
 
     @Builder.Default
     Integer visitCount = 0; // Số lần ghé

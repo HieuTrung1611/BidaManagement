@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mhbilliards.billiards_management.dto.customer.CustomerRequest;
 import com.mhbilliards.billiards_management.dto.customer.CustomerResponse;
+import com.mhbilliards.billiards_management.dto.customer.FaceEmbeddingResponse;
 import com.mhbilliards.billiards_management.entity.Customer;
 import com.mhbilliards.billiards_management.enums.CustomerRank;
 import com.mhbilliards.billiards_management.mapper.CustomerMapper;
@@ -19,9 +20,11 @@ import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.CustomerRepository;
 import com.mhbilliards.billiards_management.service.base.CurrentUserAccessService;
 import com.mhbilliards.billiards_management.service.cloundinary.CloudinaryService;
+import com.mhbilliards.billiards_management.service.faceAi.FaceAIService;
 import com.mhbilliards.billiards_management.specification.CustomerSpecification;
 
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerMapper customerMapper;
     private final CurrentUserAccessService currentUserAccessService;
     private final CloudinaryService cloudinaryService;
+    private final FaceAIService faceAIService;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -152,35 +157,68 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public CustomerResponse uploadCustomerPhoto(Long id, MultipartFile file) {
+    public CustomerResponse uploadCustomerPhoto(
+            Long id,
+            MultipartFile file) {
+
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Vui lòng chọn ảnh để tải lên");
         }
 
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new RuntimeException("File tải lên phải là ảnh");
+
+        if (contentType == null ||
+                !contentType.startsWith("image/")) {
+
+            throw new RuntimeException(
+                    "File tải lên phải là ảnh");
         }
 
-        Customer customer = customerRepository.findDetailedById(id)
-                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
+        Customer customer = customerRepository
+                .findDetailedById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
+        currentUserAccessService.resolveAccessibleBranchId(
+                customer.getBranch().getId());
 
         try {
+
+            // Upload cloudinary
             Map<String, Object> uploadResult = cloudinaryService.uploadFile(file);
+
             String uploadedUrl = (String) uploadResult.get("secure_url");
-            if (uploadedUrl == null || uploadedUrl.isBlank()) {
-                throw new RuntimeException("Không lấy được URL ảnh từ Cloudinary");
+
+            if (uploadedUrl == null ||
+                    uploadedUrl.isBlank()) {
+
+                throw new RuntimeException(
+                        "Không lấy được URL ảnh từ Cloudinary");
             }
 
+            // Call AI create embedding
+            FaceEmbeddingResponse embeddingResponse = faceAIService.createEmbedding(file);
+
+            String embeddingJson = objectMapper.writeValueAsString(
+                    embeddingResponse.getEmbedding());
+
+            // Save DB
             customer.setPhotoUrl(uploadedUrl);
+            customer.setFaceEmbedding(embeddingJson);
+
             Customer updatedCustomer = customerRepository.save(customer);
 
-            return customerMapper.toResponse(customerRepository.findDetailedById(updatedCustomer.getId())
-                    .orElseThrow(() -> new RuntimeException("Không thể lấy khách hàng sau upload ảnh")));
+            return customerMapper.toResponse(
+                    customerRepository.findDetailedById(
+                            updatedCustomer.getId()).orElseThrow(
+                                    () -> new RuntimeException(
+                                            "Không thể lấy khách hàng sau upload ảnh")));
+
         } catch (IOException e) {
-            throw new RuntimeException("Upload ảnh lên Cloudinary thất bại", e);
+
+            throw new RuntimeException(
+                    "Upload ảnh thất bại",
+                    e);
         }
     }
 

@@ -3,52 +3,34 @@
 import React from "react";
 import { AxiosError } from "axios";
 
-import { Modal } from "@/components/ui/modal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/ui/form/Label";
 import Input from "@/components/ui/form/input/InputField";
 import Select from "@/components/ui/form/Select";
 
-import { useBranches } from "@/hooks/useBranch";
 import { useToast } from "@/context/ToastContext";
+import { useBranches } from "@/hooks/useBranch";
 import customerService from "@/services/customerService";
-import {
-    ICustomerRankOption,
-    ICustomerRequest,
-    ICustomerResponse,
-} from "@/types/customer";
+import { ICustomerRequest, ICustomerResponse } from "@/types/customer";
 
 type CustomerModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: ICustomerRequest, id?: number) => void;
     onSuccess: () => void;
-    isSubmitting?: boolean;
-    initialData?: ICustomerResponse | null;
-    errors?: Record<string, string>;
+    initialData?: ICustomerResponse;
 };
 
 export const CustomerModal: React.FC<CustomerModalProps> = ({
     isOpen,
     onClose,
-    onSubmit,
     onSuccess,
-    isSubmitting = false,
     initialData,
-    errors = {},
 }) => {
-    const { branches } = useBranches();
     const toast = useToast();
+    const { branches } = useBranches();
 
-    const [rankOptions, setRankOptions] = React.useState<ICustomerRankOption[]>(
-        [],
-    );
-    const [photoFile, setPhotoFile] = React.useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(false);
-    const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-
     const [formData, setFormData] = React.useState<ICustomerRequest>({
         name: "",
         email: "",
@@ -56,17 +38,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         address: "",
         branchId: null,
         customerNotes: "",
-        rank: "BRONZE", // Rank mặc định khi tạo mới
     });
 
-    React.useEffect(() => {
-        customerService
-            .getRanks()
-            .then((res) => {
-                if (res.data) setRankOptions(res.data);
-            })
-            .catch(() => {});
-    }, []);
+    const [errors, setErrors] = React.useState<Record<string, string>>({});
 
     React.useEffect(() => {
         if (initialData) {
@@ -77,9 +51,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 address: initialData.address,
                 branchId: initialData.branch?.id || null,
                 customerNotes: initialData.customerNotes || "",
-                rank: initialData.rank,
             });
-            setPhotoPreview(initialData.photoUrl || null);
         } else {
             setFormData({
                 name: "",
@@ -88,11 +60,9 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 address: "",
                 branchId: null,
                 customerNotes: "",
-                rank: "BRONZE", // Rank mặc định khi tạo mới
             });
-            setPhotoPreview(null);
         }
-        setPhotoFile(null);
+        setErrors({});
     }, [initialData, isOpen]);
 
     const branchOptions = React.useMemo(
@@ -104,22 +74,22 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         [branches],
     );
 
-    const rankSelectOptions = React.useMemo(
-        () =>
-            rankOptions.map((r) => ({
-                value: r.value,
-                label: `${r.displayName} (giảm ${r.discountPercent}%)`,
-            })),
-        [rankOptions],
-    );
-
     const handleChange = (
         e: React.ChangeEvent<
             HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >,
     ) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+        if (errors[name]) {
+            setErrors((prev) => ({
+                ...prev,
+                [name]: "",
+            }));
+        }
     };
 
     const handleBranchChange = (value: string) => {
@@ -127,91 +97,56 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             ...prev,
             branchId: value ? Number(value) : null,
         }));
+        if (errors.branchId) {
+            setErrors((prev) => ({
+                ...prev,
+                branchId: "",
+            }));
+        }
     };
 
-    const handleRankChange = (value: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            rank: value ? (value as ICustomerRequest["rank"]) : undefined,
-        }));
-    };
+    const validate = (): boolean => {
+        const newErrors: Record<string, string> = {};
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setPhotoFile(file);
-        setPhotoPreview(URL.createObjectURL(file));
+        if (!formData.name.trim()) {
+            newErrors.name = "Tên khách hàng không được để trống";
+        }
+        if (!formData.email.trim()) {
+            newErrors.email = "Email không được để trống";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = "Email không hợp lệ";
+        }
+        if (!formData.phoneNumber.trim()) {
+            newErrors.phoneNumber = "Số điện thoại không được để trống";
+        }
+        if (!formData.branchId) {
+            newErrors.branchId = "Chi nhánh không được để trống";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!validate()) {
+            return;
+        }
+
         try {
             setIsLoading(true);
-            let savedId: number | undefined = initialData?.id;
 
             if (initialData) {
-                const res = await customerService.updateCustomer(
-                    initialData.id,
-                    formData,
-                );
-                if (res.success) {
-                    toast.success(
-                        "Thành công",
-                        res.message || "Cập nhật khách hàng thành công",
-                    );
-                } else {
-                    toast.error(
-                        res.message,
-                        res.errors?.[0] || "Cập nhật khách hàng thất bại",
-                    );
-                }
+                await customerService.updateCustomer(initialData.id, formData);
+                toast.success("Thành công", "Cập nhật khách hàng thành công");
             } else {
-                const res = await customerService.createCustomer(formData);
-                savedId = res.data?.id;
-                if (res.success) {
-                    toast.success(
-                        "Thành công",
-                        res.message || "Tạo khách hàng thành công",
-                    );
-                } else {
-                    toast.error(
-                        res.message,
-                        res.errors?.[0] || "Tạo khách hàng thất bại",
-                    );
-                }
-            }
-
-            if (photoFile && savedId) {
-                try {
-                    setIsUploadingPhoto(true);
-                    const res = await customerService.uploadCustomerPhoto(
-                        savedId,
-                        photoFile,
-                    );
-                    if (res.success) {
-                        toast.success(
-                            "Thành công",
-                            res.message || "Upload ảnh khách hàng thành công",
-                        );
-                    } else {
-                        toast.error(
-                            res.message,
-                            res.errors?.[0] || "Upload ảnh khách hàng thất bại",
-                        );
-                    }
-                } catch {
-                    toast.error(
-                        "Cảnh báo",
-                        "Lưu thông tin thành công nhưng upload ảnh thất bại",
-                    );
-                } finally {
-                    setIsUploadingPhoto(false);
-                }
+                await customerService.createCustomer(formData);
+                toast.success("Thành công", "Tạo khách hàng thành công");
             }
 
             onSuccess();
-            handleClose();
+            onClose();
         } catch (error: unknown) {
             const axiosError = error as AxiosError<{ message?: string }>;
             toast.error(
@@ -223,196 +158,126 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         }
     };
 
-    const handleClose = () => {
-        setPhotoFile(null);
-        setPhotoPreview(null);
-        onClose();
-    };
+    if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl p-6">
-            <div className="mb-6">
-                <h2 className="text-xl font-semibold">
-                    {initialData
-                        ? "Chỉnh sửa khách hàng"
-                        : "Thêm khách hàng mới"}
-                </h2>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    Nhập thông tin khách hàng.
-                </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Ảnh khách hàng */}
-                <div className="flex flex-col items-center gap-2">
-                    <div
-                        className="h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 hover:border-primary transition-colors flex items-center justify-center"
-                        onClick={() => fileInputRef.current?.click()}>
-                        {photoPreview ? (
-                            <img
-                                src={photoPreview}
-                                alt="Ảnh khách hàng"
-                                className="h-full w-full object-cover"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle>
+                        {initialData
+                            ? "Chỉnh sửa khách hàng"
+                            : "Thêm khách hàng mới"}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <Label htmlFor="name">Tên khách hàng</Label>
+                            <Input
+                                id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Nhập tên khách hàng"
+                                error={!!errors.name}
                             />
-                        ) : (
-                            <span className="px-2 text-center text-xs text-neutral-400">
-                                Chọn ảnh
-                            </span>
-                        )}
-                    </div>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoChange}
-                    />
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}>
-                        {photoPreview ? "Đổi ảnh" : "Tải ảnh lên"}
-                    </Button>
-                </div>
+                            {errors.name && (
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <Label htmlFor="name">
-                            Tên khách hàng{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Nhập tên khách hàng"
-                            error={!!errors.name}
-                        />
-                        {errors.name && (
-                            <p className="mt-1 text-xs text-red-500">
-                                {errors.name}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Nhập email"
+                                error={!!errors.email}
+                            />
+                            {errors.email && (
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
 
-                    <div>
-                        <Label htmlFor="email">
-                            Email <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Nhập email"
-                            error={!!errors.email}
-                        />
-                        {errors.email && (
-                            <p className="mt-1 text-xs text-red-500">
-                                {errors.email}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <Label htmlFor="phoneNumber">Số điện thoại</Label>
+                            <Input
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                placeholder="Nhập số điện thoại"
+                                error={!!errors.phoneNumber}
+                            />
+                            {errors.phoneNumber && (
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.phoneNumber}
+                                </p>
+                            )}
+                        </div>
 
-                    <div>
-                        <Label htmlFor="phoneNumber">
-                            Số điện thoại{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                            id="phoneNumber"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            placeholder="Nhập số điện thoại"
-                            error={!!errors.phoneNumber}
-                        />
-                        {errors.phoneNumber && (
-                            <p className="mt-1 text-xs text-red-500">
-                                {errors.phoneNumber}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <Label htmlFor="address">Địa chỉ</Label>
+                            <Input
+                                id="address"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder="Nhập địa chỉ"
+                            />
+                        </div>
 
-                    <div>
-                        <Label htmlFor="address">Địa chỉ</Label>
-                        <Input
-                            id="address"
-                            name="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            placeholder="Nhập địa chỉ"
-                        />
-                    </div>
+                        <div>
+                            <Label htmlFor="branchId">Chi nhánh</Label>
+                            <Select
+                                options={branchOptions}
+                                value={formData.branchId?.toString() || ""}
+                                onChange={handleBranchChange}
+                                placeholder="Chọn chi nhánh"
+                                className="h-10 w-full"
+                            />
+                            {errors.branchId && (
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.branchId}
+                                </p>
+                            )}
+                        </div>
 
-                    <div>
-                        <Label htmlFor="branchId">
-                            Chi nhánh <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                            options={branchOptions}
-                            value={formData.branchId?.toString() || ""}
-                            onChange={handleBranchChange}
-                            placeholder="Chọn chi nhánh"
-                            className="h-10 w-full"
-                        />
-                        {errors.branchId && (
-                            <p className="mt-1 text-xs text-red-500">
-                                {errors.branchId}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <Label htmlFor="customerNotes">Ghi chú</Label>
+                            <textarea
+                                id="customerNotes"
+                                name="customerNotes"
+                                value={formData.customerNotes || ""}
+                                onChange={handleChange}
+                                placeholder="Ghi chú về sở thích, phong cách chơi..."
+                                className="h-24 w-full rounded-md border border-neutral-300 p-2 text-sm"
+                            />
+                        </div>
 
-                    <div>
-                        <Label htmlFor="rank">
-                            Hạng khách hàng{" "}
-                            <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                            options={rankSelectOptions}
-                            value={formData.rank || ""}
-                            onChange={handleRankChange}
-                            placeholder="Chọn hạng"
-                            className="h-10 w-full"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <Label htmlFor="customerNotes">Ghi chú</Label>
-                    <textarea
-                        id="customerNotes"
-                        name="customerNotes"
-                        value={formData.customerNotes || ""}
-                        onChange={handleChange}
-                        placeholder="Ghi chú về sở thích, phong cách chơi..."
-                        className="h-24 w-full rounded-md border border-neutral-300 p-2 text-sm"
-                    />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isLoading || isUploadingPhoto}>
-                        Hủy
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        disabled={isLoading || isUploadingPhoto}>
-                        {isLoading || isUploadingPhoto
-                            ? "Đang xử lý..."
-                            : initialData
-                              ? "Cập nhật"
-                              : "Thêm khách hàng"}
-                    </Button>
-                </div>
-            </form>
-        </Modal>
+                        <div className="flex justify-end gap-2 pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onClose}
+                                disabled={isLoading}>
+                                Hủy
+                            </Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Đang xử lý..." : "Lưu"}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     );
 };
