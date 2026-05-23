@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mhbilliards.billiards_management.dto.session.SessionResponseDTO;
 import com.mhbilliards.billiards_management.dto.session.SessionWithDetailsDTO;
 import com.mhbilliards.billiards_management.dto.session.StartSessionDTO;
+import com.mhbilliards.billiards_management.dto.session.SelfServiceStartSessionDTO;
 import com.mhbilliards.billiards_management.entity.BilliardSession;
 import com.mhbilliards.billiards_management.entity.Customer;
 import com.mhbilliards.billiards_management.entity.SessionEquipment;
@@ -311,5 +312,84 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
                 BilliardSession session = sessionRepository.findById(sessionId)
                                 .orElseThrow(() -> new RuntimeException("Session không tồn tại"));
                 return toSessionWithDetails(session);
+        }
+
+        @Override
+        @Transactional
+        public SessionResponseDTO startSelfServiceSession(SelfServiceStartSessionDTO request) {
+                System.out.println("🔵 [SELF-SERVICE] Starting self-service session for customer: "
+                                + request.getCustomerId());
+
+                // Validate table exists and is AVAILABLE
+                TableBilliard table = tableRepository.findById(request.getTableId())
+                                .orElseThrow(() -> new RuntimeException("Bàn không tồn tại"));
+
+                if (table.getStatus() != TableStatus.AVAILABLE) {
+                        throw new IllegalStateException("Bàn đang không khả dụng. Trạng thái hiện tại: "
+                                        + table.getStatus().getDisplayName());
+                }
+
+                // Validate customer exists
+                Customer customer = customerRepository.findById(request.getCustomerId())
+                                .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
+
+                System.out.println("🔵 [SELF-SERVICE] Customer found: " + customer.getName() +
+                                ", Rank: "
+                                + (customer.getRank() != null ? customer.getRank().getDisplayName() : "None"));
+
+                // Create new self-service session
+                BilliardSession session = BilliardSession.builder()
+                                .table(table)
+                                .customer(customer)
+                                .branch(table.getBranch())
+                                .startTime(LocalDateTime.now())
+                                .durationHours(0.0)
+                                .totalAmount(0.0)
+                                .status(SessionStatus.ONGOING)
+                                .notes(request.getNotes())
+                                .isSelfService(true)
+                                .paymentStatus(com.mhbilliards.billiards_management.enums.PaymentStatus.UNPAID)
+                                .customerPhoneForDebt(request.getCustomerPhone())
+                                .build();
+
+                BilliardSession savedSession = sessionRepository.save(session);
+                System.out.println("🔵 [SELF-SERVICE] Session created with ID: " + savedSession.getId());
+
+                // Update table status to IN_USE
+                table.setStatus(TableStatus.IN_USE);
+                tableRepository.save(table);
+                System.out.println("🔵 [SELF-SERVICE] Table " + table.getName() + " set to IN_USE");
+
+                // Record customer visit
+                customer.setVisitCount((customer.getVisitCount() != null ? customer.getVisitCount() : 0) + 1);
+                customer.setLastVisitDate(LocalDateTime.now());
+                customerRepository.save(customer);
+
+                System.out.println("✅ [SELF-SERVICE] Session started successfully for customer " + customer.getName());
+
+                return sessionMapper.toResponseDTOWithType(savedSession);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<SessionResponseDTO> getUnpaidSessions(Long branchId) {
+                System.out.println("🔵 [UNPAID-SESSIONS] Getting unpaid sessions for branch: " + branchId);
+
+                // Query sessions with DEBT or UNPAID payment status
+                List<BilliardSession> unpaidSessions = sessionRepository.findAll(
+                                (root, query, cb) -> cb.and(
+                                                cb.equal(root.get("branch").get("id"), branchId),
+                                                cb.or(
+                                                                cb.equal(root.get("paymentStatus"),
+                                                                                com.mhbilliards.billiards_management.enums.PaymentStatus.DEBT),
+                                                                cb.equal(root.get("paymentStatus"),
+                                                                                com.mhbilliards.billiards_management.enums.PaymentStatus.UNPAID)),
+                                                cb.equal(root.get("status"), SessionStatus.COMPLETED)));
+
+                System.out.println("🔵 [UNPAID-SESSIONS] Found " + unpaidSessions.size() + " unpaid sessions");
+
+                return unpaidSessions.stream()
+                                .map(sessionMapper::toResponseDTOWithType)
+                                .collect(java.util.stream.Collectors.toList());
         }
 }

@@ -3,6 +3,7 @@ package com.mhbilliards.billiards_management.dto.session;
 import java.time.LocalDateTime;
 
 import com.mhbilliards.billiards_management.enums.SessionStatus;
+import com.mhbilliards.billiards_management.enums.PaymentStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,11 @@ public class SessionResponseDTO {
     SessionStatus status;
     Double totalAmount;
     String notes;
+
+    // Self-service fields
+    Boolean isSelfService;
+    PaymentStatus paymentStatus;
+    String customerPhoneForDebt;
 
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

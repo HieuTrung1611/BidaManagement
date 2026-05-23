@@ -184,6 +184,27 @@ const sessionService = {
         const res = await axiosClient.get(`/sessions/${sessionId}/details`);
         return res.data;
     },
+
+    // Self-service: Start session after face recognition
+    startSelfServiceSession: async (req: {
+        tableId: number;
+        customerId: number;
+        customerPhone: string;
+        notes?: string;
+    }): Promise<ApiResponse<IBilliardSessionResponse>> => {
+        const res = await axiosClient.post(`/sessions/self-service/start`, req);
+        return res.data;
+    },
+
+    // Get unpaid sessions (for debt management)
+    getUnpaidSessions: async (
+        branchId: number,
+    ): Promise<ApiResponse<IBilliardSessionResponse[]>> => {
+        const res = await axiosClient.get(
+            `/sessions/branch/${branchId}/unpaid`,
+        );
+        return res.data;
+    },
 };
 
 export default sessionService;

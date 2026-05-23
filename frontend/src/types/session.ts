@@ -1,6 +1,7 @@
 import { IBaseResponse } from "./base";
 
 export type SessionStatus = "ONGOING" | "COMPLETED" | "CANCELLED";
+export type PaymentStatus = "PAID" | "UNPAID" | "PENDING" | "DEBT";
 
 export interface IStartSessionRequest {
     tableId: number;
@@ -72,6 +73,9 @@ export interface IBilliardSessionResponse extends IBaseResponse {
     status: SessionStatus;
     totalAmount: number;
     notes: string | null;
+    isSelfService?: boolean;
+    paymentStatus?: PaymentStatus;
+    customerPhoneForDebt?: string;
 }
 
 export interface ISessionWithDetails extends IBilliardSessionResponse {

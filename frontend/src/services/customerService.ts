@@ -104,6 +104,35 @@ const customerService = {
         const res = await axiosClient.get(`${API_URL}/ranks`);
         return res.data;
     },
+
+    recognizeFace: async (
+        file: File,
+        branchId?: number,
+    ): Promise<
+        ApiResponse<{
+            matched: boolean;
+            customer?: ICustomerResponse;
+            similarity?: number;
+            message: string;
+        }>
+    > => {
+        const formData = new FormData();
+        formData.append("file", file);
+        if (branchId) {
+            formData.append("branchId", branchId.toString());
+        }
+
+        const res = await axiosClient.post(
+            `${API_URL}/recognize-face`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            },
+        );
+        return res.data;
+    },
 };
 
 export default customerService;

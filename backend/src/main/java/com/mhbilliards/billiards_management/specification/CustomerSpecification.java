@@ -52,4 +52,18 @@ public class CustomerSpecification {
             return cb.equal(root.get("isActive"), isActive);
         };
     }
+
+    public static Specification<Customer> hasBranch(Long branchId) {
+        return (root, query, cb) -> {
+            if (branchId == null) {
+                return cb.conjunction();
+            }
+
+            return cb.equal(root.get("branch").get("id"), branchId);
+        };
+    }
+
+    public static Specification<Customer> hasFaceEmbedding() {
+        return (root, query, cb) -> cb.isNotNull(root.get("faceEmbedding"));
+    }
 }

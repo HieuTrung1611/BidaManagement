@@ -23,20 +23,35 @@ public class FaceAIService {
     public FaceEmbeddingResponse createEmbedding(
             MultipartFile file) {
 
+        System.out.println("🔵 [FACE-AI-SERVICE] Chuẩn bị gọi Face AI...");
+        System.out.println("🔵 [FACE-AI-SERVICE] URL: " + faceAiUrl + "/face/embedding");
+        System.out.println("🔵 [FACE-AI-SERVICE] File name: " + file.getOriginalFilename());
+        System.out.println("🔵 [FACE-AI-SERVICE] File size: " + file.getSize() + " bytes");
+
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part(
                 "file",
                 file.getResource());
 
-        return webClient.post()
-                .uri(faceAiUrl + "/face/embedding")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(
-                        BodyInserters.fromMultipartData(
-                                bodyBuilder.build()))
-                .retrieve()
-                .bodyToMono(FaceEmbeddingResponse.class)
-                .block();
+        try {
+            FaceEmbeddingResponse response = webClient.post()
+                    .uri(faceAiUrl + "/face/embedding")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(
+                            BodyInserters.fromMultipartData(
+                                    bodyBuilder.build()))
+                    .retrieve()
+                    .bodyToMono(FaceEmbeddingResponse.class)
+                    .block();
+
+            System.out.println("✅ [FACE-AI-SERVICE] Face AI response received");
+            return response;
+
+        } catch (Exception e) {
+            System.err.println("❌ [FACE-AI-SERVICE] Lỗi khi gọi Face AI: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Face AI service error: " + e.getMessage(), e);
+        }
     }
 }

@@ -2,6 +2,7 @@ from deepface import DeepFace
 from fastapi import UploadFile, HTTPException
 import tempfile
 import os
+import traceback
 
 
 async def create_face_embedding(file: UploadFile):
@@ -16,15 +17,9 @@ async def create_face_embedding(file: UploadFile):
 
         embedding_objs = DeepFace.represent(
             img_path=temp.name,
-            model_name="VGG-Face",
+            model_name="Facenet512",
             enforce_detection=True
         )
-
-        if not embedding_objs:
-            raise HTTPException(
-                status_code=400,
-                detail="Không phát hiện khuôn mặt"
-            )
 
         embedding = embedding_objs[0]["embedding"]
 
@@ -34,6 +29,8 @@ async def create_face_embedding(file: UploadFile):
         }
 
     except Exception as e:
+        traceback.print_exc()
+
         raise HTTPException(
             status_code=500,
             detail=str(e)

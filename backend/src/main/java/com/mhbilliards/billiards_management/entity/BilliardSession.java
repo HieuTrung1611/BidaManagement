@@ -3,6 +3,7 @@ package com.mhbilliards.billiards_management.entity;
 import java.time.LocalDateTime;
 
 import com.mhbilliards.billiards_management.enums.SessionStatus;
+import com.mhbilliards.billiards_management.enums.PaymentStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,4 +61,16 @@ public class BilliardSession extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     Branch branch;
+
+    // Self-service fields
+    @Column(nullable = false)
+    @Builder.Default
+    Boolean isSelfService = false; // Có phải tự phục vụ không
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    PaymentStatus paymentStatus = PaymentStatus.PENDING; // Trạng thái thanh toán
+
+    String customerPhoneForDebt; // Số điện thoại để liên hệ đòi nợ (nếu chưa thanh toán)
 }

@@ -128,4 +128,22 @@ public class CustomerController {
         CustomerResponse response = customerService.recordCustomerVisit(id);
         return ResponseUtil.success(response, "Ghi lại lần ghé khách hàng thành công");
     }
+
+    @PostMapping("/recognize-face")
+    public ResponseEntity<ApiResponse<com.mhbilliards.billiards_management.dto.customer.FaceRecognitionResponse>> recognizeFace(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "branchId", required = false) Long branchId) {
+
+        System.out.println("🔵 [API] POST /api/customers/recognize-face - file: " + file.getOriginalFilename()
+                + ", branchId: " + branchId);
+
+        com.mhbilliards.billiards_management.dto.customer.FaceRecognitionResponse response = customerService
+                .recognizeFaceFromImage(file, branchId);
+
+        if (response.getMatched()) {
+            return ResponseUtil.success(response, "Nhận diện khuôn mặt thành công");
+        } else {
+            return ResponseUtil.success(response, response.getMessage());
+        }
+    }
 }

@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mhbilliards.billiards_management.dto.customer.CustomerRequest;
 import com.mhbilliards.billiards_management.dto.customer.CustomerResponse;
+import com.mhbilliards.billiards_management.dto.customer.FaceRecognitionResponse;
 
 public interface CustomerService {
     CustomerResponse createCustomer(CustomerRequest request);
@@ -27,4 +28,7 @@ public interface CustomerService {
     CustomerResponse recordCustomerVisit(Long id);
 
     CustomerResponse uploadCustomerPhoto(Long id, MultipartFile file);
+
+    // Face Recognition for Self-Service
+    FaceRecognitionResponse recognizeFaceFromImage(MultipartFile file, Long branchId);
 }

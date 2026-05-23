@@ -99,4 +99,21 @@ public class BilliardSessionController {
         SessionWithDetailsDTO response = sessionService.getSessionWithDetailsById(id);
         return ResponseUtil.success(response, "Lấy thông tin chi tiết session thành công");
     }
+
+    @PostMapping("/self-service/start")
+    public ResponseEntity<ApiResponse<SessionResponseDTO>> startSelfServiceSession(
+            @Valid @RequestBody com.mhbilliards.billiards_management.dto.session.SelfServiceStartSessionDTO request) {
+        System.out.println("🔵 [API] POST /api/sessions/self-service/start - Customer: " + request.getCustomerId() +
+                ", Table: " + request.getTableId());
+        SessionResponseDTO response = sessionService.startSelfServiceSession(request);
+        return ResponseUtil.success(response, "Bắt đầu phiên chơi tự phục vụ thành công");
+    }
+
+    @GetMapping("/branch/{branchId}/unpaid")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getUnpaidSessions(@PathVariable Long branchId) {
+        System.out.println("🔵 [API] GET /api/sessions/branch/" + branchId + "/unpaid");
+        List<SessionResponseDTO> response = sessionService.getUnpaidSessions(branchId);
+        return ResponseUtil.success(response, "Lấy danh sách session chưa thanh toán thành công");
+    }
 }

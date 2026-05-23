@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.mhbilliards.billiards_management.dto.session.SelfServiceStartSessionDTO;
 import com.mhbilliards.billiards_management.dto.session.SessionResponseDTO;
 import com.mhbilliards.billiards_management.dto.session.SessionWithDetailsDTO;
 import com.mhbilliards.billiards_management.dto.session.StartSessionDTO;
@@ -52,4 +53,14 @@ public interface BilliardSessionService {
      * Lấy session với chi tiết đầy đủ theo ID
      */
     SessionWithDetailsDTO getSessionWithDetailsById(Long sessionId);
+
+    /**
+     * Bắt đầu phiên chơi tự phục vụ (khách hàng tự quét mặt và chọn bàn)
+     */
+    SessionResponseDTO startSelfServiceSession(SelfServiceStartSessionDTO request);
+
+    /**
+     * Lấy danh sách sessions chưa thanh toán (DEBT) cho branch
+     */
+    List<SessionResponseDTO> getUnpaidSessions(Long branchId);
 }

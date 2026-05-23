@@ -3,15 +3,17 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { TableCard } from "./TableCard";
 import { SessionDetailCard } from "./SessionDetailCard";
+import { FaceScanModal } from "./FaceScanModal";
 import { useTableBilliards } from "@/hooks/useTableBilliard";
 import { useManagedBranch } from "@/hooks/useManagedBranch";
 import { useBranches } from "@/hooks/useBranch";
 import { ITableBilliardResponse } from "@/types/tableBilliard";
-import { Loader2 } from "lucide-react";
+import { Loader2, ScanFace } from "lucide-react";
 import { useSessions } from "@/hooks/useSession";
 import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/auth";
 import { IBilliardSessionResponse } from "@/types/session";
+import Button from "@/components/ui/button/Button";
 
 export const SessionPage: React.FC = () => {
     const { user } = useAuth();
@@ -25,6 +27,7 @@ export const SessionPage: React.FC = () => {
         useState<ITableBilliardResponse | null>(null);
     const [selectedSession, setSelectedSession] =
         useState<IBilliardSessionResponse | null>(null);
+    const [showFaceScanModal, setShowFaceScanModal] = useState(false);
 
     const isAdmin = user?.role === UserRole.ADMIN;
     const isAdminLike = isAdmin || user?.role === UserRole.MANAGER;
@@ -84,6 +87,7 @@ export const SessionPage: React.FC = () => {
 
     const inUse = tables.filter((t) => t.status === "IN_USE").length;
     const available = tables.filter((t) => t.status === "AVAILABLE").length;
+    const availableTables = tables.filter((t) => t.status === "AVAILABLE");
 
     if (isLoadingBranch || isLoadingBranches) {
         return (
@@ -127,6 +131,16 @@ export const SessionPage: React.FC = () => {
                                 {b.name}
                             </option>
                         ))}
+                        {currentBranchId && (
+                            <Button
+                                onClick={() => setShowFaceScanModal(true)}
+                                variant="outline"
+                                size="sm"
+                                className="ml-2">
+                                <ScanFace className="mr-2 h-4 w-4" />
+                                Quét mặt khách hàng
+                            </Button>
+                        )}{" "}
                     </select>
                 )}
 
@@ -176,6 +190,15 @@ export const SessionPage: React.FC = () => {
                                     isSelected={selectedTable?.id === table.id}
                                 />
                             ))}
+
+                            {/* Face Scan Modal */}
+                            <FaceScanModal
+                                open={showFaceScanModal}
+                                onClose={() => setShowFaceScanModal(false)}
+                                onSuccess={handleSuccess}
+                                availableTables={availableTables}
+                                branchId={currentBranchId}
+                            />
                         </div>
                     </div>
                     <div className="lg:col-span-1">

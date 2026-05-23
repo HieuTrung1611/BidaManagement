@@ -3,7 +3,7 @@
 import React from "react";
 import { AxiosError } from "axios";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/ui/form/Label";
 import Input from "@/components/ui/form/input/InputField";
@@ -41,6 +41,15 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     });
 
     const [errors, setErrors] = React.useState<Record<string, string>>({});
+    const [photoFile, setPhotoFile] = React.useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null);
+    const [isCameraOpen, setIsCameraOpen] = React.useState(false);
+    const [stream, setStream] = React.useState<MediaStream | null>(null);
+    const [isUploadingPhoto, setIsUploadingPhoto] = React.useState(false);
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const videoRef = React.useRef<HTMLVideoElement>(null);
+    const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
     React.useEffect(() => {
         if (initialData) {
@@ -52,6 +61,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 branchId: initialData.branch?.id || null,
                 customerNotes: initialData.customerNotes || "",
             });
+            setPhotoPreview(initialData.photoUrl || null);
         } else {
             setFormData({
                 name: "",
@@ -61,9 +71,44 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 branchId: null,
                 customerNotes: "",
             });
+            setPhotoPreview(null);
         }
         setErrors({});
+        setPhotoFile(null);
     }, [initialData, isOpen]);
+
+    // Cleanup camera stream khi component unmount hoặc đóng modal
+    React.useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach((track) => track.stop());
+            }
+        };
+    }, [stream]);
+
+    // Cleanup camera khi đóng modal
+    React.useEffect(() => {
+        if (!isOpen && stream) {
+            stream.getTracks().forEach((track) => track.stop());
+            setStream(null);
+            setIsCameraOpen(false);
+        }
+    }, [isOpen, stream]);
+
+    // Gán stream vào video element khi video đã được render
+    React.useEffect(() => {
+        if (stream && videoRef.current && isCameraOpen) {
+            console.log("✅ Gán stream vào video element");
+            videoRef.current.srcObject = stream;
+
+            videoRef.current.onloadedmetadata = () => {
+                console.log("✅ Video metadata đã load", {
+                    videoWidth: videoRef.current?.videoWidth,
+                    videoHeight: videoRef.current?.videoHeight,
+                });
+            };
+        }
+    }, [stream, isCameraOpen]);
 
     const branchOptions = React.useMemo(
         () =>
@@ -73,6 +118,169 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             })),
         [branches],
     );
+
+    // Xử lý mở camera
+    const handleOpenCamera = async () => {
+        console.log("📷 Đang mở camera...");
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: "user",
+                },
+                audio: false,
+            });
+
+            console.log("✅ Camera stream đã được lấy:", mediaStream);
+            console.log("📹 Video tracks:", mediaStream.getVideoTracks());
+
+            // Set state - useEffect sẽ xử lý việc gán stream vào video element
+            setStream(mediaStream);
+            setIsCameraOpen(true);
+        } catch (error) {
+            console.error("❌ Lỗi khi mở camera:", error);
+            toast.error(
+                "Lỗi",
+                "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
+            );
+        }
+    };
+
+    // Xử lý đóng camera
+    const handleCloseCamera = () => {
+        console.log("🔴 Đóng camera...");
+        if (stream) {
+            stream.getTracks().forEach((track) => {
+                track.stop();
+                console.log("⏹️ Stopped track:", track.label);
+            });
+            setStream(null);
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+        setIsCameraOpen(false);
+        console.log("✅ Camera đã đóng");
+    };
+
+    // Xử lý chụp ảnh từ camera
+    const handleCapturePhoto = () => {
+        console.log("🎬 Bắt đầu chụp ảnh...");
+
+        if (!videoRef.current) {
+            console.error("❌ Video element không tồn tại");
+            toast.error("Lỗi", "Video element không tồn tại");
+            return;
+        }
+
+        if (!canvasRef.current) {
+            console.error("❌ Canvas element không tồn tại");
+            toast.error("Lỗi", "Canvas element không tồn tại");
+            return;
+        }
+
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+
+        console.log("📹 Video dimensions:", {
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            readyState: video.readyState,
+        });
+
+        // Kiểm tra video đã sẵn sàng chưa
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+            console.error("❌ Video chưa sẵn sàng");
+            toast.error("Lỗi", "Video chưa sẵn sàng. Vui lòng thử lại.");
+            return;
+        }
+
+        const context = canvas.getContext("2d");
+        if (!context) {
+            console.error("❌ Không thể lấy canvas context");
+            toast.error("Lỗi", "Không thể lấy canvas context");
+            return;
+        }
+
+        try {
+            // Set canvas size bằng video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            console.log("🎨 Canvas size set:", {
+                width: canvas.width,
+                height: canvas.height,
+            });
+
+            // Vẽ frame hiện tại từ video lên canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            console.log("✅ Đã vẽ frame lên canvas");
+
+            // Chuyển canvas thành blob rồi thành file
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob) {
+                        console.error("❌ Không thể tạo blob từ canvas");
+                        toast.error("Lỗi", "Không thể tạo ảnh từ camera");
+                        return;
+                    }
+
+                    console.log("📦 Blob created:", {
+                        size: blob.size,
+                        type: blob.type,
+                    });
+
+                    const file = new File(
+                        [blob],
+                        `customer-photo-${Date.now()}.jpg`,
+                        {
+                            type: "image/jpeg",
+                        },
+                    );
+
+                    console.log("📄 File created:", {
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                    });
+
+                    const previewUrl = URL.createObjectURL(file);
+                    console.log("🖼️ Preview URL:", previewUrl);
+
+                    setPhotoFile(file);
+                    setPhotoPreview(previewUrl);
+                    handleCloseCamera();
+
+                    console.log("✅ Chụp ảnh thành công!");
+                    toast.success("Thành công", "Đã chụp ảnh thành công");
+                },
+                "image/jpeg",
+                0.95,
+            );
+        } catch (error) {
+            console.error("❌ Lỗi khi chụp ảnh:", error);
+            toast.error("Lỗi", "Có lỗi xảy ra khi chụp ảnh");
+        }
+    };
+
+    // Xử lý chọn file ảnh
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setPhotoFile(file);
+        setPhotoPreview(URL.createObjectURL(file));
+    };
+
+    // Xử lý xóa ảnh
+    const handleRemovePhoto = () => {
+        setPhotoFile(null);
+        setPhotoPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
 
     const handleChange = (
         e: React.ChangeEvent<
@@ -136,13 +344,73 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
         try {
             setIsLoading(true);
+            let savedId: number | undefined;
 
             if (initialData) {
-                await customerService.updateCustomer(initialData.id, formData);
+                const res = await customerService.updateCustomer(
+                    initialData.id,
+                    formData,
+                );
+                savedId = initialData.id; // Lấy ID từ initialData khi update
                 toast.success("Thành công", "Cập nhật khách hàng thành công");
             } else {
-                await customerService.createCustomer(formData);
+                const res = await customerService.createCustomer(formData);
+                savedId = res.data?.id; // Lấy ID từ response khi tạo mới
                 toast.success("Thành công", "Tạo khách hàng thành công");
+            }
+
+            // Upload ảnh nếu có (cho cả tạo mới và cập nhật)
+            if (photoFile && savedId) {
+                try {
+                    setIsUploadingPhoto(true);
+                    console.log("📤 Bắt đầu upload ảnh...", {
+                        customerId: savedId,
+                        fileName: photoFile.name,
+                        fileSize: photoFile.size,
+                        fileType: photoFile.type,
+                    });
+
+                    const uploadRes = await customerService.uploadCustomerPhoto(
+                        savedId,
+                        photoFile,
+                    );
+
+                    if (uploadRes.success) {
+                        console.log(
+                            "✅ Upload ảnh thành công:",
+                            uploadRes.data,
+                        );
+                        toast.success(
+                            "Thành công",
+                            "Upload ảnh khách hàng thành công",
+                        );
+                    } else {
+                        console.error("❌ Upload ảnh thất bại:", uploadRes);
+                        toast.error(
+                            "Lỗi",
+                            uploadRes.message || "Upload ảnh thất bại",
+                        );
+                    }
+                } catch (uploadError: any) {
+                    console.error("❌ Lỗi upload ảnh:", uploadError);
+                    const errorMessage =
+                        uploadError?.response?.data?.message ||
+                        uploadError?.message ||
+                        "Lỗi không xác định";
+
+                    console.error("Chi tiết lỗi:", {
+                        status: uploadError?.response?.status,
+                        data: uploadError?.response?.data,
+                        message: errorMessage,
+                    });
+
+                    toast.error(
+                        "Cảnh báo",
+                        `Lưu thông tin thành công nhưng upload ảnh thất bại: ${errorMessage}`,
+                    );
+                } finally {
+                    setIsUploadingPhoto(false);
+                }
             }
 
             onSuccess();
@@ -161,123 +429,304 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
+            <div className="p-6 max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
                         {initialData
                             ? "Chỉnh sửa khách hàng"
                             : "Thêm khách hàng mới"}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <Label htmlFor="name">Tên khách hàng</Label>
-                            <Input
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Nhập tên khách hàng"
-                                error={!!errors.name}
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-xs text-red-500">
-                                    {errors.name}
-                                </p>
+                    </h2>
+                    <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                        Nhập thông tin khách hàng và chụp ảnh
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Phần ảnh khách hàng - Layout 2 cột */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
+                        {/* Cột trái: Preview ảnh */}
+                        <div className="space-y-3">
+                            <Label className="text-base font-semibold">
+                                Ảnh đại diện
+                            </Label>
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="relative">
+                                    <div className="h-40 w-40 overflow-hidden rounded-full border-4 border-white dark:border-neutral-700 shadow-lg bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
+                                        {photoPreview ? (
+                                            <img
+                                                src={photoPreview}
+                                                alt="Ảnh khách hàng"
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="text-center px-3">
+                                                <svg
+                                                    className="w-16 h-16 mx-auto text-neutral-300 dark:text-neutral-600 mb-2"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                    />
+                                                </svg>
+                                                <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                                                    Chưa có ảnh
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {photoPreview && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRemovePhoto}
+                                            className="absolute -top-1 -right-1 h-8 w-8 rounded-full bg-red-500 text-white hover:bg-red-600 shadow-lg flex items-center justify-center font-bold transition-all hover:scale-110">
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Nút điều khiển */}
+                                {!isCameraOpen && (
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleOpenCamera}>
+                                            <span className="mr-1">📷</span>
+                                            Mở camera
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                fileInputRef.current?.click()
+                                            }>
+                                            <span className="mr-1">📁</span>
+                                            Chọn file
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Hidden file input */}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handlePhotoChange}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Cột phải: Camera view */}
+                        <div className="space-y-3">
+                            <Label className="text-base font-semibold">
+                                Chụp ảnh trực tiếp
+                            </Label>
+                            {isCameraOpen ? (
+                                <div className="space-y-3">
+                                    <div className="relative overflow-hidden rounded-xl border-2 border-primary shadow-lg">
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="w-full h-auto bg-black"
+                                            style={{ maxHeight: "300px" }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-center gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={handleCapturePhoto}>
+                                            <span className="mr-1">📸</span>
+                                            Chụp ảnh
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleCloseCamera}>
+                                            Đóng camera
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="h-full min-h-50 flex items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-xl">
+                                    <div className="text-center px-4">
+                                        <svg
+                                            className="w-12 h-12 mx-auto text-neutral-300 dark:text-neutral-600 mb-2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                            />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                            />
+                                        </svg>
+                                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                            Nhấn "Mở camera" để bắt đầu
+                                        </p>
+                                    </div>
+                                </div>
                             )}
                         </div>
+                    </div>
 
-                        <div>
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="Nhập email"
-                                error={!!errors.email}
-                            />
-                            {errors.email && (
-                                <p className="mt-1 text-xs text-red-500">
-                                    {errors.email}
-                                </p>
-                            )}
-                        </div>
+                    {/* Canvas ẩn để capture ảnh */}
+                    <canvas ref={canvasRef} className="hidden" />
 
-                        <div>
-                            <Label htmlFor="phoneNumber">Số điện thoại</Label>
-                            <Input
-                                id="phoneNumber"
-                                name="phoneNumber"
-                                value={formData.phoneNumber}
-                                onChange={handleChange}
-                                placeholder="Nhập số điện thoại"
-                                error={!!errors.phoneNumber}
-                            />
-                            {errors.phoneNumber && (
-                                <p className="mt-1 text-xs text-red-500">
-                                    {errors.phoneNumber}
-                                </p>
-                            )}
-                        </div>
+                    {/* Phần thông tin khách hàng */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-neutral-900 dark:text-white border-b pb-2">
+                            Thông tin cá nhân
+                        </h3>
 
-                        <div>
-                            <Label htmlFor="address">Địa chỉ</Label>
-                            <Input
-                                id="address"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                placeholder="Nhập địa chỉ"
-                            />
-                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="name">
+                                    Tên khách hàng{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="Nhập tên khách hàng"
+                                    error={!!errors.name}
+                                />
+                                {errors.name && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
 
-                        <div>
-                            <Label htmlFor="branchId">Chi nhánh</Label>
-                            <Select
-                                options={branchOptions}
-                                value={formData.branchId?.toString() || ""}
-                                onChange={handleBranchChange}
-                                placeholder="Chọn chi nhánh"
-                                className="h-10 w-full"
-                            />
-                            {errors.branchId && (
-                                <p className="mt-1 text-xs text-red-500">
-                                    {errors.branchId}
-                                </p>
-                            )}
-                        </div>
+                            <div>
+                                <Label htmlFor="email">
+                                    Email{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Nhập email"
+                                    error={!!errors.email}
+                                />
+                                {errors.email && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.email}
+                                    </p>
+                                )}
+                            </div>
 
-                        <div>
-                            <Label htmlFor="customerNotes">Ghi chú</Label>
-                            <textarea
-                                id="customerNotes"
-                                name="customerNotes"
-                                value={formData.customerNotes || ""}
-                                onChange={handleChange}
-                                placeholder="Ghi chú về sở thích, phong cách chơi..."
-                                className="h-24 w-full rounded-md border border-neutral-300 p-2 text-sm"
-                            />
-                        </div>
+                            <div>
+                                <Label htmlFor="phoneNumber">
+                                    Số điện thoại{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="phoneNumber"
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleChange}
+                                    placeholder="Nhập số điện thoại"
+                                    error={!!errors.phoneNumber}
+                                />
+                                {errors.phoneNumber && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.phoneNumber}
+                                    </p>
+                                )}
+                            </div>
 
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onClose}
-                                disabled={isLoading}>
-                                Hủy
-                            </Button>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? "Đang xử lý..." : "Lưu"}
-                            </Button>
+                            <div>
+                                <Label htmlFor="branchId">
+                                    Chi nhánh{" "}
+                                    <span className="text-red-500">*</span>
+                                </Label>
+                                <Select
+                                    options={branchOptions}
+                                    value={formData.branchId?.toString() || ""}
+                                    onChange={handleBranchChange}
+                                    placeholder="Chọn chi nhánh"
+                                    className="h-10 w-full"
+                                />
+                                {errors.branchId && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.branchId}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <Label htmlFor="address">Địa chỉ</Label>
+                                <Input
+                                    id="address"
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    placeholder="Nhập địa chỉ"
+                                />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <Label htmlFor="customerNotes">Ghi chú</Label>
+                                <textarea
+                                    id="customerNotes"
+                                    name="customerNotes"
+                                    value={formData.customerNotes || ""}
+                                    onChange={handleChange}
+                                    placeholder="Ghi chú về sở thích, phong cách chơi..."
+                                    className="h-24 w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                                />
+                            </div>
                         </div>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
+                    </div>
+
+                    {/* Footer với nút actions */}
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={isLoading || isUploadingPhoto}>
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={isLoading || isUploadingPhoto}>
+                            {isLoading || isUploadingPhoto
+                                ? "Đang xử lý..."
+                                : initialData
+                                  ? "Cập nhật"
+                                  : "Tạo mới"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </Modal>
     );
 };
