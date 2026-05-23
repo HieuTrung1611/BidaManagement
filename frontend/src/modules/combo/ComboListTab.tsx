@@ -16,12 +16,23 @@ import { useBranches } from "@/hooks/useBranch";
 import { useProducts } from "@/hooks/useProduct";
 import { useEquipments } from "@/hooks/useEquipment";
 import Select from "@/components/ui/form/Select";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types/auth";
+import { useManagedBranch } from "@/hooks/useManagedBranch";
+import Badge from "@/components/ui/badge/Badge";
 
 interface ComboListTabProps {
     branchId?: number;
 }
 
 const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const isManager = user?.role === UserRole.MANAGER;
+
+    const { managedBranchId, isLoading: isLoadingManagedBranch } =
+        useManagedBranch();
+
     const [keyword, setKeyword] = React.useState("");
     const [selectedBranchId, setSelectedBranchId] = React.useState<
         number | undefined
@@ -34,8 +45,15 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
         pageSize: 10,
     });
 
+    // Ưu tiên branchId từ props (nếu có), sau đó check role
+    // ADMIN: dùng selectedBranchId (undefined = tất cả)
+    // MANAGER: dùng managedBranchId (chi nhánh được quản lý)
     const isBranchFixed = branchId !== undefined;
-    const effectiveBranchId = isBranchFixed ? branchId : selectedBranchId;
+    const effectiveBranchId = isBranchFixed
+        ? branchId
+        : isAdmin
+          ? selectedBranchId
+          : managedBranchId;
 
     React.useEffect(() => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -76,6 +94,11 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
         ],
         [branches],
     );
+
+    const selectedBranchLabel = React.useMemo(() => {
+        if (!effectiveBranchId) return "Tất cả";
+        return branches.find((b) => b.id === effectiveBranchId)?.name || "";
+    }, [branches, effectiveBranchId]);
 
     const statusFilterOptions = React.useMemo(
         () => [
@@ -156,7 +179,7 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
                         </Button>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {!isBranchFixed && (
+                        {!isBranchFixed && isAdmin && (
                             <Select
                                 options={branchFilterOptions}
                                 value={
@@ -173,6 +196,19 @@ const ComboListTab: React.FC<ComboListTabProps> = ({ branchId }) => {
                                 className="h-10 w-full sm:w-56"
                             />
                         )}
+                        {!isBranchFixed && isManager && managedBranchId && (
+                            <Badge color="warning" variant="light">
+                                Chi nhánh: {selectedBranchLabel}
+                            </Badge>
+                        )}
+                        {!isBranchFixed &&
+                            isManager &&
+                            !managedBranchId &&
+                            !isLoadingManagedBranch && (
+                                <Badge color="error" variant="light">
+                                    Tài khoản chưa được gán chi nhánh
+                                </Badge>
+                            )}
                         <Select
                             options={statusFilterOptions}
                             value={

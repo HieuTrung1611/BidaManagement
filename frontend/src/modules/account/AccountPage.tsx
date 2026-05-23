@@ -3,7 +3,7 @@ import {
     useRouter,
     useSearchParams,
 } from "next/dist/client/components/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
     Tabs,
     TabsContent,
@@ -13,6 +13,8 @@ import {
 import AccountListTabs from "./accountList/AccountListTabs";
 import AccountCurrentDetailTab from "./accountCurrentDetail/AccountCurrentDetailTab";
 import QueryTabs from "@/components/common/QueryTabs";
+import { useAuth } from "@/context/AuthContext";
+import { UserRole } from "@/types/auth";
 
 const ACCOUNT_TABS = [
     {
@@ -24,6 +26,7 @@ const ACCOUNT_TABS = [
         value: "list-accounts",
         label: "Danh sách tài khoản",
         content: <AccountListTabs />,
+        requireAdmin: true, // Chỉ ADMIN mới được xem
     },
     {
         value: "sessions",
@@ -33,7 +36,20 @@ const ACCOUNT_TABS = [
 ];
 
 const AccountPage = () => {
-    return <QueryTabs tabs={ACCOUNT_TABS} defaultTab="profile" />;
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+
+    // Filter tabs dựa trên quyền: MANAGER không được xem danh sách tài khoản
+    const filteredTabs = useMemo(() => {
+        return ACCOUNT_TABS.filter((tab) => {
+            if (tab.requireAdmin) {
+                return isAdmin;
+            }
+            return true;
+        });
+    }, [isAdmin]);
+
+    return <QueryTabs tabs={filteredTabs} defaultTab="profile" />;
 };
 
 export default AccountPage;

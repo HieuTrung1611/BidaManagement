@@ -45,15 +45,12 @@ const TableListTab = () => {
     const { managedBranchId, isLoading: isLoadingManagedBranch } =
         useManagedBranch();
 
-    // ADMIN: selectedBranchId (undefined = tất cả), MANAGER: fix cứng chi nhánh được quản lý
+    // ADMIN: selectedBranchId (undefined = tất cả chi nhánh)
+    // MANAGER/EMPLOYEE: managedBranchId từ account (branchId cụ thể)
     const effectiveBranchId = isAdmin ? selectedBranchId : managedBranchId;
 
-    // ADMIN: luôn fetch (mặc định tất cả), MANAGER: chờ xác định được chi nhánh
-    const shouldFetchTables = isAdmin
-        ? true
-        : isManager
-          ? !!managedBranchId
-          : true;
+    // ADMIN: luôn fetch, MANAGER: fetch sau khi có thông tin account
+    const shouldFetchTables = isAdmin ? true : !isLoadingManagedBranch;
 
     const {
         tableBilliards,
@@ -107,12 +104,9 @@ const TableListTab = () => {
         );
     }, [tableBilliards, keyword]);
 
-    // ADMIN: luôn có thể tạo (chọn chi nhánh trong modal), MANAGER: cần xác định được chi nhánh
-    const canCreateTable = isAdmin
-        ? true
-        : isManager
-          ? !!managedBranchId
-          : false;
+    // ADMIN: luôn có thể tạo (chọn chi nhánh trong modal)
+    // MANAGER: có thể tạo với chi nhánh của mình
+    const canCreateTable = isAdmin ? true : isManager;
 
     const {
         modalState,
@@ -158,7 +152,8 @@ const TableListTab = () => {
     const canEditTable = (table: ITableBilliardResponse) => {
         if (isAdmin) return true;
         if (!isManager) return false;
-        return !!managedBranchId && table.branch?.id === managedBranchId;
+        // MANAGER chỉ chỉnh sửa bàn thuộc chi nhánh của mình
+        return table.branch?.id === managedBranchId;
     };
 
     const canDeleteTable = isAdmin;
@@ -189,11 +184,19 @@ const TableListTab = () => {
                             />
                         )}
 
-                        {isManager && (
+                        {isManager && managedBranchId && (
                             <Badge color="warning" variant="light">
                                 Chi nhánh quản lý: {selectedBranchLabel}
                             </Badge>
                         )}
+
+                        {isManager &&
+                            !managedBranchId &&
+                            !isLoadingManagedBranch && (
+                                <Badge color="error" variant="light">
+                                    Tài khoản chưa được gán chi nhánh
+                                </Badge>
+                            )}
 
                         <InputSearch
                             value={keyword}
@@ -210,12 +213,6 @@ const TableListTab = () => {
                         Thêm bàn
                     </Button>
                 </div>
-
-                {isManager && !managedBranchId && !isLoadingManagedBranch && (
-                    <p className="text-sm text-red-500">
-                        Không xác định được chi nhánh của tài khoản quản lý.
-                    </p>
-                )}
 
                 {isError ? (
                     <p className="p-4 text-center text-red-500">
