@@ -15,14 +15,9 @@ const getCustomerByIdFetcher = async (
 
 const getCustomersFetcher = async (
     keyword: string = "",
-    branchId: number | null | undefined,
     params: PaginationParams,
 ) => {
-    const res = await customerService.getAllCustomers(
-        keyword,
-        branchId,
-        params,
-    );
+    const res = await customerService.getAllCustomers(keyword, params);
     if (!res.data) {
         throw new Error("Lỗi khi tải danh sách khách hàng");
     }
@@ -51,15 +46,12 @@ export const useCustomer = (id?: number) => {
 
 export const useCustomers = (
     keyword: string = "",
-    branchId: number | null | undefined,
     params: PaginationParams,
     shouldFetch = true,
 ) => {
     const { data, error, isLoading, mutate } = useSWR(
-        shouldFetch
-            ? ["/customers", keyword, branchId, params.page, params.size]
-            : null,
-        () => getCustomersFetcher(keyword, branchId, params),
+        shouldFetch ? ["/customers", keyword, params.page, params.size] : null,
+        () => getCustomersFetcher(keyword, params),
         {
             revalidateOnFocus: false,
             shouldRetryOnError: false,

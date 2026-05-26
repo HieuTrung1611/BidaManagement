@@ -3,7 +3,6 @@ package com.mhbilliards.billiards_management.dto.customer;
 import com.mhbilliards.billiards_management.enums.CustomerRank;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,9 +29,6 @@ public class CustomerRequest {
     String phoneNumber;
 
     String address;
-
-    @NotNull(message = "Chi nhánh không được để trống")
-    Long branchId;
 
     String customerNotes; // Ghi chú về sở thích, phong cách chơi
 

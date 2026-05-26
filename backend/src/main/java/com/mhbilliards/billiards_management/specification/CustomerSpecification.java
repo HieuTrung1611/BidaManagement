@@ -23,16 +23,6 @@ public class CustomerSpecification {
         };
     }
 
-    public static Specification<Customer> hasBranchId(Long branchId) {
-        return (root, query, cb) -> {
-            if (branchId == null) {
-                return cb.conjunction();
-            }
-
-            return cb.equal(root.get("branch").get("id"), branchId);
-        };
-    }
-
     public static Specification<Customer> hasRank(CustomerRank rank) {
         return (root, query, cb) -> {
             if (rank == null) {
@@ -50,16 +40,6 @@ public class CustomerSpecification {
             }
 
             return cb.equal(root.get("isActive"), isActive);
-        };
-    }
-
-    public static Specification<Customer> hasBranch(Long branchId) {
-        return (root, query, cb) -> {
-            if (branchId == null) {
-                return cb.conjunction();
-            }
-
-            return cb.equal(root.get("branch").get("id"), branchId);
         };
     }
 

@@ -33,6 +33,7 @@ public class SessionResponseDTO {
     Long customerId;
     String customerName;
     String customerPhone;
+    String customerRank; // Display name of customer rank for UI
 
     // Branch info
     Long branchId;

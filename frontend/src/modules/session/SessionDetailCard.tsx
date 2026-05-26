@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
@@ -9,8 +9,11 @@ import { ITableBilliardResponse } from "@/types/tableBilliard";
 import { IBilliardSessionResponse } from "@/types/session";
 import { useSession, useSessions } from "@/hooks/useSession";
 import { useCustomers } from "@/hooks/useCustomer";
+import { ICustomerResponse } from "@/types/customer";
 import sessionService from "@/services/sessionService";
+import customerService from "@/services/customerService";
 import { useToast } from "@/context/ToastContext";
+import { getCustomerRankDisplay } from "@/utils/customerUtils";
 import {
     Loader2,
     Clock,
@@ -22,6 +25,9 @@ import {
     ShoppingBag,
     Wrench,
     Package,
+    Camera,
+    CheckCircle,
+    Star,
 } from "lucide-react";
 import { AddProductsTab } from "./tabs/AddProductsTab";
 import { AddEquipmentsTab } from "./tabs/AddEquipmentsTab";
@@ -62,12 +68,21 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
     const [isCompletingPayment, setIsCompletingPayment] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    // Face scanning states
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [recognizedCustomer, setRecognizedCustomer] =
+        useState<ICustomerResponse | null>(null);
+    const [isScanningFace, setIsScanningFace] = useState(false);
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
     const toast = useToast();
-    const { customers, isLoading: isLoadingCustomers } = useCustomers(
-        "",
-        undefined,
-        { page: 0, size: 1000 },
-    );
+    const { customers, isLoading: isLoadingCustomers } = useCustomers("", {
+        page: 0,
+        size: 1000,
+    });
 
     // Fetch active session for this table
     const { sessions: activeSessions, mutate: mutateSessions } = useSessions(
@@ -111,7 +126,25 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
     useEffect(() => {
         setSelectedCustomerId(null);
         setNotes("");
+        setRecognizedCustomer(null);
+        handleCloseCamera();
     }, [table?.id]);
+
+    // Camera stream effect
+    useEffect(() => {
+        if (videoRef.current && stream) {
+            videoRef.current.srcObject = stream;
+        }
+    }, [stream, isCameraOpen]);
+
+    // Cleanup camera on unmount
+    useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach((track) => track.stop());
+            }
+        };
+    }, [stream]);
 
     // Auto-update timer every second for active session
     useEffect(() => {
@@ -287,6 +320,89 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
         }
     };
 
+    const handleOpenCamera = async () => {
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+            });
+            setStream(mediaStream);
+            setIsCameraOpen(true);
+        } catch (error) {
+            console.error("Error accessing camera:", error);
+            toast.error(
+                "Lỗi",
+                "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
+            );
+        }
+    };
+
+    const handleCloseCamera = () => {
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+            setStream(null);
+        }
+        setIsCameraOpen(false);
+    };
+
+    const handleCaptureFace = async () => {
+        if (!videoRef.current || !canvasRef.current) return;
+
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d");
+
+        if (!context) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                toast.error("Lỗi", "Không thể chụp ảnh");
+                return;
+            }
+
+            setIsScanningFace(true);
+            try {
+                const file = new File([blob], "face.jpg", {
+                    type: "image/jpeg",
+                });
+                const branchId = table?.branch?.id;
+                const response = await customerService.recognizeFace(
+                    file,
+                    branchId,
+                );
+
+                if (response.data?.matched && response.data.customer) {
+                    const customer = response.data.customer;
+                    setRecognizedCustomer(customer);
+                    setSelectedCustomerId(customer.id);
+                    toast.success(
+                        "Thành công",
+                        `Nhận diện thành công: ${customer.name}!`,
+                    );
+                    handleCloseCamera();
+                } else {
+                    toast.error(
+                        "Không tìm thấy",
+                        response.data?.message ||
+                            "Không nhận diện được khuôn mặt. Vui lòng thử lại.",
+                    );
+                }
+            } catch (error: any) {
+                console.error("Error recognizing face:", error);
+                toast.error(
+                    "Lỗi",
+                    error.response?.data?.message ||
+                        "Lỗi khi nhận diện khuôn mặt",
+                );
+            } finally {
+                setIsScanningFace(false);
+            }
+        }, "image/jpeg");
+    };
+
     const handleCompletePayment = async () => {
         setIsCompletingPayment(true);
         try {
@@ -381,9 +497,112 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="customer">
-                                    Khách hàng (tùy chọn)
-                                </Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="customer">
+                                        Khách hàng (tùy chọn)
+                                    </Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={
+                                            isCameraOpen
+                                                ? handleCloseCamera
+                                                : handleOpenCamera
+                                        }
+                                        className="flex items-center gap-2">
+                                        <Camera className="w-4 h-4" />
+                                        {isCameraOpen
+                                            ? "Đóng camera"
+                                            : "Quét mặt"}
+                                    </Button>
+                                </div>
+
+                                {/* Camera View */}
+                                {isCameraOpen && (
+                                    <div className="space-y-2">
+                                        <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                                            <video
+                                                ref={videoRef}
+                                                autoPlay
+                                                playsInline
+                                                muted
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="hidden"
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={handleCaptureFace}
+                                            disabled={isScanningFace}
+                                            className="w-full"
+                                            size="sm">
+                                            {isScanningFace ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Đang nhận diện...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Camera className="w-4 h-4 mr-2" />
+                                                    Chụp và Nhận diện
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Recognized Customer Info */}
+                                {recognizedCustomer && (
+                                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 rounded-lg space-y-2">
+                                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                                            <CheckCircle className="h-5 w-5" />
+                                            <span className="font-semibold">
+                                                Nhận diện thành công!
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1 text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4 text-gray-500" />
+                                                <span className="font-medium">
+                                                    {recognizedCustomer.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-gray-600">
+                                                    📞{" "}
+                                                    {
+                                                        recognizedCustomer.phoneNumber
+                                                    }
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Star className="h-4 w-4 text-yellow-500" />
+                                                <span className="font-medium">
+                                                    Hạng:{" "}
+                                                    {
+                                                        getCustomerRankDisplay(
+                                                            recognizedCustomer.rank,
+                                                        ).displayName
+                                                    }
+                                                </span>
+                                                <Badge color="warning">
+                                                    -
+                                                    {
+                                                        getCustomerRankDisplay(
+                                                            recognizedCustomer.rank,
+                                                        ).discountPercent
+                                                    }
+                                                    %
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {isLoadingCustomers ? (
                                     <div className="flex items-center justify-center py-4">
                                         <Loader2 className="w-6 h-6 animate-spin" />
@@ -393,13 +612,23 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                                         id="customer"
                                         className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         value={selectedCustomerId || ""}
-                                        onChange={(e) =>
-                                            setSelectedCustomerId(
-                                                e.target.value
-                                                    ? Number(e.target.value)
-                                                    : null,
-                                            )
-                                        }>
+                                        onChange={(e) => {
+                                            const customerId = e.target.value
+                                                ? Number(e.target.value)
+                                                : null;
+                                            setSelectedCustomerId(customerId);
+                                            // Update recognized customer if manually changed
+                                            if (customerId) {
+                                                const customer = customers.find(
+                                                    (c) => c.id === customerId,
+                                                );
+                                                setRecognizedCustomer(
+                                                    customer || null,
+                                                );
+                                            } else {
+                                                setRecognizedCustomer(null);
+                                            }
+                                        }}>
                                         <option value="">
                                             -- Khách vãng lai --
                                         </option>
@@ -465,6 +694,14 @@ export const SessionDetailCard: React.FC<SessionDetailCardProps> = ({
                                         <p className="text-xs text-gray-600">
                                             {displaySession.customerPhone}
                                         </p>
+                                    )}
+                                    {displaySession.customerRank && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <Star className="w-3 h-3 text-yellow-500" />
+                                            <span className="text-xs font-medium text-yellow-700">
+                                                {displaySession.customerRank}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
 

@@ -1,8 +1,10 @@
 package com.mhbilliards.billiards_management.service.customer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +20,7 @@ import com.mhbilliards.billiards_management.dto.customer.FaceRecognitionResponse
 import com.mhbilliards.billiards_management.entity.Customer;
 import com.mhbilliards.billiards_management.enums.CustomerRank;
 import com.mhbilliards.billiards_management.mapper.CustomerMapper;
-import com.mhbilliards.billiards_management.repository.BranchRepository;
 import com.mhbilliards.billiards_management.repository.CustomerRepository;
-import com.mhbilliards.billiards_management.service.base.CurrentUserAccessService;
 import com.mhbilliards.billiards_management.service.cloundinary.CloudinaryService;
 import com.mhbilliards.billiards_management.service.faceAi.FaceAIService;
 import com.mhbilliards.billiards_management.specification.CustomerSpecification;
@@ -33,9 +33,7 @@ import tools.jackson.databind.ObjectMapper;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final BranchRepository branchRepository;
     private final CustomerMapper customerMapper;
-    private final CurrentUserAccessService currentUserAccessService;
     private final CloudinaryService cloudinaryService;
     private final FaceAIService faceAIService;
     private final ObjectMapper objectMapper;
@@ -43,21 +41,15 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponse createCustomer(CustomerRequest request) {
-        Long branchId = currentUserAccessService.resolveAccessibleBranchId(request.getBranchId());
-
         if (customerRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email này đã được sử dụng");
+            throw new RuntimeException("Đã tồn tại email này");
         }
 
         if (customerRepository.findByPhoneNumberIgnoreCase(request.getPhoneNumber()).isPresent()) {
-            throw new RuntimeException("Số điện thoại này đã được sử dụng");
+            throw new RuntimeException("Đã tồn tại số điện thoại này");
         }
 
-        branchRepository.findById(branchId)
-                .orElseThrow(() -> new RuntimeException("Chi nhánh không tồn tại"));
-
         Customer customer = customerMapper.toEntity(request);
-        customer.setBranch(branchRepository.getReferenceById(branchId));
         customer.setIsActive(true);
         if (customer.getRank() == null) {
             customer.setRank(CustomerRank.BRONZE);
@@ -65,7 +57,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toResponse(customerRepository.findDetailedById(savedCustomer.getId())
-                .orElseThrow(() -> new RuntimeException("Không thể lấy khách hàng vừa tạo")));
+                .orElseThrow(() -> new RuntimeException("Đã tồn tại email này")));
     }
 
     @Override
@@ -74,19 +66,14 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
-
         return customerMapper.toResponse(customer);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<CustomerResponse> searchCustomers(String keyword, Long branchId, Pageable pageable) {
-        Long accessibleBranchId = currentUserAccessService.resolveAccessibleBranchId(branchId);
-
         Specification<Customer> specification = Specification
-                .where(CustomerSpecification.hasBranchId(accessibleBranchId))
-                .and(CustomerSpecification.hasKeyword(keyword));
+                .where(CustomerSpecification.hasKeyword(keyword));
 
         Page<Customer> customers = customerRepository.findAll(specification, pageable);
         return customers.map(customerMapper::toResponse);
@@ -98,18 +85,16 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
-
         // Check email uniqueness (excluding current customer)
         if (!customer.getEmail().equalsIgnoreCase(request.getEmail())
                 && customerRepository.findByEmailIgnoreCaseAndIdNot(request.getEmail(), id).isPresent()) {
-            throw new RuntimeException("Email này đã được sử dụng");
+            throw new RuntimeException("Đã tồn tại email này");
         }
 
         // Check phone uniqueness (excluding current customer)
         if (!customer.getPhoneNumber().equalsIgnoreCase(request.getPhoneNumber())
                 && customerRepository.findByPhoneNumberIgnoreCaseAndIdNot(request.getPhoneNumber(), id).isPresent()) {
-            throw new RuntimeException("Số điện thoại này đã được sử dụng");
+            throw new RuntimeException("Đã tồn tại số điện thoại này");
         }
 
         customerMapper.updateEntity(request, customer);
@@ -128,8 +113,6 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
-
         customerRepository.delete(customer);
     }
 
@@ -138,8 +121,6 @@ public class CustomerServiceImpl implements CustomerService {
     public void deactivateCustomer(Long id) {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
-
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
 
         customer.setIsActive(false);
         customerRepository.save(customer);
@@ -150,8 +131,6 @@ public class CustomerServiceImpl implements CustomerService {
     public void reactivateCustomer(Long id) {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
-
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
 
         customer.setIsActive(true);
         customerRepository.save(customer);
@@ -180,9 +159,6 @@ public class CustomerServiceImpl implements CustomerService {
                 .findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException(
                         "Khách hàng không tồn tại"));
-
-        currentUserAccessService.resolveAccessibleBranchId(
-                customer.getBranch().getId());
 
         String uploadedUrl = null;
         String embeddingJson = null;
@@ -253,8 +229,6 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
-
         customer.setCustomerNotes(notes);
         Customer updatedCustomer = customerRepository.save(customer);
 
@@ -268,8 +242,6 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại"));
 
-        currentUserAccessService.resolveAccessibleBranchId(customer.getBranch().getId());
-
         customer.setVisitCount((customer.getVisitCount() != null ? customer.getVisitCount() : 0) + 1);
         customer.setLastVisitDate(java.time.LocalDateTime.now());
         Customer updatedCustomer = customerRepository.save(customer);
@@ -281,10 +253,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional(readOnly = true)
     public FaceRecognitionResponse recognizeFaceFromImage(MultipartFile file, Long branchId) {
-        System.out.println("🔵 [FACE-RECOGNITION] Starting face recognition for branch: " + branchId);
-
-        // Kiểm tra branch access
-        currentUserAccessService.resolveAccessibleBranchId(branchId);
+        System.out.println("🔵 [FACE-RECOGNITION] Starting face recognition (system-wide search)");
 
         try {
             // 1. Gọi Face AI để lấy embedding từ ảnh
@@ -302,24 +271,25 @@ public class CustomerServiceImpl implements CustomerService {
             List<Double> inputEmbedding = embeddingResponse.getEmbedding();
             System.out.println("🔵 [FACE-RECOGNITION] Got embedding with " + inputEmbedding.size() + " dimensions");
 
-            // 2. Lấy tất cả khách hàng có faceEmbedding trong branch
+            // 2. Lấy tất cả khách hàng có faceEmbedding (toàn hệ thống)
             List<Customer> customersWithFace = customerRepository.findAll(
-                    CustomerSpecification.hasBranch(branchId)
-                            .and(CustomerSpecification.hasFaceEmbedding()));
+                    CustomerSpecification.hasFaceEmbedding());
             System.out.println(
-                    "🔵 [FACE-RECOGNITION] Found " + customersWithFace.size() + " customers with face embeddings");
+                    "🔵 [FACE-RECOGNITION] Found " + customersWithFace.size()
+                            + " customers with face embeddings (system-wide)");
 
             if (customersWithFace.isEmpty()) {
                 return FaceRecognitionResponse.builder()
                         .matched(false)
-                        .message("Không có khách hàng nào với dữ liệu khuôn mặt trong chi nhánh này")
+                        .message("Không có khách hàng nào với dữ liệu khuôn mặt trong hệ thống")
                         .build();
             }
 
             // 3. So sánh với từng khách hàng và tìm người khớp nhất
-            double threshold = 0.6; // Ngưỡng similarity cho Facenet512
+            double threshold = 0.5; // Ngưỡng similarity cho Facenet512 (giảm từ 0.6 xuống 0.5)
             Customer bestMatch = null;
             double bestSimilarity = 0.0;
+            List<Customer> duplicateMatches = new ArrayList<>();
 
             ObjectMapper objectMapper = new ObjectMapper();
             for (Customer customer : customersWithFace) {
@@ -332,11 +302,19 @@ public class CustomerServiceImpl implements CustomerService {
                     // Tính cosine similarity
                     double similarity = calculateCosineSimilarity(inputEmbedding, storedEmbedding);
                     System.out.println("🔵 [FACE-RECOGNITION] Customer " + customer.getId() + " (" + customer.getName()
-                            + "): similarity = " + similarity);
+                            + "): similarity = " + String.format("%.4f", similarity));
+
+                    // Check for duplicate/very similar embeddings (>= 0.95 similarity)
+                    if (similarity >= 0.95 && bestSimilarity >= 0.95 && Math.abs(similarity - bestSimilarity) < 0.01) {
+                        duplicateMatches.add(customer);
+                        System.out.println("⚠️ [FACE-RECOGNITION] Potential duplicate embedding detected for customer "
+                                + customer.getId() + " (similarity: " + String.format("%.4f", similarity) + ")");
+                    }
 
                     if (similarity > bestSimilarity) {
                         bestSimilarity = similarity;
                         bestMatch = customer;
+                        duplicateMatches.clear(); // Reset duplicates when we find a better match
                     }
                 } catch (Exception e) {
                     System.err.println("⚠️ [FACE-RECOGNITION] Error parsing embedding for customer " + customer.getId()
@@ -347,23 +325,44 @@ public class CustomerServiceImpl implements CustomerService {
             // 4. Kiểm tra threshold và trả kết quả
             if (bestMatch != null && bestSimilarity >= threshold) {
                 System.out.println("✅ [FACE-RECOGNITION] Match found: Customer " + bestMatch.getId()
-                        + " with similarity " + bestSimilarity);
+                        + " (" + bestMatch.getName() + ") with similarity " + String.format("%.4f", bestSimilarity));
+
+                // Warning if duplicates detected
+                if (!duplicateMatches.isEmpty()) {
+                    System.out.println("⚠️ [FACE-RECOGNITION] WARNING: " + (duplicateMatches.size() + 1)
+                            + " customers have very similar face embeddings. IDs: "
+                            + bestMatch.getId() + ", "
+                            + duplicateMatches.stream().map(c -> c.getId().toString())
+                                    .collect(Collectors.joining(", ")));
+                }
+
                 CustomerResponse customerResponse = customerMapper.toResponse(
                         customerRepository.findDetailedById(bestMatch.getId())
                                 .orElseThrow(() -> new RuntimeException("Không thể tải thông tin khách hàng")));
+
+                String message = "Nhận diện thành công!";
+                if (!duplicateMatches.isEmpty()) {
+                    message += " (Cảnh báo: Có " + (duplicateMatches.size() + 1)
+                            + " khách hàng có khuôn mặt giống nhau)";
+                }
 
                 return FaceRecognitionResponse.builder()
                         .matched(true)
                         .customer(customerResponse)
                         .similarity(bestSimilarity)
-                        .message("Nhận diện thành công!")
+                        .message(message)
                         .build();
             } else {
-                System.out.println("❌ [FACE-RECOGNITION] No match found. Best similarity was: " + bestSimilarity);
+                String detailMsg = bestSimilarity > 0
+                        ? String.format("Độ tương đồng cao nhất: %.2f%% (cần >= %.0f%%)", bestSimilarity * 100,
+                                threshold * 100)
+                        : "Không tìm thấy khuôn mặt tương tự";
+                System.out.println("❌ [FACE-RECOGNITION] No match found. Best similarity: "
+                        + String.format("%.4f", bestSimilarity) + " (threshold: " + threshold + ")");
                 return FaceRecognitionResponse.builder()
                         .matched(false)
                         .similarity(bestSimilarity)
-                        .message("Không tìm thấy khách hàng phù hợp (độ tương đồng thấp)")
+                        .message("Không tìm thấy khách hàng phù hợp. " + detailMsg)
                         .build();
             }
 

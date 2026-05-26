@@ -10,9 +10,13 @@ import Input from "@/components/ui/form/input/InputField";
 import Select from "@/components/ui/form/Select";
 
 import { useToast } from "@/context/ToastContext";
-import { useBranches } from "@/hooks/useBranch";
 import customerService from "@/services/customerService";
-import { ICustomerRequest, ICustomerResponse } from "@/types/customer";
+import {
+    CustomerRank,
+    ICustomerRequest,
+    ICustomerResponse,
+    ICustomerRankOption,
+} from "@/types/customer";
 
 type CustomerModalProps = {
     isOpen: boolean;
@@ -28,7 +32,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     initialData,
 }) => {
     const toast = useToast();
-    const { branches } = useBranches();
 
     const [isLoading, setIsLoading] = React.useState(false);
     const [formData, setFormData] = React.useState<ICustomerRequest>({
@@ -36,9 +39,10 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         email: "",
         phoneNumber: "",
         address: "",
-        branchId: null,
         customerNotes: "",
+        rank: "BRONZE",
     });
+    const [ranks, setRanks] = React.useState<ICustomerRankOption[]>([]);
 
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [photoFile, setPhotoFile] = React.useState<File | null>(null);
@@ -51,6 +55,21 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
+    // Fetch customer ranks
+    React.useEffect(() => {
+        const fetchRanks = async () => {
+            try {
+                const res = await customerService.getRanks();
+                if (res.success && res.data) {
+                    setRanks(res.data);
+                }
+            } catch (error) {
+                console.error("Error fetching ranks:", error);
+            }
+        };
+        fetchRanks();
+    }, []);
+
     React.useEffect(() => {
         if (initialData) {
             setFormData({
@@ -58,8 +77,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 email: initialData.email,
                 phoneNumber: initialData.phoneNumber,
                 address: initialData.address,
-                branchId: initialData.branch?.id || null,
                 customerNotes: initialData.customerNotes || "",
+                rank: initialData.rank || "BRONZE",
             });
             setPhotoPreview(initialData.photoUrl || null);
         } else {
@@ -68,8 +87,8 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 email: "",
                 phoneNumber: "",
                 address: "",
-                branchId: null,
                 customerNotes: "",
+                rank: "BRONZE",
             });
             setPhotoPreview(null);
         }
@@ -109,15 +128,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             };
         }
     }, [stream, isCameraOpen]);
-
-    const branchOptions = React.useMemo(
-        () =>
-            branches.map((branch) => ({
-                value: branch.id.toString(),
-                label: branch.name,
-            })),
-        [branches],
-    );
 
     // Xử lý mở camera
     const handleOpenCamera = async () => {
@@ -300,17 +310,11 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         }
     };
 
-    const handleBranchChange = (value: string) => {
+    const handleRankChange = (value: string) => {
         setFormData((prev) => ({
             ...prev,
-            branchId: value ? Number(value) : null,
+            rank: value as CustomerRank,
         }));
-        if (errors.branchId) {
-            setErrors((prev) => ({
-                ...prev,
-                branchId: "",
-            }));
-        }
     };
 
     const validate = (): boolean => {
@@ -326,9 +330,6 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
         }
         if (!formData.phoneNumber.trim()) {
             newErrors.phoneNumber = "Số điện thoại không được để trống";
-        }
-        if (!formData.branchId) {
-            newErrors.branchId = "Chi nhánh không được để trống";
         }
 
         setErrors(newErrors);
@@ -662,22 +663,17 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                             </div>
 
                             <div>
-                                <Label htmlFor="branchId">
-                                    Chi nhánh{" "}
-                                    <span className="text-red-500">*</span>
-                                </Label>
+                                <Label htmlFor="rank">Hạng khách hàng</Label>
                                 <Select
-                                    options={branchOptions}
-                                    value={formData.branchId?.toString() || ""}
-                                    onChange={handleBranchChange}
-                                    placeholder="Chọn chi nhánh"
+                                    options={ranks.map((r) => ({
+                                        value: r.value,
+                                        label: `${r.displayName} (${r.discountPercent}% giảm giá)`,
+                                    }))}
+                                    value={formData.rank || "BRONZE"}
+                                    onChange={handleRankChange}
+                                    placeholder="Chọn hạng khách hàng"
                                     className="h-10 w-full"
                                 />
-                                {errors.branchId && (
-                                    <p className="mt-1 text-xs text-red-500">
-                                        {errors.branchId}
-                                    </p>
-                                )}
                             </div>
 
                             <div className="md:col-span-2">

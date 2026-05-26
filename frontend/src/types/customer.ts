@@ -14,7 +14,6 @@ export interface ICustomerRequest {
     email: string;
     phoneNumber: string;
     address: string;
-    branchId: number | null;
     customerNotes?: string;
     rank?: CustomerRank;
 }
@@ -26,7 +25,6 @@ export interface ICustomerResponse extends IBaseResponse {
     address: string;
     rank: CustomerRank;
     totalSpent: number;
-    branch: IBranchResponse;
     isActive: boolean;
     photoUrl?: string;
     visitCount: number;

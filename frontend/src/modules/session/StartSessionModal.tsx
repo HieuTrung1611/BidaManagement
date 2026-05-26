@@ -31,11 +31,10 @@ export const StartSessionModal: React.FC<StartSessionModalProps> = ({
     const toast = useToast();
 
     // Fetch all customers for selection
-    const { customers, isLoading: isLoadingCustomers } = useCustomers(
-        "",
-        undefined,
-        { page: 0, size: 1000 },
-    );
+    const { customers, isLoading: isLoadingCustomers } = useCustomers("", {
+        page: 0,
+        size: 1000,
+    });
 
     useEffect(() => {
         if (isOpen) {

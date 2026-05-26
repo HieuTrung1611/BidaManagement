@@ -1,6 +1,5 @@
 package com.mhbilliards.billiards_management.dto.customer;
 
-import com.mhbilliards.billiards_management.dto.branch.BranchResponse;
 import com.mhbilliards.billiards_management.enums.CustomerRank;
 import java.time.LocalDateTime;
 
@@ -26,7 +25,6 @@ public class CustomerResponse {
     String address;
     CustomerRank rank;
     Long totalSpent;
-    BranchResponse branch;
     Boolean isActive;
     String photoUrl; // Ảnh khách hàng
     Integer visitCount; // Số lần ghé

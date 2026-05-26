@@ -82,19 +82,7 @@ export const useCustomerColumns = () => {
                 header: "Số điện thoại",
                 size: 160,
             },
-            {
-                accessorKey: "branch",
-                header: "Chi nhánh",
-                size: 200,
-                cell: ({ row }) => {
-                    const branch = row.getValue("branch") as IBranchResponse;
-                    return (
-                        <Badge color="info" variant="light">
-                            {branch?.name ? branch.name : "Chưa có chi nhánh"}
-                        </Badge>
-                    );
-                },
-            },
+
             {
                 accessorKey: "rank",
                 header: "Hạng",

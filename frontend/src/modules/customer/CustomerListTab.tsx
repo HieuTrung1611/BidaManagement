@@ -11,7 +11,6 @@ import InputSearch from "@/components/common/InputSearch";
 import { DataTable } from "@/components/ui/table/DataTable";
 
 import { useAuth } from "@/context/AuthContext";
-import { useBranches } from "@/hooks/useBranch";
 import { useCustomers } from "@/hooks/useCustomer";
 import { useCrudActions } from "@/hooks/useCrudActions";
 import customerService from "@/services/customerService";
@@ -24,9 +23,6 @@ const CustomerListTab: React.FC = () => {
     const { user } = useAuth();
 
     const [keyword, setKeyword] = React.useState("");
-    const [selectedBranchId, setSelectedBranchId] = React.useState<
-        number | undefined
-    >(undefined);
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
@@ -37,9 +33,8 @@ const CustomerListTab: React.FC = () => {
 
     React.useEffect(() => {
         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    }, [keyword, selectedBranchId]);
+    }, [keyword]);
 
-    const { branches } = useBranches();
     const {
         customers,
         pageNumber,
@@ -48,7 +43,7 @@ const CustomerListTab: React.FC = () => {
         totalPages,
         isLoading,
         mutate,
-    } = useCustomers(keyword, selectedBranchId, {
+    } = useCustomers(keyword, {
         page: pagination.pageIndex,
         size: pagination.pageSize,
     });
@@ -75,17 +70,6 @@ const CustomerListTab: React.FC = () => {
             return axiosError.response?.data?.message;
         },
     });
-
-    const branchFilterOptions = React.useMemo(
-        () => [
-            { value: "", label: "Tất cả chi nhánh" },
-            ...branches.map((branch) => ({
-                value: branch.id.toString(),
-                label: branch.name,
-            })),
-        ],
-        [branches],
-    );
 
     const handleEdit = (customer: ICustomerResponse) => {
         openEditModal(customer);
@@ -150,21 +134,6 @@ const CustomerListTab: React.FC = () => {
                             placeholder="Tên, email hoặc SĐT..."
                             className="flex-1 sm:flex-initial sm:w-80 min-w-0"
                         />
-                        <Select
-                            options={branchFilterOptions}
-                            value={
-                                selectedBranchId
-                                    ? selectedBranchId.toString()
-                                    : ""
-                            }
-                            onChange={(value) =>
-                                setSelectedBranchId(
-                                    value ? Number(value) : undefined,
-                                )
-                            }
-                            placeholder="Lọc theo chi nhánh"
-                            className="h-10 w-full sm:w-56"
-                        />
                         <Button
                             size="sm"
                             className="sm:ml-auto shrink-0"
@@ -200,11 +169,8 @@ const CustomerListTab: React.FC = () => {
             <CustomerModal
                 isOpen={modalState.isModalOpen}
                 onClose={closeModal}
-                onSubmit={handleSubmit}
                 onSuccess={mutate}
-                isSubmitting={modalState.isSubmitting}
-                initialData={modalState.editingEntity}
-                errors={fieldErrors}
+                initialData={modalState.editingEntity ?? undefined}
             />
 
             <DetailDrawer />

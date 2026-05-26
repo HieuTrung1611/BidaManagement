@@ -65,6 +65,7 @@ export interface IBilliardSessionResponse extends IBaseResponse {
     customerId: number;
     customerName: string;
     customerPhone: string;
+    customerRank?: string; // Display name of customer rank (e.g., "Đồng", "Bạc", "Vàng", "Bạch Kim")
     branchId: number;
     branchName: string;
     startTime: string;

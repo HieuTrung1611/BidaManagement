@@ -137,15 +137,6 @@ const CustomerDetail: React.FC<CustomerDetailProps> = ({
 
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium text-muted-foreground">
-                                    Chi nhánh
-                                </label>
-                                <div className="cursor-text select-text rounded border bg-background px-3 py-2 text-sm">
-                                    {customer.branch?.name ?? "Chưa có"}
-                                </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium text-muted-foreground">
                                     Hạng thành viên
                                 </label>
                                 <div className="px-3 py-2">
