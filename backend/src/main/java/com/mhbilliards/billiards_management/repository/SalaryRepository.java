@@ -27,4 +27,40 @@ public interface SalaryRepository extends JpaRepository<Salary, Long>, JpaSpecif
                         """)
         List<Salary> findDetailedBySalaryMonth(@Param("salaryMonth") String salaryMonth,
                         @Param("branchId") Long branchId);
+
+        /**
+         * Thống kê tổng lương theo từng tháng trong năm
+         */
+        @Query("""
+                        select SUBSTRING(s.salaryMonth, 6, 2) as month,
+                               SUM(s.totalSalary) as totalSalary,
+                               SUM(CASE WHEN s.isPaid = true THEN s.totalSalary ELSE 0 END) as paidSalary,
+                               SUM(CASE WHEN s.isPaid = false THEN s.totalSalary ELSE 0 END) as pendingSalary,
+                               COUNT(s) as employeeCount
+                        from Salary s
+                        join s.employee e
+                        where SUBSTRING(s.salaryMonth, 1, 4) = :year
+                        and (:branchId is null or e.branch.id = :branchId)
+                        group by SUBSTRING(s.salaryMonth, 6, 2)
+                        order by SUBSTRING(s.salaryMonth, 6, 2)
+                        """)
+        List<Object[]> getMonthlySalaryStats(
+                        @Param("year") String year,
+                        @Param("branchId") Long branchId);
+
+        /**
+         * Tổng lương trong 1 tháng cụ thể
+         */
+        @Query("""
+                        select SUM(s.totalSalary), 
+                               SUM(CASE WHEN s.isPaid = true THEN s.totalSalary ELSE 0 END),
+                               COUNT(distinct s.employee.id)
+                        from Salary s
+                        join s.employee e
+                        where s.salaryMonth = :salaryMonth
+                        and (:branchId is null or e.branch.id = :branchId)
+                        """)
+        List<Object[]> getSalarySummaryByMonth(
+                        @Param("salaryMonth") String salaryMonth,
+                        @Param("branchId") Long branchId);
 }

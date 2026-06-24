@@ -392,4 +392,18 @@ public class BilliardSessionServiceImpl implements BilliardSessionService {
                                 .map(sessionMapper::toResponseDTOWithType)
                                 .collect(java.util.stream.Collectors.toList());
         }
+
+        @Override
+        @Transactional
+        public SessionResponseDTO updatePaymentStatus(Long sessionId,
+                        com.mhbilliards.billiards_management.enums.PaymentStatus status) {
+                BilliardSession session = sessionRepository.findById(sessionId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Session không tồn tại với id: " + sessionId));
+
+                session.setPaymentStatus(status);
+                BilliardSession saved = sessionRepository.save(session);
+                System.out.println("🟢 [PAYMENT-STATUS] Session " + sessionId + " → " + status);
+                return sessionMapper.toResponseDTOWithType(saved);
+        }
 }

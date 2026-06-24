@@ -7,10 +7,16 @@ import Sidebar from "@/components/layout/SideBar";
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import { TitleProvider } from "@/context/TitleContext";
 import { ThemeProvider } from "@/context/ThemeContext";
-import React from "react";
+import React, { useEffect } from "react";
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+
+    // Force light mode for admin panel
+    useEffect(() => {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+    }, []);
 
     // Dynamic class for main content margin based on sidebar state
     const mainContentMargin = isMobileOpen
@@ -20,7 +26,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           : "lg:ml-[90px]";
 
     return (
-        <div className="min-h-screen xl:flex">
+        <div className="min-h-screen xl:flex bg-gray-50">
             {/* Sidebar and Backdrop */}
             <Sidebar />
             <Backdrop />
@@ -45,10 +51,12 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <SidebarProvider>
-            <TitleProvider>
-                <AdminLayoutContent>{children}</AdminLayoutContent>
-            </TitleProvider>
-        </SidebarProvider>
+        <ThemeProvider>
+            <SidebarProvider>
+                <TitleProvider>
+                    <AdminLayoutContent>{children}</AdminLayoutContent>
+                </TitleProvider>
+            </SidebarProvider>
+        </ThemeProvider>
     );
 }

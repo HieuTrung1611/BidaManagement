@@ -30,7 +30,7 @@ public class SessionEquipmentController {
     private final SessionEquipmentService sessionEquipmentService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionEquipmentResponseDTO>> rentEquipmentForSession(
             @Valid @RequestBody CreateSessionEquipmentDTO request) {
         SessionEquipmentResponseDTO response = sessionEquipmentService.rentEquipmentForSession(request);
@@ -38,21 +38,21 @@ public class SessionEquipmentController {
     }
 
     @PutMapping("/{id}/return")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionEquipmentResponseDTO>> returnEquipment(@PathVariable Long id) {
         SessionEquipmentResponseDTO response = sessionEquipmentService.returnEquipment(id);
         return ResponseUtil.success(response, "Trả thiết bị thành công");
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionEquipmentResponseDTO>> getSessionEquipmentById(@PathVariable Long id) {
         SessionEquipmentResponseDTO response = sessionEquipmentService.getSessionEquipmentById(id);
         return ResponseUtil.success(response, "Lấy session equipment thành công");
     }
 
     @GetMapping("/session/{sessionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionEquipmentResponseDTO>>> getEquipmentsBySessionId(
             @PathVariable Long sessionId) {
         List<SessionEquipmentResponseDTO> response = sessionEquipmentService.getEquipmentsBySessionId(sessionId);
@@ -60,7 +60,7 @@ public class SessionEquipmentController {
     }
 
     @GetMapping("/session/{sessionId}/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionEquipmentResponseDTO>>> getActiveRentalsBySessionId(
             @PathVariable Long sessionId) {
         List<SessionEquipmentResponseDTO> response = sessionEquipmentService.getActiveRentalsBySessionId(sessionId);

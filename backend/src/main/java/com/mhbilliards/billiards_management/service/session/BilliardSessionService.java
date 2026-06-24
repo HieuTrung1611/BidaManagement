@@ -11,6 +11,7 @@ import com.mhbilliards.billiards_management.dto.session.SessionResponseDTO;
 import com.mhbilliards.billiards_management.dto.session.SessionWithDetailsDTO;
 import com.mhbilliards.billiards_management.dto.session.StartSessionDTO;
 import com.mhbilliards.billiards_management.enums.SessionStatus;
+import com.mhbilliards.billiards_management.enums.PaymentStatus;
 
 public interface BilliardSessionService {
     /**
@@ -63,4 +64,10 @@ public interface BilliardSessionService {
      * Lấy danh sách sessions chưa thanh toán (DEBT) cho branch
      */
     List<SessionResponseDTO> getUnpaidSessions(Long branchId);
+
+    /**
+     * Cập nhật trạng thái thanh toán của session
+     */
+    SessionResponseDTO updatePaymentStatus(Long sessionId, PaymentStatus status);
 }
+

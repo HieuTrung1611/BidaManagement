@@ -8,11 +8,11 @@ import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/auth";
 import { InvoiceStatus } from "@/types/invoice";
 import { Loader2, Receipt, Search, FileText } from "lucide-react";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
 import Select from "@/components/ui/form/Select";
 import Label from "@/components/ui/form/Label";
-import Input from "@/components/ui/form/Input";
+import Input from "@/components/ui/form/input/InputField";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -69,8 +69,8 @@ const InvoicesPage: React.FC = () => {
         return invoices.filter(
             (invoice) =>
                 invoice.invoiceNumber.toLowerCase().includes(term) ||
-                invoice.customer?.name?.toLowerCase().includes(term) ||
-                invoice.customer?.phoneNumber?.includes(term),
+                invoice.customerName?.toLowerCase().includes(term) ||
+                invoice.customerPhone?.includes(term),
         );
     }, [invoices, searchTerm]);
 
@@ -193,7 +193,7 @@ const InvoicesPage: React.FC = () => {
                                 type="text"
                                 placeholder="Mã HĐ, tên KH, SĐT..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                                 className="pl-10"
                             />
                         </div>
@@ -334,19 +334,13 @@ const InvoicesPage: React.FC = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                {invoice.customer ? (
+                                                {invoice.customerName ? (
                                                     <div>
                                                         <div className="text-sm font-medium text-gray-900">
-                                                            {
-                                                                invoice.customer
-                                                                    .name
-                                                            }
+                                                            {invoice.customerName}
                                                         </div>
                                                         <div className="text-xs text-gray-500">
-                                                            {
-                                                                invoice.customer
-                                                                    .phoneNumber
-                                                            }
+                                                            {invoice.customerPhone}
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -357,7 +351,7 @@ const InvoicesPage: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">
-                                                    {invoice.branch.name}
+                                                    {invoice.branchName}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right">

@@ -33,4 +33,24 @@ public interface BilliardSessionRepository
             @Param("branchId") Long branchId,
             @Param("startOfDay") LocalDateTime startOfDay,
             @Param("endOfDay") LocalDateTime endOfDay);
+
+    /**
+     * Đếm số session đang ONGOING theo branch (hoặc toàn hệ thống nếu branchId null)
+     */
+    @Query("SELECT COUNT(bs) FROM BilliardSession bs " +
+            "WHERE (:branchId IS NULL OR bs.branch.id = :branchId) " +
+            "AND bs.status = 'ONGOING'")
+    Long countActiveSessions(@Param("branchId") Long branchId);
+
+    /**
+     * Đếm số session trong ngày hôm nay
+     */
+    @Query("SELECT COUNT(bs) FROM BilliardSession bs " +
+            "WHERE (:branchId IS NULL OR bs.branch.id = :branchId) " +
+            "AND bs.startTime >= :startOfDay AND bs.startTime < :endOfDay")
+    Long countTodaySessions(
+            @Param("branchId") Long branchId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay);
 }
+

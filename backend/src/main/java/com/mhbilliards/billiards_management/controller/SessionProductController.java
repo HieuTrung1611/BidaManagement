@@ -29,7 +29,7 @@ public class SessionProductController {
     private final SessionProductService sessionProductService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionProductResponseDTO>> addProductToSession(
             @Valid @RequestBody CreateSessionProductDTO request) {
         SessionProductResponseDTO response = sessionProductService.addProductToSession(request);
@@ -37,14 +37,14 @@ public class SessionProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionProductResponseDTO>> getSessionProductById(@PathVariable Long id) {
         SessionProductResponseDTO response = sessionProductService.getSessionProductById(id);
         return ResponseUtil.success(response, "Lấy session product thành công");
     }
 
     @GetMapping("/session/{sessionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionProductResponseDTO>>> getProductsBySessionId(
             @PathVariable Long sessionId) {
         List<SessionProductResponseDTO> response = sessionProductService.getProductsBySessionId(sessionId);

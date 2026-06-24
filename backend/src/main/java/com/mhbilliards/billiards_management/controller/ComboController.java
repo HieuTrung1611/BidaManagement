@@ -41,14 +41,14 @@ public class ComboController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<ComboResponseDTO>> getComboById(@PathVariable Long id) {
         ComboResponseDTO response = comboService.getComboById(id);
         return ResponseUtil.success(response, "Lấy combo thành công");
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<Page<ComboResponseDTO>>> searchCombos(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long branchId,
@@ -60,7 +60,7 @@ public class ComboController {
     }
 
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<ComboResponseDTO>>> getCombosByBranch(@PathVariable Long branchId) {
         List<ComboResponseDTO> response = comboService.getCombosByBranch(branchId);
         return ResponseUtil.success(response, "Lấy danh sách combo theo chi nhánh thành công");

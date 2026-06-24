@@ -8,19 +8,26 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import Button from "@/components/ui/button/Button";
+import Input from "@/components/ui/form/input/InputField";
+import Label from "@/components/ui/form/Label";
 import { useToast } from "@/context/ToastContext";
 import customerService from "@/services/customerService";
 import sessionService from "@/services/sessionService";
 import { ICustomerResponse } from "@/types/customer";
 import { Camera, X, CheckCircle, User, Phone, Star } from "lucide-react";
-import tableService from "@/services/tableService";
-import { ITableResponse } from "@/types/table";
+import tableBilliardService from "@/services/tableBilliardService";
+import { ITableBilliardResponse } from "@/types/tableBilliard";
+
+const RANK_LABELS: Record<string, string> = {
+    BRONZE: "Đồng",
+    SILVER: "Bạc",
+    GOLD: "Vàng",
+    PLATINUM: "Bạch Kim",
+};
 
 export default function SelfServicePage() {
-    const { showToast } = useToast();
+    const toast = useToast();
 
     // States
     const [step, setStep] = useState<"scan" | "select-table" | "confirm">(
@@ -31,8 +38,8 @@ export default function SelfServicePage() {
     const [recognizedCustomer, setRecognizedCustomer] =
         useState<ICustomerResponse | null>(null);
     const [customerPhone, setCustomerPhone] = useState("");
-    const [tables, setTables] = useState<ITableResponse[]>([]);
-    const [selectedTable, setSelectedTable] = useState<ITableResponse | null>(
+    const [tables, setTables] = useState<ITableBilliardResponse[]>([]);
+    const [selectedTable, setSelectedTable] = useState<ITableBilliardResponse | null>(
         null,
     );
     const [isLoading, setIsLoading] = useState(false);
@@ -65,9 +72,8 @@ export default function SelfServicePage() {
             setIsCameraOpen(true);
         } catch (error) {
             console.error("Error accessing camera:", error);
-            showToast(
-                "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.",
-                "error",
+            toast.error(
+                "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập."
             );
         }
     };
@@ -99,7 +105,7 @@ export default function SelfServicePage() {
         // Convert canvas to blob
         canvas.toBlob(async (blob) => {
             if (!blob) {
-                showToast("Không thể chụp ảnh", "error");
+                toast.error("Không thể chụp ảnh");
                 return;
             }
 
@@ -114,9 +120,8 @@ export default function SelfServicePage() {
 
                 if (response.data?.matched && response.data.customer) {
                     setRecognizedCustomer(response.data.customer);
-                    showToast(
-                        `Xin chào ${response.data.customer.name}!`,
-                        "success",
+                    toast.success(
+                        `Xin chào ${response.data.customer.name}!`
                     );
                     handleCloseCamera();
 
@@ -124,18 +129,16 @@ export default function SelfServicePage() {
                     await loadAvailableTables();
                     setStep("select-table");
                 } else {
-                    showToast(
+                    toast.error(
                         response.data?.message ||
-                            "Không nhận diện được khuôn mặt. Vui lòng thử lại.",
-                        "error",
+                            "Không nhận diện được khuôn mặt. Vui lòng thử lại."
                     );
                 }
             } catch (error: any) {
                 console.error("Error recognizing face:", error);
-                showToast(
+                toast.error(
                     error.response?.data?.message ||
-                        "Lỗi khi nhận diện khuôn mặt",
-                    "error",
+                        "Lỗi khi nhận diện khuôn mặt"
                 );
             } finally {
                 setIsLoading(false);
@@ -145,15 +148,18 @@ export default function SelfServicePage() {
 
     const loadAvailableTables = async () => {
         try {
-            const response = await tableService.getAvailableTablesByBranch(1); // TODO: Get branch from context
-            setTables(response.data || []);
+            const response = await tableBilliardService.getAllTableBilliards(1); // TODO: Get branch from context
+            const availableTables = (response.data || []).filter(
+                (table) => table.status === "AVAILABLE"
+            );
+            setTables(availableTables);
         } catch (error) {
             console.error("Error loading tables:", error);
-            showToast("Không thể tải danh sách bàn", "error");
+            toast.error("Không thể tải danh sách bàn");
         }
     };
 
-    const handleSelectTable = (table: ITableResponse) => {
+    const handleSelectTable = (table: ITableBilliardResponse) => {
         setSelectedTable(table);
         setStep("confirm");
     };
@@ -162,7 +168,7 @@ export default function SelfServicePage() {
         if (!recognizedCustomer || !selectedTable) return;
 
         if (!customerPhone) {
-            showToast("Vui lòng nhập số điện thoại liên hệ", "warning");
+            toast.warning("Vui lòng nhập số điện thoại liên hệ");
             return;
         }
 
@@ -175,9 +181,8 @@ export default function SelfServicePage() {
                 notes: "Tự phục vụ",
             });
 
-            showToast(
-                "Bắt đầu phiên chơi thành công! Chúc bạn chơi vui vẻ!",
-                "success",
+            toast.success(
+                "Bắt đầu phiên chơi thành công! Chúc bạn chơi vui vẻ!"
             );
 
             // Reset
@@ -189,9 +194,8 @@ export default function SelfServicePage() {
             }, 2000);
         } catch (error: any) {
             console.error("Error starting session:", error);
-            showToast(
-                error.response?.data?.message || "Không thể bắt đầu phiên chơi",
-                "error",
+            toast.error(
+                error.response?.data?.message || "Không thể bắt đầu phiên chơi"
             );
         } finally {
             setIsLoading(false);
@@ -218,7 +222,7 @@ export default function SelfServicePage() {
                             <div className="text-center">
                                 <Button
                                     onClick={handleOpenCamera}
-                                    size="lg"
+                                    size="md"
                                     className="w-full max-w-md">
                                     <Camera className="mr-2 h-5 w-5" />
                                     Bật Camera
@@ -235,9 +239,8 @@ export default function SelfServicePage() {
                                         className="w-full h-full object-cover"
                                     />
                                     <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70"
+                                        variant="outline"
+                                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 p-2 min-w-0"
                                         onClick={handleCloseCamera}>
                                         <X className="h-4 w-4" />
                                     </Button>
@@ -247,7 +250,7 @@ export default function SelfServicePage() {
                                     onClick={handleCapture}
                                     disabled={isLoading}
                                     className="w-full"
-                                    size="lg">
+                                    size="md">
                                     {isLoading
                                         ? "Đang nhận diện..."
                                         : "Chụp và Nhận diện"}
@@ -275,8 +278,8 @@ export default function SelfServicePage() {
                                 <div className="flex items-center gap-2">
                                     <Star className="h-4 w-4 text-yellow-500" />
                                     Hạng:{" "}
-                                    {recognizedCustomer.rankDisplayName ||
-                                        "Chưa có hạng"}
+                                    {RANK_LABELS[recognizedCustomer.rank] ||
+                                        recognizedCustomer.rank}
                                 </div>
                             </CardDescription>
                         </CardHeader>
@@ -303,7 +306,7 @@ export default function SelfServicePage() {
                                             {table.name}
                                         </div>
                                         <div className="text-sm text-muted-foreground">
-                                            {table.typeDisplayName}
+                                            {table.type?.name || "Chưa phân loại"}
                                         </div>
                                     </Button>
                                 ))}
@@ -338,15 +341,15 @@ export default function SelfServicePage() {
                                 <span className="font-medium">Bàn:</span>
                                 <span>
                                     {selectedTable.name} -{" "}
-                                    {selectedTable.typeDisplayName}
+                                    {selectedTable.type?.name || "Chưa phân loại"}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Star className="h-5 w-5 text-yellow-500" />
                                 <span className="font-medium">Hạng:</span>
                                 <span>
-                                    {recognizedCustomer.rankDisplayName ||
-                                        "Chưa có hạng"}
+                                    {RANK_LABELS[recognizedCustomer.rank] ||
+                                        recognizedCustomer.rank}
                                 </span>
                             </div>
                         </div>

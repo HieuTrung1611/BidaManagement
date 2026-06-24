@@ -62,4 +62,4 @@ app:
         allow-credentials: ${CORS_ALLOW_CREDENTIALS}
 face:
     ai:
-        url: ${FACE_AI_URL}
+        url: ${FACE_AI_URL:http://localhost:8080}

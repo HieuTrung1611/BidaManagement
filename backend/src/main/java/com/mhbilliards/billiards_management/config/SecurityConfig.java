@@ -69,10 +69,20 @@ public class SecurityConfig {
                 // Mỗi request phải tự mang token (JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // /auth/** → ai cũng gọi được (login, register)
-                        .requestMatchers(HttpMethod.GET, "/branches/**").permitAll() // Cho phép xem danh sách chi nhánh
-                                                                                     // không cần đăng nhập
-                        .anyRequest().authenticated()) // Các API khác → phải đăng nhập (có token)
+                        .requestMatchers("/auth/**").permitAll()
+                        // ===== PUBLIC GET APIs (không cần đăng nhập) =====
+                        .requestMatchers(HttpMethod.GET, "/branches/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/table-billiard/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/table-billiard-types/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/combos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/combo-items/**").permitAll()
+                        // ===== PUBLIC POST APIs (self-service kiosk) =====
+                        .requestMatchers(HttpMethod.POST, "/customers/recognize-face").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/sessions/self-service/start").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/sessions/branch/*/active").permitAll()
+                        // ===== Tất cả API khác phải đăng nhập =====
+                        .anyRequest().authenticated())
                 // Cấu hình authentication provider NGAY TRONG http
                 .userDetailsService(customUserDetailService);
 

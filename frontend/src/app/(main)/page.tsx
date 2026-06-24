@@ -1,8 +1,457 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useBranches } from "@/hooks/useBranch";
+import customerService from "@/services/customerService";
+import sessionService from "@/services/sessionService";
+import tableBilliardService from "@/services/tableBilliardService";
+import { ICustomerResponse } from "@/types/customer";
+import { ITableBilliardResponse } from "@/types/tableBilliard";
+import { IBranchResponse } from "@/types/branch";
+import branchService from "@/services/branchService";
+
+// =====================================================
+// BookTableSection — Quét mặt + Chọn bàn theo chi nhánh
+// =====================================================
+const BookTableSection = () => {
+    const [branches, setBranches] = useState<IBranchResponse[]>([]);
+    const [selectedBranch, setSelectedBranch] = useState<IBranchResponse | null>(null);
+    const [tables, setTables] = useState<ITableBilliardResponse[]>([]);
+    const [selectedTable, setSelectedTable] = useState<ITableBilliardResponse | null>(null);
+    const [recognizedCustomer, setRecognizedCustomer] = useState<ICustomerResponse | null>(null);
+    const [showCamera, setShowCamera] = useState(false);
+    const [cameraError, setCameraError] = useState("");
+    const [scanning, setScanning] = useState(false);
+    const [bookingSuccess, setBookingSuccess] = useState(false);
+    const [bookingError, setBookingError] = useState("");
+    const [tablesLoading, setTablesLoading] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    // Load branches
+    useEffect(() => {
+        branchService.getAllBranch().then((res) => {
+            if (res?.data) setBranches(res.data);
+        });
+    }, []);
+
+    // Load tables khi chọn chi nhánh
+    useEffect(() => {
+        if (!selectedBranch) {
+            setTables([]);
+            setSelectedTable(null);
+            return;
+        }
+        setTablesLoading(true);
+        tableBilliardService
+            .getAllTableBilliards(selectedBranch.id)
+            .then((res) => {
+                if (res?.data) setTables(res.data);
+            })
+            .finally(() => setTablesLoading(false));
+    }, [selectedBranch]);
+
+    // Mở camera
+    const startCamera = useCallback(async () => {
+        setCameraError("");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480, facingMode: "user" },
+            });
+            streamRef.current = stream;
+            if (videoRef.current) videoRef.current.srcObject = stream;
+            setShowCamera(true);
+        } catch {
+            setCameraError("Không thể mở camera. Vui lòng cấp quyền truy cập camera.");
+        }
+    }, []);
+
+    // Đóng camera
+    const stopCamera = useCallback(() => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setShowCamera(false);
+    }, []);
+
+    // Chụp ảnh và quét mặt
+    const captureAndRecognize = useCallback(async () => {
+        if (!videoRef.current) return;
+        setScanning(true);
+        try {
+            const canvas = document.createElement("canvas");
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            canvas.getContext("2d")!.drawImage(videoRef.current, 0, 0);
+            const blob = await new Promise<Blob>((resolve) =>
+                canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.85)
+            );
+            const file = new File([blob], "face.jpg", { type: "image/jpeg" });
+            const res = await customerService.recognizeFace(file, selectedBranch?.id);
+            if (res?.data?.matched && res.data.customer) {
+                setRecognizedCustomer(res.data.customer);
+                stopCamera();
+            } else {
+                setCameraError(res?.data?.message ?? "Không nhận diện được khuôn mặt. Thử lại.");
+            }
+        } catch {
+            setCameraError("Lỗi khi nhận diện khuôn mặt. Vui lòng thử lại.");
+        } finally {
+            setScanning(false);
+        }
+    }, [selectedBranch, stopCamera]);
+
+    // Mở bàn
+    const handleBookTable = async () => {
+        if (!recognizedCustomer || !selectedTable) return;
+        setBookingError("");
+        try {
+            const res = await sessionService.startSelfServiceSession({
+                customerId: recognizedCustomer.id,
+                tableId: selectedTable.id,
+                customerPhone: recognizedCustomer.phoneNumber,
+            });
+            if (res?.data) {
+                setBookingSuccess(true);
+                setSelectedTable(null);
+            }
+        } catch (e: any) {
+            setBookingError(e?.response?.data?.message ?? "Mở bàn thất bại. Vui lòng thử lại.");
+        }
+    };
+
+    const TABLE_COLORS: Record<string, string> = {
+        AVAILABLE: "bg-emerald-500/20 border-emerald-500/60 text-emerald-300",
+        IN_USE: "bg-red-500/20 border-red-500/60 text-red-300 opacity-60 cursor-not-allowed",
+        MAINTENANCE: "bg-yellow-500/20 border-yellow-500/60 text-yellow-300 opacity-60 cursor-not-allowed",
+        RESERVED: "bg-blue-500/20 border-blue-500/60 text-blue-300 opacity-60 cursor-not-allowed",
+    };
+    const TABLE_LABELS: Record<string, string> = {
+        AVAILABLE: "Trống",
+        IN_USE: "Đang chơi",
+        MAINTENANCE: "Bảo trì",
+        RESERVED: "Đặt trước",
+    };
+
+    // Derive current step index (0-based) for locking logic
+    const currentStep = !recognizedCustomer ? 0 : !selectedBranch ? 1 : !selectedTable ? 2 : 3;
+
+    const STEPS = [
+        { label: "Nhận diện", icon: "👤" },
+        { label: "Chọn chi nhánh", icon: "🏢" },
+        { label: "Chọn bàn", icon: "🎱" },
+        { label: "Xác nhận", icon: "✅" },
+    ];
+
+    return (
+        <div className="mx-auto w-full max-w-5xl">
+            <style>{`
+                @keyframes borderPulse {
+                    0% { background-position: 0% 0%; }
+                    100% { background-position: 200% 0%; }
+                }
+                .face-scanner-frame::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    border: 2px solid transparent;
+                    border-radius: 12px;
+                    background: linear-gradient(#111827,#111827) padding-box,
+                                linear-gradient(90deg, #f97316, #7c3aed, #f97316) border-box;
+                    background-size: 200% 100%;
+                    animation: borderPulse 2s linear infinite;
+                    z-index: 1;
+                    pointer-events: none;
+                }
+                .table-card-anim { transition: all 0.18s cubic-bezier(.4,0,.2,1); }
+                .table-card-anim:hover:not(.locked) { transform: translateY(-2px) scale(1.04); }
+            `}</style>
+
+            {/* Camera Modal */}
+            {showCamera && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-md bg-black/80"
+                    onClick={stopCamera}
+                >
+                    <div
+                        className="bg-gray-900 border border-orange-500/30 rounded-2xl p-8 w-[90%] max-w-[540px]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-5">
+                            <h3 className="text-orange-300 text-lg font-bold">📸 Quét khuôn mặt</h3>
+                            <button
+                                onClick={stopCamera}
+                                className="bg-red-500/15 border border-red-500/40 text-red-300 rounded-lg px-3 py-1 text-sm hover:bg-red-500/25 transition-colors"
+                            >
+                                ✕ Đóng
+                            </button>
+                        </div>
+                        <div className="face-scanner-frame relative mb-5">
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                muted
+                                className="w-full rounded-xl border-2 border-orange-500/40 [transform:scaleX(-1)]"
+                            />
+                        </div>
+                        {cameraError && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2.5 text-red-300 text-sm mb-4">
+                                ⚠️ {cameraError}
+                            </div>
+                        )}
+                        <button
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50"
+                            onClick={captureAndRecognize}
+                            disabled={scanning}
+                        >
+                            {scanning ? "⏳ Đang quét..." : "🔍 Nhận diện ngay"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Header */}
+            <div className="mb-10 text-center">
+                <p className="text-xs uppercase tracking-[0.3em] text-orange-300/80">Self Service Kiosk</p>
+                <h2 className="mt-2 text-3xl font-semibold text-orange-100 sm:text-4xl">Đặt Bàn Tự Phục Vụ</h2>
+                <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-neutral-400">
+                    Hoàn thành từng bước theo thứ tự để mở phiên chơi ngay lập tức mà không cần chờ đợi.
+                </p>
+            </div>
+
+            {/* Step Indicator */}
+            <div className="flex items-center mb-10">
+                {STEPS.map((s, i) => {
+                    const state = i < currentStep ? "done" : i === currentStep ? "active" : "pending";
+                    return (
+                        <div key={i} className="flex flex-col items-center flex-1 relative">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all duration-300 ${
+                                state === "done" ? "bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]" :
+                                state === "active" ? "bg-violet-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.6)]" :
+                                "bg-gray-700 text-gray-400"
+                            }`}>
+                                {state === "done" ? "✓" : s.icon}
+                            </div>
+                            <span className={`text-[11px] mt-1.5 text-center ${state === "active" ? "text-gray-100 font-semibold" : "text-gray-500"}`}>
+                                {s.label}
+                            </span>
+                            {i < 3 && (
+                                <div
+                                    className="absolute top-4 h-0.5 transition-all duration-500"
+                                    style={{
+                                        left: "calc(50% + 16px)",
+                                        width: "calc(100% - 32px)",
+                                        background: state === "done" ? "rgba(249,115,22,0.6)" : "rgba(55,65,81,0.8)",
+                                    }}
+                                />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Success state */}
+            {bookingSuccess ? (
+                <div className="text-center py-16 bg-emerald-500/8 border border-emerald-500/30 rounded-2xl">
+                    <div className="text-6xl mb-4">🎉</div>
+                    <h3 className="text-2xl font-bold text-emerald-400 mb-2">Mở Bàn Thành Công!</h3>
+                    <p className="text-gray-400 mb-6">Phiên chơi của bạn đã bắt đầu. Chúc bạn chơi vui!</p>
+                    <button
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-3 px-8 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(249,115,22,0.4)]"
+                        onClick={() => {
+                            setBookingSuccess(false);
+                            setRecognizedCustomer(null);
+                            setSelectedBranch(null);
+                            setSelectedTable(null);
+                        }}
+                    >
+                        🔄 Bắt đầu mới
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-5">
+
+                    {/* ===== STEP 1: Face Recognition ===== */}
+                    <div className="rounded-2xl border border-orange-500/20 bg-neutral-900/80 p-6">
+                        <h3 className="mb-4 text-base font-semibold text-orange-200 flex items-center gap-2">
+                            <span className="inline-flex w-6 h-6 rounded-full bg-orange-500 text-white text-xs font-bold items-center justify-center">1</span>
+                            Nhận Diện Khuôn Mặt
+                        </h3>
+                        {recognizedCustomer ? (
+                            <div className="flex items-center gap-4 justify-between">
+                                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/40 rounded-xl px-4 py-3 flex-1">
+                                    <div className="w-11 h-11 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                        {recognizedCustomer.photoUrl
+                                            ? <img src={recognizedCustomer.photoUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                                            : <span className="text-xl">👤</span>}
+                                    </div>
+                                    <div>
+                                        <div className="text-emerald-400 font-bold text-sm">✓ Đã nhận diện</div>
+                                        <div className="text-gray-200 font-semibold">{recognizedCustomer.name}</div>
+                                        <div className="text-gray-400 text-xs">📞 {recognizedCustomer.phoneNumber} · 🏆 {recognizedCustomer.rank}</div>
+                                    </div>
+                                </div>
+                                <button
+                                    className="border border-orange-500/40 text-orange-300 hover:bg-orange-500/10 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+                                    onClick={() => { setRecognizedCustomer(null); setSelectedBranch(null); setSelectedTable(null); setCameraError(""); }}
+                                >
+                                    🔄 Đổi
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                <div className="w-16 h-16 rounded-full bg-orange-500/10 border-2 border-dashed border-orange-500/40 flex items-center justify-center text-3xl flex-shrink-0">
+                                    📷
+                                </div>
+                                <div className="flex-1 text-center sm:text-left">
+                                    <p className="text-gray-400 text-sm mb-3">Bật camera để nhận diện khuôn mặt và tự động điền thông tin khách hàng.</p>
+                                    {cameraError && !showCamera && (
+                                        <div className="bg-red-500/8 border border-red-500/30 rounded-lg px-3 py-2 text-red-300 text-xs mb-3">{cameraError}</div>
+                                    )}
+                                    <button
+                                        className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-2.5 px-5 rounded-xl transition-all hover:-translate-y-0.5 text-sm"
+                                        onClick={startCamera}
+                                    >
+                                        📷 Mở Camera & Quét Mặt
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ===== STEP 2: Branch Selection ===== */}
+                    <div className={`rounded-2xl border p-6 transition-all duration-300 ${currentStep >= 1 ? "border-orange-500/20 bg-neutral-900/80" : "border-gray-700/40 bg-neutral-900/40"}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className={`inline-flex w-6 h-6 rounded-full text-xs font-bold items-center justify-center transition-colors ${currentStep >= 1 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"}`}>2</span>
+                            <h3 className={`text-base font-semibold ${currentStep >= 1 ? "text-orange-200" : "text-gray-500"}`}>Chọn Chi Nhánh</h3>
+                            {currentStep < 1 && <span className="ml-auto text-xs text-gray-600 flex items-center gap-1">🔒 Hoàn thành bước 1 trước</span>}
+                        </div>
+
+                        {currentStep < 1 ? (
+                            /* Locked state */
+                            <div className="flex items-center justify-center py-8 text-gray-600 text-sm gap-2">
+                                <span>🔒</span>
+                                <span>Vui lòng nhận diện khuôn mặt trước</span>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {branches.map((b) => (
+                                    <div
+                                        key={b.id}
+                                        onClick={() => { setSelectedBranch(b); setSelectedTable(null); }}
+                                        className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
+                                            selectedBranch?.id === b.id
+                                                ? "border-orange-500 bg-orange-500/10 outline outline-2 outline-orange-500 outline-offset-2"
+                                                : "border-orange-500/20 bg-gray-900/70 hover:border-orange-500/50 hover:bg-orange-500/5"
+                                        }`}
+                                    >
+                                        <div className="font-bold text-gray-100 text-sm mb-1">{b.name}</div>
+                                        <div className="text-gray-400 text-xs">📍 {b.address}</div>
+                                    </div>
+                                ))}
+                                {branches.length === 0 && (
+                                    <div className="col-span-full text-gray-500 text-sm py-4">⏳ Đang tải chi nhánh...</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ===== STEP 3: Table Selection ===== */}
+                    <div className={`rounded-2xl border p-6 transition-all duration-300 ${currentStep >= 2 ? "border-orange-500/20 bg-neutral-900/80" : "border-gray-700/40 bg-neutral-900/40"}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className={`inline-flex w-6 h-6 rounded-full text-xs font-bold items-center justify-center transition-colors ${currentStep >= 2 ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-400"}`}>3</span>
+                            <h3 className={`text-base font-semibold ${currentStep >= 2 ? "text-orange-200" : "text-gray-500"}`}>Chọn Bàn</h3>
+                            {currentStep >= 2 && selectedBranch && (
+                                <div className="ml-auto flex gap-3 text-xs text-gray-400">
+                                    <span>🟢 Trống</span>
+                                    <span>🔴 Đang chơi</span>
+                                </div>
+                            )}
+                            {currentStep < 2 && <span className="ml-auto text-xs text-gray-600 flex items-center gap-1">🔒 Hoàn thành bước 2 trước</span>}
+                        </div>
+
+                        {currentStep < 2 ? (
+                            <div className="flex items-center justify-center py-8 text-gray-600 text-sm gap-2">
+                                <span>🔒</span>
+                                <span>Vui lòng chọn chi nhánh trước</span>
+                            </div>
+                        ) : tablesLoading ? (
+                            <div className="text-center py-8 text-gray-400">⏳ Đang tải danh sách bàn...</div>
+                        ) : tables.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500 text-sm">Không có bàn nào tại chi nhánh này.</div>
+                        ) : (
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-3 max-h-80 overflow-y-auto pr-1">
+                                {tables.map((t) => {
+                                    const isAvailable = t.status === "AVAILABLE";
+                                    const colorClass = TABLE_COLORS[t.status] ?? TABLE_COLORS.MAINTENANCE;
+                                    const isSelected = selectedTable?.id === t.id;
+                                    return (
+                                        <div
+                                            key={t.id}
+                                            onClick={() => isAvailable && setSelectedTable(t)}
+                                            title={TABLE_LABELS[t.status] ?? t.status}
+                                            className={`table-card-anim border-[1.5px] rounded-xl p-3.5 text-center ${colorClass} ${isSelected ? "outline-2 outline outline-orange-500 outline-offset-2 scale-105" : ""} ${!isAvailable ? "locked" : "cursor-pointer"}`}
+                                        >
+                                            <div className="text-[22px] mb-1">🎱</div>
+                                            <div className="font-bold text-[13px]">{t.name}</div>
+                                            <div className="text-[10px] mt-0.5 opacity-80">{TABLE_LABELS[t.status] ?? t.status}</div>
+                                            {t.type?.name && <div className="text-[10px] opacity-60 mt-0.5">{t.type.name}</div>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ===== STEP 4: Confirm ===== */}
+                    <div className={`rounded-2xl border p-6 transition-all duration-300 ${currentStep >= 3 ? "border-violet-500/30 bg-neutral-900/80" : "border-gray-700/40 bg-neutral-900/40"}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className={`inline-flex w-6 h-6 rounded-full text-xs font-bold items-center justify-center transition-colors ${currentStep >= 3 ? "bg-violet-600 text-white" : "bg-gray-700 text-gray-400"}`}>4</span>
+                            <h3 className={`text-base font-semibold ${currentStep >= 3 ? "text-violet-300" : "text-gray-500"}`}>Xác Nhận & Mở Bàn</h3>
+                            {currentStep < 3 && <span className="ml-auto text-xs text-gray-600 flex items-center gap-1">🔒 Hoàn thành bước 3 trước</span>}
+                        </div>
+
+                        {/* Summary rows — always shown for transparency */}
+                        <div className="flex flex-col gap-2.5 mb-4">
+                            {[
+                                { label: "Khách hàng", value: recognizedCustomer?.name ?? "Chưa nhận diện", ok: !!recognizedCustomer },
+                                { label: "Chi nhánh", value: selectedBranch?.name ?? "Chưa chọn", ok: !!selectedBranch },
+                                { label: "Bàn", value: selectedTable?.name ?? "Chưa chọn", ok: !!selectedTable },
+                            ].map((item) => (
+                                <div key={item.label} className="flex justify-between items-center bg-gray-900/80 px-4 py-2.5 rounded-lg">
+                                    <span className="text-gray-400 text-sm">{item.label}</span>
+                                    <span className={`text-sm font-semibold ${item.ok ? "text-emerald-400" : "text-gray-600"}`}>
+                                        {item.value}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {bookingError && (
+                            <div className="bg-red-500/8 border border-red-500/30 rounded-lg px-3 py-2.5 text-red-300 text-sm mb-4">
+                                ⚠️ {bookingError}
+                            </div>
+                        )}
+
+                        <button
+                            disabled={currentStep < 3}
+                            onClick={handleBookTable}
+                            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white transition-all text-sm
+                                bg-gradient-to-r from-violet-600 to-orange-500
+                                hover:from-violet-500 hover:to-orange-400
+                                hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(124,58,237,0.35)]
+                                disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                        >
+                            🎱 Mở Bàn Ngay
+                        </button>
+                    </div>
+
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Home = () => {
     const { branches, isLoading } = useBranches();
@@ -29,13 +478,18 @@ const Home = () => {
                         </p>
                         <div className="mt-8 flex flex-wrap gap-4">
                             <a
-                                href="#branches"
+                                href="#book-table"
                                 className="rounded-md bg-orange-500 px-6 py-3 text-sm font-semibold text-black transition hover:bg-orange-400">
+                                🎱 Đặt bàn ngay
+                            </a>
+                            <a
+                                href="#branches"
+                                className="rounded-md border border-orange-400/50 px-6 py-3 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/10">
                                 Xem chi nhánh
                             </a>
                             <a
                                 href="#about"
-                                className="rounded-md border border-orange-400/50 px-6 py-3 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/10">
+                                className="rounded-md border border-orange-400/30 px-6 py-3 text-sm font-semibold text-neutral-300 transition hover:bg-orange-500/5">
                                 Về chúng tôi
                             </a>
                         </div>
@@ -332,6 +786,12 @@ const Home = () => {
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <section
+                id="book-table"
+                className="flex min-h-screen items-center border-b border-orange-500/10 px-4 py-20 scroll-mt-28 sm:px-6 lg:px-8">
+                <BookTableSection />
             </section>
 
             <section

@@ -29,7 +29,7 @@ public class SessionComboController {
     private final SessionComboService sessionComboService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionComboResponseDTO>> addComboToSession(
             @Valid @RequestBody AddComboToSessionDTO request) {
         SessionComboResponseDTO response = sessionComboService.addComboToSession(request);
@@ -37,7 +37,7 @@ public class SessionComboController {
     }
 
     @GetMapping("/session/{sessionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionComboResponseDTO>>> getCombosBySessionId(
             @PathVariable Long sessionId) {
         List<SessionComboResponseDTO> response = sessionComboService.getCombosBySessionId(sessionId);

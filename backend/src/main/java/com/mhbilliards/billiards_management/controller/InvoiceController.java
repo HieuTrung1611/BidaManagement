@@ -33,7 +33,7 @@ public class InvoiceController {
     private final InvoiceService invoiceService;
 
     @GetMapping("/session/{sessionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<InvoiceDTO>> generateInvoice(@PathVariable Long sessionId) {
         InvoiceDTO invoice = invoiceService.generateInvoice(sessionId);
         return ResponseUtil.success(invoice, "Tạo hóa đơn thành công");
@@ -43,7 +43,7 @@ public class InvoiceController {
      * Get invoice by ID
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<InvoiceResponseDTO>> getInvoiceById(@PathVariable Long id) {
         InvoiceResponseDTO invoice = invoiceService.getInvoiceById(id);
         return ResponseUtil.success(invoice, "Lấy hóa đơn thành công");
@@ -53,7 +53,7 @@ public class InvoiceController {
      * Get invoice by session ID
      */
     @GetMapping("/session/{sessionId}/saved")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<InvoiceResponseDTO>> getInvoiceBySession(@PathVariable Long sessionId) {
         InvoiceResponseDTO invoice = invoiceService.getInvoiceBySessionId(sessionId);
         return ResponseUtil.success(invoice, "Lấy hóa đơn thành công");

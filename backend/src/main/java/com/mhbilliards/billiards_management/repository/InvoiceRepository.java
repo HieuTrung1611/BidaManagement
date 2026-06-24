@@ -49,4 +49,73 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
             @Param("branchId") Long branchId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    // ===== STATISTICS QUERIES =====
+
+    /**
+     * Doanh thu theo từng tháng trong năm (group by month)
+     */
+    @Query("SELECT MONTH(i.invoiceDate) as month, SUM(i.totalAmount) as revenue, COUNT(i) as invoiceCount " +
+            "FROM Invoice i " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND YEAR(i.invoiceDate) = :year " +
+            "AND i.status = com.mhbilliards.billiards_management.enums.InvoiceStatus.PAID " +
+            "GROUP BY MONTH(i.invoiceDate) " +
+            "ORDER BY MONTH(i.invoiceDate)")
+    List<Object[]> getMonthlyRevenue(
+            @Param("branchId") Long branchId,
+            @Param("year") int year);
+
+    /**
+     * Doanh thu theo từng tuần trong năm (group by week)
+     */
+    @Query("SELECT WEEK(i.invoiceDate) as week, SUM(i.totalAmount) as revenue, COUNT(i) as invoiceCount " +
+            "FROM Invoice i " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND YEAR(i.invoiceDate) = :year " +
+            "AND i.status = com.mhbilliards.billiards_management.enums.InvoiceStatus.PAID " +
+            "GROUP BY WEEK(i.invoiceDate) " +
+            "ORDER BY WEEK(i.invoiceDate)")
+    List<Object[]> getWeeklyRevenue(
+            @Param("branchId") Long branchId,
+            @Param("year") int year);
+
+    /**
+     * Doanh thu theo từng ngày trong khoảng thời gian
+     */
+    @Query("SELECT DATE(i.invoiceDate) as date, SUM(i.totalAmount) as revenue, COUNT(i) as invoiceCount " +
+            "FROM Invoice i " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND i.invoiceDate >= :startDate AND i.invoiceDate <= :endDate " +
+            "AND i.status = com.mhbilliards.billiards_management.enums.InvoiceStatus.PAID " +
+            "GROUP BY DATE(i.invoiceDate) " +
+            "ORDER BY DATE(i.invoiceDate)")
+    List<Object[]> getDailyRevenue(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Tổng doanh thu và số hóa đơn trong khoảng thời gian
+     */
+    @Query("SELECT SUM(i.totalAmount), COUNT(i) FROM Invoice i " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND i.invoiceDate >= :startDate AND i.invoiceDate <= :endDate " +
+            "AND i.status = com.mhbilliards.billiards_management.enums.InvoiceStatus.PAID")
+    List<Object[]> getSummaryByDateRange(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Đếm số phiên hôm nay theo branch
+     */
+    @Query("SELECT COUNT(i) FROM Invoice i " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND i.invoiceDate >= :startDate AND i.invoiceDate <= :endDate")
+    Long countSessionsToday(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }
+

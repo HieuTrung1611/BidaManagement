@@ -2,18 +2,18 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Button from "@/components/ui/button/Button";
 import { useToast } from "@/context/ToastContext";
 import sessionService from "@/services/sessionService";
 import { IBilliardSessionResponse } from "@/types/session";
 import { Phone, Calendar, DollarSign, User, Table } from "lucide-react";
 import { useManagedBranch } from "@/hooks/useManagedBranch";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 
 export default function UnpaidSessionsPage() {
-    const { showToast } = useToast();
-    const managedBranchId = useManagedBranch();
+    const toast = useToast();
+    const { managedBranchId } = useManagedBranch();
     const [sessions, setSessions] = useState<IBilliardSessionResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -33,10 +33,9 @@ export default function UnpaidSessionsPage() {
             setSessions(response.data || []);
         } catch (error: any) {
             console.error("Error loading unpaid sessions:", error);
-            showToast(
+            toast.error(
                 error.response?.data?.message ||
                     "Không thể tải danh sách session chưa thanh toán",
-                "error",
             );
         } finally {
             setIsLoading(false);

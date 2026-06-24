@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mhbilliards.billiards_management.dto.session.SessionResponseDTO;
 import com.mhbilliards.billiards_management.dto.session.SessionWithDetailsDTO;
 import com.mhbilliards.billiards_management.dto.session.StartSessionDTO;
+import com.mhbilliards.billiards_management.enums.PaymentStatus;
 import com.mhbilliards.billiards_management.enums.SessionStatus;
 import com.mhbilliards.billiards_management.service.session.BilliardSessionService;
 import com.mhbilliards.billiards_management.utils.ApiResponse;
@@ -35,7 +37,7 @@ public class BilliardSessionController {
     private final BilliardSessionService sessionService;
 
     @PostMapping("/start")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionResponseDTO>> startSession(
             @Valid @RequestBody StartSessionDTO request) {
         SessionResponseDTO response = sessionService.startSession(request);
@@ -43,21 +45,21 @@ public class BilliardSessionController {
     }
 
     @PostMapping("/{id}/end")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionResponseDTO>> endSession(@PathVariable Long id) {
         SessionResponseDTO response = sessionService.endSession(id);
         return ResponseUtil.success(response, "Kết thúc phiên chơi thành công");
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionResponseDTO>> getSessionById(@PathVariable Long id) {
         SessionResponseDTO response = sessionService.getSessionById(id);
         return ResponseUtil.success(response, "Lấy thông tin session thành công");
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<Page<SessionResponseDTO>>> searchSessions(
             @RequestParam(required = false) Long tableId,
             @RequestParam(required = false) Long customerId,
@@ -70,21 +72,20 @@ public class BilliardSessionController {
     }
 
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getSessionsByBranch(@PathVariable Long branchId) {
         List<SessionResponseDTO> response = sessionService.getSessionsByBranch(branchId);
         return ResponseUtil.success(response, "Lấy danh sách session của chi nhánh thành công");
     }
 
     @GetMapping("/branch/{branchId}/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getActiveSessions(@PathVariable Long branchId) {
         List<SessionResponseDTO> response = sessionService.getActiveSessions(branchId);
         return ResponseUtil.success(response, "Lấy danh sách session đang hoạt động thành công");
     }
 
     @GetMapping("/branch/{branchId}/history")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionWithDetailsDTO>>> getSessionHistory(
             @PathVariable Long branchId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -94,7 +95,7 @@ public class BilliardSessionController {
     }
 
     @GetMapping("/{id}/details")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<SessionWithDetailsDTO>> getSessionWithDetails(@PathVariable Long id) {
         SessionWithDetailsDTO response = sessionService.getSessionWithDetailsById(id);
         return ResponseUtil.success(response, "Lấy thông tin chi tiết session thành công");
@@ -110,10 +111,22 @@ public class BilliardSessionController {
     }
 
     @GetMapping("/branch/{branchId}/unpaid")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getUnpaidSessions(@PathVariable Long branchId) {
         System.out.println("🔵 [API] GET /api/sessions/branch/" + branchId + "/unpaid");
         List<SessionResponseDTO> response = sessionService.getUnpaidSessions(branchId);
         return ResponseUtil.success(response, "Lấy danh sách session chưa thanh toán thành công");
+    }
+
+    /**
+     * Cập nhật trạng thái thanh toán - chỉ EMPLOYEE, MANAGER, ADMIN mới được dùng
+     */
+    @PutMapping("/{id}/payment-status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
+    public ResponseEntity<ApiResponse<SessionResponseDTO>> updatePaymentStatus(
+            @PathVariable Long id,
+            @RequestParam PaymentStatus status) {
+        SessionResponseDTO response = sessionService.updatePaymentStatus(id, status);
+        return ResponseUtil.success(response, "Cập nhật trạng thái thanh toán thành công");
     }
 }
