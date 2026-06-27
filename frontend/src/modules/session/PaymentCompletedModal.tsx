@@ -98,7 +98,7 @@ export const PaymentCompletedModal: React.FC<PaymentCompletedModalProps> = ({
             onClose={() => {}}
             className="max-w-5xl max-h-[90vh] overflow-hidden"
             showCloseButton={false}>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="bg-linear-to-r from-green-600 to-green-700 p-6">
                     <div className="flex items-center gap-4 text-white">

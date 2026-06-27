@@ -8,18 +8,15 @@ async function test() {
                 password: 'mhien13245'
             })
         });
-        
         const cookies = loginRes.headers.get('set-cookie');
-        console.log('Cookies:', cookies);
         
-        const statsRes = await fetch('http://localhost:2911/api/statistics/overview?branchId=1', {
+        const statsRes = await fetch('http://localhost:2911/api/statistics/overview?branchId=5', {
             headers: { 'Cookie': cookies }
         });
-        const statsData = await statsRes.json();
-        console.log('Stats:', JSON.stringify(statsData, null, 2));
+        const data = await statsRes.json();
+        console.log('Stats:', JSON.stringify(data.data, null, 2));
     } catch (e) {
         console.error('Error:', e);
     }
 }
-
 test();

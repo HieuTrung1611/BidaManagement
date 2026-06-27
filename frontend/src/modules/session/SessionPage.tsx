@@ -115,22 +115,24 @@ export const SessionPage: React.FC = () => {
                 </span>
 
                 {isAdmin && (
-                    <select
-                        value={selectedBranchId ?? ""}
-                        onChange={(e) =>
-                            setSelectedBranchId(
-                                e.target.value
-                                    ? Number(e.target.value)
-                                    : undefined,
-                            )
-                        }
-                        className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                        <option value="">Chọn chi nhánh</option>
-                        {branches.map((b) => (
-                            <option key={b.id} value={b.id}>
-                                {b.name}
-                            </option>
-                        ))}
+                    <>
+                        <select
+                            value={selectedBranchId ?? ""}
+                            onChange={(e) =>
+                                setSelectedBranchId(
+                                    e.target.value
+                                        ? Number(e.target.value)
+                                        : undefined,
+                                )
+                            }
+                            className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                            <option value="">Chọn chi nhánh</option>
+                            {branches.map((b) => (
+                                <option key={b.id} value={b.id}>
+                                    {b.name}
+                                </option>
+                            ))}
+                        </select>
                         {currentBranchId && (
                             <Button
                                 onClick={() => setShowFaceScanModal(true)}
@@ -140,8 +142,8 @@ export const SessionPage: React.FC = () => {
                                 <ScanFace className="mr-2 h-4 w-4" />
                                 Quét mặt khách hàng
                             </Button>
-                        )}{" "}
-                    </select>
+                        )}
+                    </>
                 )}
 
                 {currentBranchId && !isLoadingTables && (
