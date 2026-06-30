@@ -57,7 +57,7 @@ const BookTableSection = () => {
         setCameraError("");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480, facingMode: "user" },
+                video: { facingMode: "user" },
             });
             streamRef.current = stream;
             if (videoRef.current) videoRef.current.srcObject = stream;
