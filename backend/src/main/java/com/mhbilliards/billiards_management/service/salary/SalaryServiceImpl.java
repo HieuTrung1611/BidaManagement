@@ -260,7 +260,7 @@ public class SalaryServiceImpl implements SalaryService {
         }
 
         private SalaryBranchSummaryResponse toBranchSummary(List<SalaryResponse> salaries) {
-                SalaryResponse first = salaries.getFirst();
+                SalaryResponse first = salaries.get(0);
                 int totalWorkingDays = salaries.stream()
                                 .map(SalaryResponse::getWorkingDays)
                                 .filter(Objects::nonNull)
@@ -290,7 +290,7 @@ public class SalaryServiceImpl implements SalaryService {
         }
 
         private SalaryBranchStatisticsResponse toBranchStatistics(List<Salary> branchSalaries) {
-                Salary first = branchSalaries.getFirst();
+                Salary first = branchSalaries.get(0);
                 int paidEmployeeCount = (int) branchSalaries.stream()
                                 .filter(salary -> Boolean.TRUE.equals(salary.getIsPaid()))
                                 .count();
