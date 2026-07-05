@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +35,7 @@ public class BranchController {
     private final BranchService branchService;
 
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<BranchResponse>> createBranch(
             @Valid @RequestPart("data") BranchCreationRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
@@ -42,6 +44,7 @@ public class BranchController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<BranchResponse>> updateBranch(@PathVariable Long id,
             @Valid @RequestPart("data") BranchUpdationRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
@@ -69,6 +72,7 @@ public class BranchController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteBranch(@PathVariable Long id) {
         branchService.deleteBranch(id);
         return ResponseUtil.success(null, "Xóa chi nhánh thành công");

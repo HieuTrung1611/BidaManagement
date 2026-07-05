@@ -23,7 +23,9 @@ import {
     Users,
 } from "lucide-react";
 import ROUTES from "@/constants/routes";
+import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/context/SidebarContext";
+import { UserRole } from "@/types/auth";
 import LogoMHBilliards from "../common/Logo";
 
 type NavItem = {
@@ -101,14 +103,25 @@ const othersItems: NavItem[] = [
 const Sidebar: React.FC = () => {
     const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
     const pathname = usePathname();
+    const { user } = useAuth();
+    const isManager = user?.role === UserRole.MANAGER;
+
+    // MANAGER không được quản lý chi nhánh nên ẩn hẳn mục "Chi nhánh"
+    const visibleNavItems = useMemo(
+        () =>
+            isManager
+                ? navItems.filter((item) => item.path !== ROUTES.BRANCH.path)
+                : navItems,
+        [isManager],
+    );
 
     // FIX: Sử dụng useMemo để ngăn biến này bị tạo mới mỗi lần render
     const allPaths = useMemo(() => {
-        return [...navItems, ...othersItems]
+        return [...visibleNavItems, ...othersItems]
             .filter((item) => item.path)
             .map((item) => item.path as string)
             .sort((a, b) => b.length - a.length);
-    }, []);
+    }, [visibleNavItems]);
 
     const [openSubmenu, setOpenSubmenu] = useState<{
         type: "Quản lý" | "Giao diện";
@@ -146,7 +159,7 @@ const Sidebar: React.FC = () => {
     useEffect(() => {
         let submenuMatched = false;
         ["Quản lý", "Giao diện"].forEach((menuType) => {
-            const items = menuType === "Quản lý" ? navItems : othersItems;
+            const items = menuType === "Quản lý" ? visibleNavItems : othersItems;
             items.forEach((nav, index) => {
                 if (nav.subItems) {
                     nav.subItems.forEach((subItem) => {
@@ -166,7 +179,7 @@ const Sidebar: React.FC = () => {
         if (!submenuMatched) {
             setOpenSubmenu(null);
         }
-    }, [pathname, isActive]);
+    }, [pathname, isActive, visibleNavItems]);
 
     useEffect(() => {
         // Set the height of the submenu items when the submenu is opened
@@ -404,7 +417,7 @@ const Sidebar: React.FC = () => {
                                     <Ellipsis />
                                 )}
                             </h2>
-                            {renderMenuItems(navItems, "Quản lý")}
+                            {renderMenuItems(visibleNavItems, "Quản lý")}
                         </div>
 
                         <div className="">

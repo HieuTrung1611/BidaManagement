@@ -8,6 +8,7 @@ import com.mhbilliards.billiards_management.enums.InvoiceStatus;
 import com.mhbilliards.billiards_management.repository.BilliardSessionRepository;
 import com.mhbilliards.billiards_management.repository.InvoiceRepository;
 import com.mhbilliards.billiards_management.repository.SalaryRepository;
+import com.mhbilliards.billiards_management.service.base.CurrentUserAccessService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,9 +30,11 @@ public class StatisticsServiceImpl implements StatisticsService {
         private final InvoiceRepository invoiceRepository;
         private final BilliardSessionRepository sessionRepository;
         private final SalaryRepository salaryRepository;
+        private final CurrentUserAccessService currentUserAccessService;
 
         @Override
-        public DashboardOverviewDTO getDashboardOverview(Long branchId) {
+        public DashboardOverviewDTO getDashboardOverview(Long requestedBranchId) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
                 LocalDateTime endOfToday = startOfToday.plusDays(1);
 
@@ -108,7 +111,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         @Override
-        public RevenueStatisticsDTO getMonthlyRevenue(Long branchId, int year, int month) {
+        public RevenueStatisticsDTO getMonthlyRevenue(Long requestedBranchId, int year, int month) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 // Breakdown từng ngày trong tháng
                 LocalDateTime start = LocalDate.of(year, month, 1).atStartOfDay();
                 LocalDateTime end = start.plusMonths(1);
@@ -142,7 +146,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         @Override
-        public RevenueStatisticsDTO getYearlyRevenue(Long branchId, int year) {
+        public RevenueStatisticsDTO getYearlyRevenue(Long requestedBranchId, int year) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 List<Object[]> monthlyData = invoiceRepository.getMonthlyRevenue(branchId, year,
                                 InvoiceStatus.COMPLETED);
                 Map<Integer, Object[]> monthMap = monthlyData.stream()
@@ -182,7 +187,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         @Override
-        public RevenueStatisticsDTO getWeeklyRevenue(Long branchId, int year) {
+        public RevenueStatisticsDTO getWeeklyRevenue(Long requestedBranchId, int year) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 List<Object[]> weeklyData = invoiceRepository.getWeeklyRevenue(branchId, year, InvoiceStatus.COMPLETED);
                 List<ChartDataPointDTO> chartData = weeklyData.stream()
                                 .map(row -> ChartDataPointDTO.builder()
@@ -207,7 +213,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         @Override
-        public SalaryStatisticsDTO getYearlySalaryStats(Long branchId, int year) {
+        public SalaryStatisticsDTO getYearlySalaryStats(Long requestedBranchId, int year) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 List<Object[]> monthlyData = salaryRepository.getMonthlySalaryStats(String.valueOf(year), branchId);
                 Map<String, Object[]> monthMap = monthlyData.stream()
                                 .collect(Collectors.toMap(row -> row[0].toString(), row -> row));
@@ -245,7 +252,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
 
         @Override
-        public SalaryStatisticsDTO getMonthlySalaryStats(Long branchId, int year, int month) {
+        public SalaryStatisticsDTO getMonthlySalaryStats(Long requestedBranchId, int year, int month) {
+                Long branchId = currentUserAccessService.resolveAccessibleBranchId(requestedBranchId);
                 String salaryMonth = String.format("%d-%02d", year, month);
                 List<Object[]> summaryList = salaryRepository.getSalarySummaryByMonth(salaryMonth, branchId);
                 Object[] summary = summaryList.isEmpty() ? null : summaryList.get(0);

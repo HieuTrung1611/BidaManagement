@@ -7,14 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InputSearch from "@/components/common/InputSearch";
 import Button from "@/components/ui/button/Button";
 import { DataTable } from "@/components/ui/table/DataTable";
+import { useAuth } from "@/context/AuthContext";
 import { useBranchesByKeyword } from "@/hooks/useBranch";
 import { useCrudActions } from "@/hooks/useCrudActions";
 import branchService from "@/services/branchService";
+import { UserRole } from "@/types/auth";
 import { IBranchResponse } from "@/types/branch";
 import { BranchModal, BranchFormData } from "./BranchModal";
 import { renderBranchActions, useBranchActions } from "./useBranchAction";
 
 const BranchListTabs = () => {
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+
     const [keyword, setKeyword] = React.useState("");
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
@@ -95,12 +100,14 @@ const BranchListTabs = () => {
                         placeholder="Nhập từ khóa tìm kiếm..."
                         className="flex-1 sm:flex-initial sm:w-80 min-w-0"
                     />
-                    <Button
-                        size="sm"
-                        className="sm:ml-auto shrink-0"
-                        onClick={openAddModal}>
-                        Thêm chi nhánh
-                    </Button>
+                    {isAdmin && (
+                        <Button
+                            size="sm"
+                            className="sm:ml-auto shrink-0"
+                            onClick={openAddModal}>
+                            Thêm chi nhánh
+                        </Button>
+                    )}
                 </div>
 
                 {isError ? (

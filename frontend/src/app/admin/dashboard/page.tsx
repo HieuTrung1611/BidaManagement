@@ -20,6 +20,9 @@ import statisticsService, {
 } from "@/services/statisticsService";
 import branchService from "@/services/branchService";
 import { IBranchResponse } from "@/types/branch";
+import { useAuth } from "@/context/AuthContext";
+import { useManagedBranch } from "@/hooks/useManagedBranch";
+import { UserRole } from "@/types/auth";
 
 // ============================================================
 // Formatting helpers
@@ -106,12 +109,20 @@ const PERIOD_LABELS: Record<RevenuePeriod, string> = {
 // ============================================================
 const AdminHome = () => {
     const { setTitle } = useTitle();
+    const { user } = useAuth();
+    const isAdmin = user?.role === UserRole.ADMIN;
+    const { managedBranchId } = useManagedBranch();
 
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
     const [branches, setBranches] = useState<IBranchResponse[]>([]);
     const [selectedBranchId, setSelectedBranchId] = useState<number | undefined>(undefined);
+
+    // ADMIN: có thể chọn xem tất cả chi nhánh hoặc 1 chi nhánh cụ thể
+    // MANAGER: chỉ được xem dashboard của chi nhánh mình quản lý
+    const effectiveBranchId = isAdmin ? selectedBranchId : managedBranchId;
+
     const [overview, setOverview] = useState<DashboardOverview | null>(null);
     const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>("yearly");
     const [revenueStats, setRevenueStats] = useState<RevenueStatistics | null>(null);
@@ -125,7 +136,7 @@ const AdminHome = () => {
         setTitle("Tổng quan hệ thống");
     }, [setTitle]);
 
-    // Load branches
+    // Load branches (dùng để hiển thị tên chi nhánh; MANAGER không được đổi lựa chọn)
     useEffect(() => {
         branchService.getAllBranch().then((res) => {
             if (res?.data) setBranches(res.data);
@@ -136,12 +147,12 @@ const AdminHome = () => {
     useEffect(() => {
         setLoading(true);
         statisticsService
-            .getDashboardOverview(selectedBranchId)
+            .getDashboardOverview(effectiveBranchId)
             .then((res) => {
                 if (res?.data) setOverview(res.data);
             })
             .finally(() => setLoading(false));
-    }, [selectedBranchId]);
+    }, [effectiveBranchId]);
 
     // Load revenue stats
     const loadRevenue = useCallback(async () => {
@@ -149,17 +160,17 @@ const AdminHome = () => {
         try {
             let res;
             if (revenuePeriod === "monthly") {
-                res = await statisticsService.getMonthlyRevenue(year, month, selectedBranchId);
+                res = await statisticsService.getMonthlyRevenue(year, month, effectiveBranchId);
             } else if (revenuePeriod === "yearly") {
-                res = await statisticsService.getYearlyRevenue(year, selectedBranchId);
+                res = await statisticsService.getYearlyRevenue(year, effectiveBranchId);
             } else {
-                res = await statisticsService.getWeeklyRevenue(year, selectedBranchId);
+                res = await statisticsService.getWeeklyRevenue(year, effectiveBranchId);
             }
             if (res?.data) setRevenueStats(res.data);
         } finally {
             setRevenueLoading(false);
         }
-    }, [revenuePeriod, year, month, selectedBranchId]);
+    }, [revenuePeriod, year, month, effectiveBranchId]);
 
     useEffect(() => {
         loadRevenue();
@@ -167,10 +178,10 @@ const AdminHome = () => {
 
     // Load salary stats
     useEffect(() => {
-        statisticsService.getYearlySalaryStats(year, selectedBranchId).then((res) => {
+        statisticsService.getYearlySalaryStats(year, effectiveBranchId).then((res) => {
             if (res?.data) setSalaryStats(res.data);
         });
-    }, [year, selectedBranchId]);
+    }, [year, effectiveBranchId]);
 
     const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -458,20 +469,26 @@ const AdminHome = () => {
                     </div>
                 </div>
                 <div className="dashboard__controls">
-                    <select
-                        className="dashboard__select"
-                        value={selectedBranchId ?? ""}
-                        onChange={(e) =>
-                            setSelectedBranchId(e.target.value ? Number(e.target.value) : undefined)
-                        }
-                    >
-                        <option value="">🏢 Tất cả chi nhánh</option>
-                        {branches.map((b) => (
-                            <option key={b.id} value={b.id}>
-                                {b.name}
-                            </option>
-                        ))}
-                    </select>
+                    {isAdmin ? (
+                        <select
+                            className="dashboard__select"
+                            value={selectedBranchId ?? ""}
+                            onChange={(e) =>
+                                setSelectedBranchId(e.target.value ? Number(e.target.value) : undefined)
+                            }
+                        >
+                            <option value="">🏢 Tất cả chi nhánh</option>
+                            {branches.map((b) => (
+                                <option key={b.id} value={b.id}>
+                                    {b.name}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <span className="dashboard__select" style={{ cursor: "default" }}>
+                            🏢 {branches.find((b) => b.id === managedBranchId)?.name ?? "Chi nhánh của bạn"}
+                        </span>
+                    )}
                     <select
                         className="dashboard__select"
                         value={year}
